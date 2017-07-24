@@ -9,11 +9,13 @@ import io.prometheus.wls.rest.domain.MetricsScraper;
 import java.io.StringReader;
 import java.util.Map;
 
+import static io.prometheus.wls.rest.DemoInputs.*;
+
 public class YamlDemo {
 
     @SuppressWarnings("unchecked")
     public static void main(String... args) throws Exception {
-        String yamlString = DemoInputs.YAML_STRING2;
+        String yamlString = YAML_STRING2;
         System.out.println("The following configuration:\n" + yamlString);
         ExporterConfig exporterConfig = ExporterConfig.loadConfig(new StringReader(yamlString));
 
@@ -22,10 +24,11 @@ public class YamlDemo {
         System.out.println(selector.getPrintableRequest());
 
         System.out.println();
-        System.out.println("The response\n" + DemoInputs.RESPONSE + "\nwill be transformed into the following metrics:");
+        String response = compressedJsonForm(RESPONSE);
+        System.out.println("The response\n" + response + "\nwill be transformed into the following metrics:");
 
         MetricsScraper scraper = new MetricsScraper();
-        scraper.scrape(selector, getJsonResponse(DemoInputs.RESPONSE));
+        scraper.scrape(selector, getJsonResponse(response));
 
         for (Map.Entry<String,Object> entry : scraper.getMetrics().entrySet())
             System.out.printf("  %s %s%n", entry.getKey(), entry.getValue());
