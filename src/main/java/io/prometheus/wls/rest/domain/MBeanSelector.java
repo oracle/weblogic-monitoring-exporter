@@ -16,6 +16,7 @@ public class MBeanSelector {
     static final String KEY_NAME = "keyName";
     static final String VALUES = "values";
     static final String PARENT_RUNTIME_LIST = "serverRuntimes";
+    static final String TYPE_FIELD_NAME = "type";
 
     private String type;
     private String prefix;
@@ -152,9 +153,10 @@ public class MBeanSelector {
         return root;
     }
 
-    private JsonQuerySpec toQuerySpec() {
+    JsonQuerySpec toQuerySpec() {
         JsonQuerySpec spec = new JsonQuerySpec();
         if (key != null) spec.addFields(key);
+        if (type != null) spec.addFields(TYPE_FIELD_NAME);
         spec.addFields(values);
 
         for (String selectorName : nestedSelectors.keySet())

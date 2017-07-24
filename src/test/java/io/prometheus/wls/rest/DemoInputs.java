@@ -19,7 +19,7 @@ class DemoInputs {
             "        type: WebAppComponentRuntime\n" +
             "        prefix: webapp_config_\n" +
             "        key: name\n" +
-            "        values: [deploymentState, type, contextRoot, sourceInfo, openSessionsHighCount, openSessionsCurrentCount, sessionsOpenedTotalCount]\n" +
+            "        values: [deploymentState, contextRoot, sourceInfo, openSessionsHighCount, openSessionsCurrentCount, sessionsOpenedTotalCount]\n" +
             "        servlets:\n" +
             "          prefix: weblogic_servlet_\n" +
             "          key: servletName\n" +
@@ -39,7 +39,7 @@ class DemoInputs {
             "      type: WebAppComponentRuntime\n" +
             "      prefix: webapp_config_\n" +
             "      key: name\n" +
-            "      values: [deploymentState, type, contextRoot, sourceInfo, openSessionsHighCount, openSessionsCurrentCount, sessionsOpenedTotalCount]\n" +
+            "      values: [deploymentState, contextRoot, sourceInfo, openSessionsHighCount, openSessionsCurrentCount, sessionsOpenedTotalCount]\n" +
             "      servlets:\n" +
             "        prefix: weblogic_servlet_\n" +
             "        key: servletName\n" +

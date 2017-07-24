@@ -10,6 +10,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * A matcher for Json content that uses JsonPath queries.
+ */
 class JsonPathMatcher {
 
     static CombinablePathMatcher<? extends String[]> hasJsonPath(String jsonPath) {
