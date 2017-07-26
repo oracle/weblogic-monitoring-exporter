@@ -2,7 +2,7 @@ package io.prometheus.wls.rest.domain;
 
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.Reader;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +13,8 @@ import java.util.Map;
  */
 public class ExporterConfig {
     static final String START_DELAY_SECONDS = "startDelaySeconds";
+    static final String HOST = "host";
+    static final String PORT = "port";
     static final String USERNAME = "username";
     static final String PASSWORD = "password";
     private static final String QUERIES = "queries";
@@ -21,15 +23,17 @@ public class ExporterConfig {
     private String userName = "";
     private String password = "";
     private MBeanSelector[] queries;
+    private String host;
+    private int port;
 
     /**
      * Loads a YAML configuration to create a new configuration object.
-     * @param reader a reader of a YAML configuration.
+     * @param inputStream a reader of a YAML configuration.
      * @return an ExporterConfig object that matches the parsed YAML
      */
     @SuppressWarnings("unchecked")
-    public static ExporterConfig loadConfig(Reader reader) {
-        return loadConfig((Map<String, Object>) new Yaml().load(reader));
+    public static ExporterConfig loadConfig(InputStream inputStream) {
+        return loadConfig((Map<String, Object>) new Yaml().load(inputStream));
     }
 
     /**
@@ -51,6 +55,8 @@ public class ExporterConfig {
         if (yaml.containsKey(START_DELAY_SECONDS)) startDelaySeconds = MapUtils.getIntegerValue(yaml, START_DELAY_SECONDS);
         if (yaml.containsKey(USERNAME)) userName = MapUtils.getStringValue(yaml, USERNAME);
         if (yaml.containsKey(PASSWORD)) password = MapUtils.getStringValue(yaml, PASSWORD);
+        if (yaml.containsKey(HOST)) host = MapUtils.getStringValue(yaml, HOST);
+        if (yaml.containsKey(PORT)) port = MapUtils.getIntegerValue(yaml, PORT);
         if (yaml.containsKey(QUERIES)) queries = readQueries(yaml.get(QUERIES));
     }
 
@@ -83,11 +89,19 @@ public class ExporterConfig {
         return startDelaySeconds;
     }
 
-    String getUserName() {
+    public String getUserName() {
         return userName;
     }
 
-    String getPassword() {
+    public String getPassword() {
         return password;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public int getPort() {
+        return port;
     }
 }

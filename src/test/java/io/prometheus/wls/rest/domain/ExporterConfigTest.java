@@ -10,6 +10,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 public class ExporterConfigTest {
+    private static final String EXPECTED_HOST = "somehost";
+    private static final int EXPECTED_PORT = 3456;
     private static final String EXPECTED_USERNAME = "testuser";
     private static final String EXPECTED_PASSWORD = "letmein";
     private static final String YAML_STRING = "---\n" +
@@ -83,6 +85,17 @@ public class ExporterConfigTest {
 
         assertThat(config.getUserName(), equalTo(EXPECTED_USERNAME));
         assertThat(config.getPassword(), equalTo(EXPECTED_PASSWORD));
+    }
+
+    @Test
+    public void whenSpecified_readHostAndPortFromYaml() throws Exception {
+        yamlConfig.put(ExporterConfig.HOST, EXPECTED_HOST);
+        yamlConfig.put(ExporterConfig.PORT, EXPECTED_PORT);
+
+        ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
+
+        assertThat(config.getHost(), equalTo(EXPECTED_HOST));
+        assertThat(config.getPort(), equalTo(EXPECTED_PORT));
     }
 
     @Test

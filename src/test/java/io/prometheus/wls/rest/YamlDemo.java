@@ -6,7 +6,7 @@ import io.prometheus.wls.rest.domain.ExporterConfig;
 import io.prometheus.wls.rest.domain.MBeanSelector;
 import io.prometheus.wls.rest.domain.MetricsScraper;
 
-import java.io.StringReader;
+import java.io.ByteArrayInputStream;
 import java.util.Map;
 
 import static io.prometheus.wls.rest.DemoInputs.*;
@@ -17,7 +17,7 @@ public class YamlDemo {
     public static void main(String... args) throws Exception {
         String yamlString = YAML_STRING2;
         System.out.println("The following configuration:\n" + yamlString);
-        ExporterConfig exporterConfig = ExporterConfig.loadConfig(new StringReader(yamlString));
+        ExporterConfig exporterConfig = ExporterConfig.loadConfig(new ByteArrayInputStream(yamlString.getBytes()));
 
         System.out.println("Generates the query:");
         MBeanSelector selector = exporterConfig.getQueries()[0];
