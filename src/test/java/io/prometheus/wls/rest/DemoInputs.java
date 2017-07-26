@@ -51,10 +51,7 @@ class DemoInputs {
     static String compressedJsonForm(String jsonRequest) {
         StringBuilder sb = new StringBuilder();
         for (char c : jsonRequest.toCharArray())
-            if (c == '\'')
-                sb.append('"');
-            else if (!Character.isWhitespace(c) || c == Character.LINE_SEPARATOR)
-                sb.append(c);
+            sb.append(c == '\'' ? '"' : c);
 
         return sb.toString();
     }
