@@ -1,13 +1,13 @@
 package io.prometheus.wls.rest.domain;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
 import org.junit.Test;
 
 import java.io.Serializable;
 import java.util.Map;
 
 import static io.prometheus.wls.rest.domain.JsonPathMatcher.hasJsonPath;
-import static io.prometheus.wls.rest.domain.JsonPathMatcher.querySpec;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
@@ -135,6 +135,10 @@ public class MBeanSelectorTest {
                 ImmutableMap.of(MBeanSelector.VALUES, EXPECTED_COMPONENT_VALUES));
 
         assertThat(querySpec(selector), hasJsonPath("$.fields").withValues(EXPECTED_COMPONENT_VALUES));
+    }
+
+    private static String querySpec(MBeanSelector selector) {
+        return new Gson().toJson(selector.toQuerySpec());
     }
 
     @Test

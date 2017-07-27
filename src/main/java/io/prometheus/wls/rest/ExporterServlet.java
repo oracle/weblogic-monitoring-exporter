@@ -21,7 +21,8 @@ public class ExporterServlet extends HttpServlet {
     private WebClient webClient;
     private ExporterConfig config;
 
-    @SuppressWarnings("WeakerAccess")
+    @SuppressWarnings("unused")  // production constructor
+
     public ExporterServlet() {
         this(new WebClientImpl());
     }

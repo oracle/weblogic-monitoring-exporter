@@ -1,6 +1,5 @@
 package io.prometheus.wls.rest.domain;
 
-import com.google.gson.Gson;
 import com.jayway.jsonpath.JsonPath;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
@@ -11,16 +10,23 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A matcher for Json content that uses JsonPath queries.
+ * A matcher for Json array-type that uses JsonPath queries.
+ *
+ * With this matcher, it is possible to define Hamcrest assertions such as:
+ *
+ *    assertThat(webClient.jsonQuery,
+ *               hasJsonPath("$.children.serverRuntimes.children.groups.fields").withValues("name", "sample1"));
+ *
+ *    assertThat(querySpec(selector), hasJsonPath("$.fields").includingValues(MBeanSelector.TYPE_FIELD_NAME));
+ *
+ *    The difference in the query types is that "withValues" requires the specified values to be the full set
+ *    of values in the array, while "includingValues" passes as long as all of those specified are present,
+ *    even if the array contains other values.
  */
 public class JsonPathMatcher {
 
-    public static CombinablePathMatcher<? extends String[]> hasJsonPath(String jsonPath) {
-        return new CombinablePathMatcher<>(jsonPath);
-    }
-
-    static String querySpec(MBeanSelector selector) {
-        return new Gson().toJson(selector.toQuerySpec());
+    public static CombinablePathMatcher hasJsonPath(String jsonPath) {
+        return new CombinablePathMatcher(jsonPath);
     }
 
     abstract static class JsonPathArrayMatcher extends TypeSafeDiagnosingMatcher<String> {
@@ -71,7 +77,7 @@ public class JsonPathMatcher {
         }
     }
 
-    public static class CombinablePathMatcher<X> {
+    public static class CombinablePathMatcher {
         private String jsonPath;
 
         CombinablePathMatcher(String jsonPath) {
