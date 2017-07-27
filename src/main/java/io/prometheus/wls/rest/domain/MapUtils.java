@@ -79,11 +79,12 @@ public class MapUtils {
     }
 
     /**
-     * Returns true of the specified value is a non-empty string.
+     * Returns true if the specified value is a null or empty string.
      * @param s a string to check
-     * @return true if the string has at least one character
+     * @return true if the string has no contents
      */
-    public static boolean isNotNullOrEmptyString(String s) {
-        return s != null && s.length() > 0;
+    public static boolean isNullOrEmptyString(String s) {
+        return s == null || s.length() == 0;
     }
+
 }

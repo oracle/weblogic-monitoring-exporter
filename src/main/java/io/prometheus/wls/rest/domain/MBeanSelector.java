@@ -2,6 +2,7 @@ package io.prometheus.wls.rest.domain;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,6 +56,14 @@ public class MBeanSelector {
         }
     }
 
+    /**
+     * Creates a set of metrics from a Json object
+     * @param response a parsed JSON REST response
+     */
+    public Map<String, Object> scrapeMetrics(JsonObject response) {
+        return new MetricsScraper().scrape(this, response);
+    }
+
     @SuppressWarnings("unchecked")
     private MBeanSelector createSelector(String key, Object value) {
         if (!(value instanceof Map))
@@ -104,7 +113,7 @@ public class MBeanSelector {
      * @return the qualifier name for the exported metric
      */
     String getKeyName() {
-        return MapUtils.isNotNullOrEmptyString(keyName) ? keyName : key;
+        return MapUtils.isNullOrEmptyString(keyName) ? key : keyName;
     }
 
     /**

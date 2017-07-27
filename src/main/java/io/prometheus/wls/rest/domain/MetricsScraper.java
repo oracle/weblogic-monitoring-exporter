@@ -8,18 +8,16 @@ import com.google.gson.JsonPrimitive;
 import java.util.HashMap;
 import java.util.Map;
 
+import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
+
 /**
  * A class which can scrape metrics from a JSON REST response.
  */
-public class MetricsScraper {
+class MetricsScraper {
     private static final char QUOTE = '"';
     private Map<String, Object> metrics = new HashMap<>();
 
-    /**
-     * Returns the metrics from the last scrape.
-     * @return a map of metric name to value
-     */
-    public Map<String, Object> getMetrics() {
+    Map<String, Object> getMetrics() {
         return metrics;
     }
 
@@ -28,16 +26,14 @@ public class MetricsScraper {
      * @param selector an mbean selector, configured with the metrics we want to find
      * @param response a parsed JSON REST response
      */
-    public void scrape(MBeanSelector selector, JsonObject response) {
-        clearMetrics();
+    Map<String, Object> scrape(MBeanSelector selector, JsonObject response) {
+        metrics = new HashMap<>();
         if (selector.getNestedSelectors().containsKey(MBeanSelector.PARENT_RUNTIME_LIST))
             scrapeItem(response, selector, "");
         else
             scrapeItemList(response.get(MBeanSelector.PARENT_RUNTIME_LIST).getAsJsonObject(), selector, "");
-    }
 
-    private void clearMetrics() {
-        metrics = new HashMap<>();
+        return metrics;
     }
 
     private void scrapeItemList(JsonObject itemWrapper, MBeanSelector beanSelector, String parentQualifiers) {
@@ -72,7 +68,7 @@ public class MetricsScraper {
 
     private String getMetricName(String valueName, MBeanSelector beanSelector, String qualifiers) {
         StringBuilder sb = new StringBuilder(beanSelector.getPrefix()).append(valueName);
-        if (MapUtils.isNotNullOrEmptyString(qualifiers))
+        if (!isNullOrEmptyString(qualifiers))
             sb.append('{').append(qualifiers).append('}');
         return sb.toString();
     }
@@ -87,7 +83,7 @@ public class MetricsScraper {
     private String getItemQualifiers(JsonObject object, MBeanSelector beanSelector, String parentQualifiers) {
         String qualifiers = parentQualifiers;
         if (object.has(beanSelector.getKey())) {
-            if (MapUtils.isNotNullOrEmptyString(qualifiers)) qualifiers += ',';
+            if (!isNullOrEmptyString(qualifiers)) qualifiers += ',';
             qualifiers += (beanSelector.getKeyName() + '=' + asQuotedString(object.get(beanSelector.getKey())));
         }
         return qualifiers;

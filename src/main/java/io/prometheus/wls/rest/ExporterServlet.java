@@ -3,8 +3,7 @@ package io.prometheus.wls.rest;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.prometheus.wls.rest.domain.ExporterConfig;
-import io.prometheus.wls.rest.domain.MapUtils;
-import io.prometheus.wls.rest.domain.MetricsScraper;
+import io.prometheus.wls.rest.domain.MBeanSelector;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -14,6 +13,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Map;
+
+import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
 
 public class ExporterServlet extends HttpServlet {
 
@@ -47,19 +49,23 @@ public class ExporterServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String response = webClient.doQuery(config.getQueries()[0].getRequest());
-
-        if (MapUtils.isNotNullOrEmptyString(response))
-            generateMetricsFromJsonResponse(resp, response);
+        try (PrintStream ps = new PrintStream(resp.getOutputStream())) {
+            for (MBeanSelector selector : config.getQueries())
+                displayMetrics(ps, selector);
+        }
     }
 
-    private void generateMetricsFromJsonResponse(HttpServletResponse resp, String response) throws IOException {
-        MetricsScraper scraper = new MetricsScraper();
-        scraper.scrape(config.getQueries()[0], toJsonObject(response));
+    private void displayMetrics(PrintStream ps, MBeanSelector selector) throws IOException {
+        Map<String, Object> metrics = getMetrics(selector);
+        if (metrics != null)
+            metrics.forEach((name, value) -> ps.println(name + " " + value));
+    }
 
-        try (PrintStream ps = new PrintStream(resp.getOutputStream())) {
-            scraper.getMetrics().forEach((s, o) -> ps.println(s + " " + o));
-        }
+    private Map<String, Object> getMetrics(MBeanSelector selector) throws IOException {
+        String jsonResponse = webClient.doQuery(selector.getRequest());
+        if (isNullOrEmptyString(jsonResponse)) return null;
+
+        return selector.scrapeMetrics(toJsonObject(jsonResponse));
     }
 
     private JsonObject toJsonObject(String response) {

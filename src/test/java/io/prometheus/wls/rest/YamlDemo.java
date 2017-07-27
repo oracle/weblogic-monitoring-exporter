@@ -4,10 +4,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.prometheus.wls.rest.domain.ExporterConfig;
 import io.prometheus.wls.rest.domain.MBeanSelector;
-import io.prometheus.wls.rest.domain.MetricsScraper;
 
 import java.io.ByteArrayInputStream;
-import java.util.Map;
 
 import static io.prometheus.wls.rest.DemoInputs.*;
 
@@ -27,12 +25,8 @@ public class YamlDemo {
         String response = compressedJsonForm(RESPONSE);
         System.out.println("The response\n" + response + "\nwill be transformed into the following metrics:");
 
-        MetricsScraper scraper = new MetricsScraper();
-        scraper.scrape(selector, getJsonResponse(response));
-
-        for (Map.Entry<String,Object> entry : scraper.getMetrics().entrySet())
-            System.out.printf("  %s %s%n", entry.getKey(), entry.getValue());
-
+        selector.scrapeMetrics(getJsonResponse(response)).
+                forEach((name, value) -> System.out.printf("  %s %s%n", name, value));
     }
 
     private static JsonObject getJsonResponse(String jsonString) {
