@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * Some common utilities for dealing with the maps produced for json and yaml
  */
-class MapUtils {
+public class MapUtils {
 
     private static final String ILLEGAL_VALUE_FORMAT = "Illegal value for %s: %s. Value must be %s";
 
@@ -83,7 +83,7 @@ class MapUtils {
      * @param s a string to check
      * @return true if the string has at least one character
      */
-    static boolean isNotNullOrEmptyString(String s) {
+    public static boolean isNotNullOrEmptyString(String s) {
         return s != null && s.length() > 0;
     }
 }

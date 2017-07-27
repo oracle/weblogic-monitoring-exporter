@@ -13,14 +13,17 @@ import java.util.Set;
 /**
  * A matcher for Json content that uses JsonPath queries.
  */
-class JsonPathMatcher {
+public class JsonPathMatcher {
 
-    static CombinablePathMatcher<? extends String[]> hasJsonPath(String jsonPath) {
+    public static CombinablePathMatcher<? extends String[]> hasJsonPath(String jsonPath) {
         return new CombinablePathMatcher<>(jsonPath);
     }
 
+    static String querySpec(MBeanSelector selector) {
+        return new Gson().toJson(selector.toQuerySpec());
+    }
 
-    abstract static class JsonPathArrayMatcher extends TypeSafeDiagnosingMatcher<JsonQuerySpec> {
+    abstract static class JsonPathArrayMatcher extends TypeSafeDiagnosingMatcher<String> {
         private String jsonPath;
         private Set<String> expectedValues;
 
@@ -30,9 +33,7 @@ class JsonPathMatcher {
         }
 
         @Override
-        protected boolean matchesSafely(JsonQuerySpec querySpec, Description description) {
-            String jsonString = new Gson().toJson(querySpec);
-
+        protected boolean matchesSafely(String jsonString, Description description) {
             List<String> actualValues = JsonPath.read(jsonString, jsonPath);
             if (matches(new HashSet<>(actualValues), expectedValues)) return true;
 
@@ -70,14 +71,14 @@ class JsonPathMatcher {
         }
     }
 
-    static class CombinablePathMatcher<X> {
+    public static class CombinablePathMatcher<X> {
         private String jsonPath;
 
         CombinablePathMatcher(String jsonPath) {
             this.jsonPath = jsonPath;
         }
 
-        JsonPathArrayMatcher withValues(String... expectedValue) {
+        public JsonPathArrayMatcher withValues(String... expectedValue) {
             return new JsonPathWholeArrayMatcher(jsonPath, expectedValue);
         }
 

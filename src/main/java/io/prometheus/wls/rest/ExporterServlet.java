@@ -1,6 +1,10 @@
 package io.prometheus.wls.rest;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.prometheus.wls.rest.domain.ExporterConfig;
+import io.prometheus.wls.rest.domain.MapUtils;
+import io.prometheus.wls.rest.domain.MetricsScraper;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -9,10 +13,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintStream;
 
 public class ExporterServlet extends HttpServlet {
 
+    static final String CONFIGURATION_FILE = "configuration";
     private WebClient webClient;
+    private ExporterConfig config;
 
     @SuppressWarnings("WeakerAccess")
     public ExporterServlet() {
@@ -26,7 +33,7 @@ public class ExporterServlet extends HttpServlet {
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
         try {
-            ExporterConfig config = ExporterConfig.loadConfig(Files.openFile(servletConfig.getInitParameter("configuration")));
+            config = ExporterConfig.loadConfig(Files.openFile(servletConfig.getInitParameter(CONFIGURATION_FILE)));
             webClient.initialize(createQueryUrl(config), config.getUserName(), config.getPassword());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -39,6 +46,22 @@ public class ExporterServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.doGet(req, resp);
+        String response = webClient.doQuery(config.getQueries()[0].getRequest());
+
+        if (MapUtils.isNotNullOrEmptyString(response))
+            generateMetricsFromJsonResponse(resp, response);
+    }
+
+    private void generateMetricsFromJsonResponse(HttpServletResponse resp, String response) throws IOException {
+        MetricsScraper scraper = new MetricsScraper();
+        scraper.scrape(config.getQueries()[0], toJsonObject(response));
+
+        try (PrintStream ps = new PrintStream(resp.getOutputStream())) {
+            scraper.getMetrics().forEach((s, o) -> ps.println(s + " " + o));
+        }
+    }
+
+    private JsonObject toJsonObject(String response) {
+        return new JsonParser().parse(response).getAsJsonObject();
     }
 }

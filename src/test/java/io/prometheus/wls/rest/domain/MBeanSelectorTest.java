@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.Map;
 
 import static io.prometheus.wls.rest.domain.JsonPathMatcher.hasJsonPath;
+import static io.prometheus.wls.rest.domain.JsonPathMatcher.querySpec;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
@@ -133,7 +134,7 @@ public class MBeanSelectorTest {
         MBeanSelector selector = MBeanSelector.create(
                 ImmutableMap.of(MBeanSelector.VALUES, EXPECTED_COMPONENT_VALUES));
 
-        assertThat(selector.toQuerySpec(), hasJsonPath("$.fields").withValues(EXPECTED_COMPONENT_VALUES));
+        assertThat(querySpec(selector), hasJsonPath("$.fields").withValues(EXPECTED_COMPONENT_VALUES));
     }
 
     @Test
@@ -141,7 +142,7 @@ public class MBeanSelectorTest {
         MBeanSelector selector = MBeanSelector.create(
                 ImmutableMap.of(MBeanSelector.VALUES, EXPECTED_COMPONENT_VALUES, MBeanSelector.KEY, "name"));
 
-        assertThat(selector.toQuerySpec(), hasJsonPath("$.fields").includingValues("name"));
+        assertThat(querySpec(selector), hasJsonPath("$.fields").includingValues("name"));
     }
 
     @Test
@@ -149,7 +150,7 @@ public class MBeanSelectorTest {
         MBeanSelector selector = MBeanSelector.create(
                 ImmutableMap.of(MBeanSelector.VALUES, EXPECTED_COMPONENT_VALUES, MBeanSelector.TYPE, "OneTypeOnly"));
 
-        assertThat(selector.toQuerySpec(), hasJsonPath("$.fields").includingValues(MBeanSelector.TYPE_FIELD_NAME));
+        assertThat(querySpec(selector), hasJsonPath("$.fields").includingValues(MBeanSelector.TYPE_FIELD_NAME));
     }
 
     @Test
@@ -157,7 +158,7 @@ public class MBeanSelectorTest {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of("servlets",
                 ImmutableMap.of(MBeanSelector.VALUES, new String[] {"first", "second"})));
 
-        assertThat(selector.toQuerySpec(), hasJsonPath("$.children.servlets.fields").withValues("first", "second"));
+        assertThat(querySpec(selector), hasJsonPath("$.children.servlets.fields").withValues("first", "second"));
     }
 
     @Test
