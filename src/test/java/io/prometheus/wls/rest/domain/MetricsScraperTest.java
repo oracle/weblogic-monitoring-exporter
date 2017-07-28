@@ -206,6 +206,11 @@ public class MetricsScraperTest {
     }
 
     @Test
+    public void whenResponseLacksServerRuntimes_generateEmptyMetrics() throws Exception {
+        assertThat(scraper.scrape(MBeanSelector.create(getFullMap()), getJsonResponse("{}")), anEmptyMap());
+    }
+
+    @Test
     public void generateFromFullResponse() throws Exception {
         Map<String, Object> metrics = scraper.scrape(MBeanSelector.create(getFullMap()), getJsonResponse(RESPONSE));
         

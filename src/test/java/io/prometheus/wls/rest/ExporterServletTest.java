@@ -2,28 +2,24 @@ package io.prometheus.wls.rest;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
-import com.meterware.simplestub.Memento;
-import com.meterware.simplestub.StaticStubSupport;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
 import static io.prometheus.wls.rest.ExporterServlet.CONFIGURATION_FILE;
+import static io.prometheus.wls.rest.ExporterServletTest.ServletConfigStub.withNoParams;
 import static io.prometheus.wls.rest.ExporterServletTest.ServletConfigStub.withParams;
 import static io.prometheus.wls.rest.domain.JsonPathMatcher.hasJsonPath;
 import static org.hamcrest.Matchers.containsString;
@@ -31,12 +27,11 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
 
 public class ExporterServletTest {
-    private static final String REST_YML = "rest.yml";
+    private static final String REST_YML = "/rest.yml";
     private static final String HOST = "myhost";
     private static final int PORT = 7654;
     private static final String USER = "system";
     private static final String PASSWORD = "gumby1234";
-    private List<Memento> mementos = new ArrayList<>();
     private WebClientStub webClient = new WebClientStub();
     private ExporterServlet servlet = new ExporterServlet(webClient);
     private HttpServletRequestStub request = createStrictStub(HttpServletRequestStub.class);
@@ -44,17 +39,39 @@ public class ExporterServletTest {
 
     @Before
     public void setUp() throws Exception {
-        mementos.add(InMemoryFileSystem.install());
+        InMemoryFileSystem.install();
     }
 
-    @After
-    public void tearDown() throws Exception {
-        for (Memento memento : mementos) memento.revert();
+    @Test
+    public void whenConfigParamNotFound_getReportsTheIssue() throws Exception {
+        servlet.init(withNoParams());
+
+        servlet.doGet(request, response);
+
+        assertThat(toHtml(response), containsString(CONFIGURATION_FILE));
+    }
+
+    @Test
+    public void whenConfigFileNameNotAbsolute_getReportsTheIssue() throws Exception {
+        servlet.init(withParams(CONFIGURATION_FILE, "no.yml"));
+
+        servlet.doGet(request, response);
+
+        assertThat(toHtml(response), containsString("start with"));
+    }
+
+    @Test
+    public void whenConfigFileNotFound_getReportsTheIssue() throws Exception {
+        servlet.init(withParams(CONFIGURATION_FILE, REST_YML));
+
+        servlet.doGet(request, response);
+
+        assertThat(toHtml(response), containsString(REST_YML));
     }
 
     @Test
     public void afterInit_servletHasAuthenticationCredentials() throws Exception {
-        InMemoryFileSystem.defineFile(REST_YML, String.format("---\nusername: %s\npassword: %s\n", USER, PASSWORD));
+        InMemoryFileSystem.defineResource(REST_YML, String.format("---\nusername: %s\npassword: %s\n", USER, PASSWORD));
 
         servlet.init(withParams(CONFIGURATION_FILE, REST_YML));
 
@@ -64,7 +81,7 @@ public class ExporterServletTest {
 
     @Test
     public void afterInit_servletHasConnectionUrl() throws Exception {
-        InMemoryFileSystem.defineFile(REST_YML, String.format("---\nhost: %s\nport: %d\n", HOST, PORT));
+        InMemoryFileSystem.defineResource(REST_YML, String.format("---\nhost: %s\nport: %d\n", HOST, PORT));
 
         servlet.init(withParams(CONFIGURATION_FILE, REST_YML));
 
@@ -74,7 +91,7 @@ public class ExporterServletTest {
 
     @Test
     public void onGet_sendJsonQuery() throws Exception {
-        InMemoryFileSystem.defineFile(REST_YML, "---\nqueries:\n- groups:\n    key: name\n    values: sample1");
+        InMemoryFileSystem.defineResource(REST_YML, "---\nqueries:\n- groups:\n    key: name\n    values: sample1");
         servlet.init(withParams(CONFIGURATION_FILE, REST_YML));
 
         servlet.doGet(request, response);
@@ -86,7 +103,7 @@ public class ExporterServletTest {
     @Test
     public void onGet_displayMetrics() throws Exception {
         webClient.response = new Gson().toJson(getResponseMap());
-        InMemoryFileSystem.defineFile(REST_YML, "---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: sample1");
+        InMemoryFileSystem.defineResource(REST_YML, "---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: sample1");
         servlet.init(withParams(CONFIGURATION_FILE, REST_YML));
 
         servlet.doGet(request, response);
@@ -133,39 +150,57 @@ public class ExporterServletTest {
         }
     }
 
-    static class InMemoryFileSystem implements FileSystem {
-        private static Map<String, String> files;
+    static class InMemoryFileSystem {
+        private static Map<String, InputStream> resources;
 
-        static Memento install() throws NoSuchFieldException {
-            files = new HashMap<>();
-            return StaticStubSupport.install(Files.class, "fileSystem", new InMemoryFileSystem());
+        static void install() throws NoSuchFieldException {
+            resources = new HashMap<>();
         }
 
-        static void defineFile(String filePath, String contents) {
-            files.put(filePath, contents);
+        static void defineResource(String filePath, String contents) {
+            resources.put(filePath, toInputStream(contents));
         }
 
-        @Override
-        public InputStream openFileFromClasspath(String fileName) throws FileNotFoundException {
-            return new ByteArrayInputStream(files.get(fileName).getBytes());
+        private static InputStream toInputStream(String contents) {
+            return new ByteArrayInputStream(contents.getBytes());
         }
     }
 
 
     abstract static class ServletConfigStub implements ServletConfig {
+        static ServletConfig withNoParams() {
+            return createStrictStub(ServletConfigStub.class, ImmutableMap.of());
+        }
+
         static ServletConfig withParams(String name1, String value1) {
             return createStrictStub(ServletConfigStub.class, ImmutableMap.of(name1, value1));
         }
 
         private Map<String,String> params;
+        private ServletContext context;
 
         public ServletConfigStub(Map<String, String> params) {
             this.params = params;
+            context = createStrictStub(ServletContextStub.class);
         }
 
         @Override
         public String getInitParameter(String s) {
             return params.get(s);
+        }
+
+        @Override
+        public ServletContext getServletContext() {
+            return context;
+        }
+    }
+
+    abstract static class ServletContextStub implements ServletContext {
+        private Map<String,String> params;
+
+        @Override
+        public InputStream getResourceAsStream(String path) {
+            return !REST_YML.equals(path) ?  null : InMemoryFileSystem.resources.get(path);
         }
     }
 

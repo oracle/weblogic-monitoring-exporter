@@ -1,5 +1,6 @@
 package io.prometheus.wls.rest;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -11,10 +12,13 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicHeader;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
+import java.util.Collections;
 
 public class WebClientImpl implements WebClient {
     private String url;
@@ -34,10 +38,11 @@ public class WebClientImpl implements WebClient {
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, password);
         provider.setCredentials(AuthScope.ANY, credentials);
 
-        try (CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build()) {
+        try (CloseableHttpClient httpClient = createHttpClient(provider)) {
             HttpPost query = new HttpPost(url);
             query.setEntity(new StringEntity(jsonQuery, ContentType.APPLICATION_JSON));
             CloseableHttpResponse response = httpClient.execute(query);
+            if (response.getStatusLine().getStatusCode() == 400) throw new RestQueryException();
             HttpEntity responseEntity = response.getEntity();
             if (responseEntity != null) {
                 try (InputStream inputStream = responseEntity.getContent()) {
@@ -53,5 +58,16 @@ public class WebClientImpl implements WebClient {
             }
         }
         return null;
+    }
+
+    private CloseableHttpClient createHttpClient(CredentialsProvider provider) {
+        return HttpClientBuilder.create()
+                .setDefaultCredentialsProvider(provider)
+                .setDefaultHeaders(getDefaultHeaders())
+                .build();
+    }
+
+    private Collection<? extends Header> getDefaultHeaders() {
+        return Collections.singleton(new BasicHeader("X-Requested-By", "rest-exporter"));
     }
 }

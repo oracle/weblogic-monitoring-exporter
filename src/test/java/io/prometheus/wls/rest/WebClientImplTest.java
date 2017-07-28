@@ -39,6 +39,23 @@ public class WebClientImplTest extends HttpUserAgentTest {
     }
 
     @Test
+    public void sendXRequestedByHeader() throws Exception {
+        defineResource("checkXRequested", new PseudoServlet() {
+            public WebResource getPostResponse() {
+                String header = getHeader("X-Requested-By");
+                if (header == null) {
+                    return new WebResource("unauthorized", "text/plain", 400);
+                } else {
+                    return new WebResource("", "text/plain");
+                }
+            }
+        });
+
+        webClient.initialize(getHostPath() + "/checkXRequested", "aa", "bb");
+        webClient.doQuery("abced");
+    }
+
+    @Test
     public void sendCredentialsWhenChallenged() throws Exception {
         defineResource("challenge", new PseudoServlet() {
             public WebResource getPostResponse() {

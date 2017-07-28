@@ -30,7 +30,7 @@ class MetricsScraper {
         metrics = new HashMap<>();
         if (selector.getNestedSelectors().containsKey(MBeanSelector.PARENT_RUNTIME_LIST))
             scrapeItem(response, selector, "");
-        else
+        else if (response.has(MBeanSelector.PARENT_RUNTIME_LIST))
             scrapeItemList(response.get(MBeanSelector.PARENT_RUNTIME_LIST).getAsJsonObject(), selector, "");
 
         return metrics;

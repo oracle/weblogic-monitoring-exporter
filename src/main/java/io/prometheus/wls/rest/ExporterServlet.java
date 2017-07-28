@@ -10,8 +10,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.Map;
 
@@ -22,6 +22,7 @@ public class ExporterServlet extends HttpServlet {
     static final String CONFIGURATION_FILE = "configuration";
     private WebClient webClient;
     private ExporterConfig config;
+    private String initError;
 
     @SuppressWarnings("unused")  // production constructor
 
@@ -35,12 +36,30 @@ public class ExporterServlet extends HttpServlet {
 
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
-        try {
-            config = ExporterConfig.loadConfig(Files.openFile(servletConfig.getInitParameter(CONFIGURATION_FILE)));
-            webClient.initialize(createQueryUrl(config), config.getUserName(), config.getPassword());
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        InputStream configurationFile = getConfigurationFile(servletConfig);
+        if (configurationFile == null) return;
+
+        config = ExporterConfig.loadConfig(configurationFile);
+        webClient.initialize(createQueryUrl(config), config.getUserName(), config.getPassword());
+    }
+
+    private InputStream getConfigurationFile(ServletConfig config) {
+        String fileName = config.getInitParameter(CONFIGURATION_FILE);
+        if (fileName == null)
+            return configurationNotFound("No value specified for init parameter '" + CONFIGURATION_FILE + "'");
+        else if (!fileName.startsWith("/"))
+            return configurationNotFound("init parameter '" + CONFIGURATION_FILE + "' must start with '/'");
+
+        InputStream configurationFile = config.getServletContext().getResourceAsStream(fileName);
+        if (configurationFile == null)
+            return configurationNotFound("Configuration file not found at " + fileName);
+
+        return configurationFile;
+     }
+
+    private InputStream configurationNotFound(String message) {
+        initError = message;
+        return null;
     }
 
     private String createQueryUrl(ExporterConfig config) {
@@ -50,15 +69,26 @@ public class ExporterServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try (PrintStream ps = new PrintStream(resp.getOutputStream())) {
-            for (MBeanSelector selector : config.getQueries())
-                displayMetrics(ps, selector);
+            if (initError != null)
+                ps.println(initError);
+            else
+                printMetrics(ps);
         }
     }
 
+    private void printMetrics(PrintStream ps) throws IOException {
+        for (MBeanSelector selector : config.getQueries())
+            displayMetrics(ps, selector);
+    }
+
     private void displayMetrics(PrintStream ps, MBeanSelector selector) throws IOException {
-        Map<String, Object> metrics = getMetrics(selector);
-        if (metrics != null)
-            metrics.forEach((name, value) -> ps.println(name + " " + value));
+        try {
+            Map<String, Object> metrics = getMetrics(selector);
+            if (metrics != null)
+                metrics.forEach((name, value) -> ps.println(name + " " + value));
+        } catch (RestQueryException e) {
+            ps.println("REST service was unable to handle this query\n" + selector.getPrintableRequest());
+        }
     }
 
     private Map<String, Object> getMetrics(MBeanSelector selector) throws IOException {
