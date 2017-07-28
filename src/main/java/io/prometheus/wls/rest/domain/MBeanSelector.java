@@ -16,7 +16,6 @@ public class MBeanSelector {
     static final String KEY = "key";
     static final String KEY_NAME = "keyName";
     static final String VALUES = "values";
-    static final String PARENT_RUNTIME_LIST = "serverRuntimes";
     static final String TYPE_FIELD_NAME = "type";
 
     private String type;
@@ -25,11 +24,6 @@ public class MBeanSelector {
     private String keyName;
     private String[] values = {};
     private Map<String, MBeanSelector> nestedSelectors = new HashMap<>();
-
-    private MBeanSelector(String key, Map<String, MBeanSelector> nestedSelectors) {
-        this.key = key;
-        this.nestedSelectors = nestedSelectors;
-    }
 
     private MBeanSelector(Map<String, Object> map) {
         for (String key : map.keySet()) {
@@ -149,17 +143,7 @@ public class MBeanSelector {
     }
 
     private JsonQuerySpec createQuerySpec() {
-        if (nestedSelectors.containsKey(PARENT_RUNTIME_LIST))
-            return toQuerySpec();
-        else
-            return createQuerySpecWithImplicitParent();
-    }
-
-    private JsonQuerySpec createQuerySpecWithImplicitParent() {
-        JsonQuerySpec root = new JsonQuerySpec();
-        MBeanSelector serverRuntimes = new MBeanSelector("name", nestedSelectors);
-        root.addChild(PARENT_RUNTIME_LIST, serverRuntimes.toQuerySpec());
-        return root;
+        return toQuerySpec();
     }
 
     JsonQuerySpec toQuerySpec() {

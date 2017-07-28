@@ -20,6 +20,7 @@ import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
 public class ExporterServlet extends HttpServlet {
 
     static final String CONFIGURATION_FILE = "configuration";
+    static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
     private WebClient webClient;
     private ExporterConfig config;
     private String initError;
@@ -63,7 +64,7 @@ public class ExporterServlet extends HttpServlet {
     }
 
     private String createQueryUrl(ExporterConfig config) {
-        return String.format("http://%s:%d/management/weblogic/latest/serverRuntime", config.getHost(), config.getPort() );
+        return String.format(URL_PATTERN, config.getHost(), config.getPort() );
     }
 
     @Override

@@ -166,18 +166,15 @@ public class MBeanSelectorTest {
     }
 
     @Test
-    public void generateJsonRequestWithExplicitParent() throws Exception {
-        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of("serverRuntimes",
-                ImmutableMap.of("key", "name", "componentRuntimes", getComponentMap())));
+    public void generateJsonRequest() throws Exception {
+        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of("applicationRuntimes", getApplicationMap()));
 
         assertThat(selector.getRequest(), equalTo(compressedJsonForm(EXPECTED_JSON_REQUEST)));
     }
 
-    @Test
-    public void generateJsonRequestWithImplicitParent() throws Exception {
-        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of("componentRuntimes", getComponentMap()));
-
-        assertThat(selector.getRequest(), equalTo(compressedJsonForm(EXPECTED_JSON_REQUEST)));
+    private Map<String, Object> getApplicationMap() {
+        return ImmutableMap.of(MBeanSelector.KEY, "name",
+                               "componentRuntimes", getComponentMap());
     }
 
     private Map<String, Object> getComponentMap() {
@@ -203,7 +200,7 @@ public class MBeanSelectorTest {
             "{\n" +
             "  'links' : [], 'fields' : [],\n" +
             "  'children': {\n" +
-            "     'serverRuntimes': {\n" +
+            "     'applicationRuntimes': {\n" +
             "        'links': [], 'fields': [ 'name' ],\n" +
             "        'children': {\n" +
             "           'componentRuntimes': {\n" +
@@ -216,8 +213,8 @@ public class MBeanSelectorTest {
             "                 }\n" +  // servlets
             "              }\n" + // componentRuntimes.children
             "           }\n" +  // componentRuntimes
-            "        }\n" + // serverRuntimes.children
-            "     }\n" + // serverRuntimes
+            "        }\n" + // applicationRuntimes.children
+            "     }\n" + // applicationRuntimes
             "  }\n" + // .children
             "}";
 

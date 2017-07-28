@@ -28,11 +28,7 @@ class MetricsScraper {
      */
     Map<String, Object> scrape(MBeanSelector selector, JsonObject response) {
         metrics = new HashMap<>();
-        if (selector.getNestedSelectors().containsKey(MBeanSelector.PARENT_RUNTIME_LIST))
-            scrapeItem(response, selector, "");
-        else if (response.has(MBeanSelector.PARENT_RUNTIME_LIST))
-            scrapeItemList(response.get(MBeanSelector.PARENT_RUNTIME_LIST).getAsJsonObject(), selector, "");
-
+        scrapeItem(response, selector, "");
         return metrics;
     }
 

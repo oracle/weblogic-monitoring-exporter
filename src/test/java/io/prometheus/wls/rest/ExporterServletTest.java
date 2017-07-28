@@ -32,6 +32,7 @@ public class ExporterServletTest {
     private static final int PORT = 7654;
     private static final String USER = "system";
     private static final String PASSWORD = "gumby1234";
+    static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
     private WebClientStub webClient = new WebClientStub();
     private ExporterServlet servlet = new ExporterServlet(webClient);
     private HttpServletRequestStub request = createStrictStub(HttpServletRequestStub.class);
@@ -85,8 +86,7 @@ public class ExporterServletTest {
 
         servlet.init(withParams(CONFIGURATION_FILE, REST_YML));
 
-        assertThat(webClient.url,
-                   equalTo(String.format("http://%s:%d/management/weblogic/latest/serverRuntime", HOST, PORT)));
+        assertThat(webClient.url, equalTo(String.format(URL_PATTERN, HOST, PORT)));
     }
 
     @Test
@@ -97,7 +97,7 @@ public class ExporterServletTest {
         servlet.doGet(request, response);
 
         assertThat(webClient.jsonQuery,
-                   hasJsonPath("$.children.serverRuntimes.children.groups.fields").withValues("name", "sample1"));
+                   hasJsonPath("$.children.groups.fields").withValues("name", "sample1"));
     }
 
     @Test
@@ -117,12 +117,11 @@ public class ExporterServletTest {
     }
 
     private Map getResponseMap() {
-        return ImmutableMap.of("serverRuntimes",
-                new ItemHolder(ImmutableMap.of("groups", new ItemHolder(
+        return ImmutableMap.of("groups", new ItemHolder(
                     ImmutableMap.of("name", "first", "sample1", "red"),
                     ImmutableMap.of("name", "second", "sample1", "green"),
                     ImmutableMap.of("name", "third", "sample1", "blue")
-        ))));
+        ));
     }
 
     // todo test: no config, no queries, multiple queries

@@ -13,10 +13,8 @@ import static org.hamcrest.Matchers.*;
 
 public class MetricsScraperTest {
     private static final String RESPONSE =
-            "{\"serverRuntimes\": {\"items\": [{\n" +
-            "    \"name\": \"ejb30mtflexadmin\",\n" +
-            "    \"applicationRuntimes\": {\"items\": [\n" +
-            "        {\n" +
+            "{\"applicationRuntimes\": {\"items\": [\n" +
+            "     {\n" +
             "            \"internal\": false,\n" +
             "            \"name\": \"mbeans\",\n" +
             "            \"componentRuntimes\": {\"items\": [{\n" +
@@ -24,8 +22,8 @@ public class MetricsScraperTest {
             "                \"name\": \"EjbStatusBean\",\n" +
             "                \"type\": \"EJBComponentRuntime\"\n" +
             "              }]}\n" +
-            "        },\n" +
-            "        {\n" +
+            "     },\n" +
+            "     {\n" +
             "            \"internal\": true,\n" +
             "            \"name\": \"weblogic\",\n" +
             "            \"componentRuntimes\": {\"items\": [{\n" +
@@ -51,10 +49,9 @@ public class MetricsScraperTest {
             "                        \"invocationTotalCount\": 2\n" +
             "                    }\n" +
             "                  ]}\n" +
-            "              }]}\n" +
-            "        }\n" +
-            "      ]}\n" +
-            "}]}}";
+            "            }]}\n" +
+            "     }\n" +
+            "]}}";
 
     private static final String TWO_LEVEL_RESPONSE ="{\n" +
             "            \"internal\": true,\n" +
@@ -223,19 +220,6 @@ public class MetricsScraperTest {
         return ImmutableMap.of("applicationRuntimes",
                     ImmutableMap.of(MBeanSelector.KEY_NAME, "application", MBeanSelector.KEY, "name",
                                     "componentRuntimes", componentMap));
-    }
-
-    @Test
-    public void generateFromFullResponseWithExplicitParentInSelector() throws Exception {
-        Map<String, Object> metrics = scraper.scrape(MBeanSelector.create(getFullMapWithExplicitParent()), getJsonResponse(RESPONSE));
-
-        assertThat(metrics, hasEntry("component_sourceInfo{application=\"weblogic\",component=\"ejb30_weblogic\"}", "weblogic.war"));
-        assertThat(metrics, hasEntry("component_deploymentState{application=\"weblogic\",component=\"ejb30_weblogic\"}", 2));
-        assertThat(metrics, hasEntry("servlet_invocationTotalCount{application=\"weblogic\",component=\"ejb30_weblogic\",servletName=\"JspServlet\"}", 0));
-    }
-
-    private Map<String, Object> getFullMapWithExplicitParent() {
-        return ImmutableMap.of("serverRuntimes", getFullMap());
     }
 
 
