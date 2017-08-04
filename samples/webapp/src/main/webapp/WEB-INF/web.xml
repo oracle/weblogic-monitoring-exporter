@@ -1,0 +1,20 @@
+<!DOCTYPE web-app PUBLIC
+ "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+ "http://java.sun.com/dtd/web-app_2_3.dtd" >
+
+<web-app>
+  <display-name>WLS Prometheus Exporter</display-name>
+  <servlet>
+    <servlet-name>rest-exporter</servlet-name>
+    <servlet-class>io.prometheus.wls.rest.ExporterServlet</servlet-class>
+      <init-param>
+          <param-name>configuration</param-name>
+          <param-value>/rest.yml</param-value>
+      </init-param>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>rest-exporter</servlet-name>
+    <url-pattern>/*</url-pattern>
+  </servlet-mapping>
+</web-app>
