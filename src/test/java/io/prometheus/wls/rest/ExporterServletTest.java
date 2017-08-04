@@ -32,7 +32,7 @@ public class ExporterServletTest {
     private static final int PORT = 7654;
     private static final String USER = "system";
     private static final String PASSWORD = "gumby1234";
-    static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
+    private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
     private WebClientStub webClient = new WebClientStub();
     private ExporterServlet servlet = new ExporterServlet(webClient);
     private HttpServletRequestStub request = createStrictStub(HttpServletRequestStub.class);
@@ -125,6 +125,7 @@ public class ExporterServletTest {
     }
 
     // todo test: no config, no queries, multiple queries
+    // todo test: sort metrics, show TYPE on first instance
     // todo test: pass-through authentication, using the authentication from the client ?
 
     static class WebClientStub implements WebClient {
@@ -195,7 +196,6 @@ public class ExporterServletTest {
     }
 
     abstract static class ServletContextStub implements ServletContext {
-        private Map<String,String> params;
 
         @Override
         public InputStream getResourceAsStream(String path) {

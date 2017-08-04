@@ -20,13 +20,12 @@ import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
 public class ExporterServlet extends HttpServlet {
 
     static final String CONFIGURATION_FILE = "configuration";
-    static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
+    private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
     private WebClient webClient;
     private ExporterConfig config;
     private String initError;
 
     @SuppressWarnings("unused")  // production constructor
-
     public ExporterServlet() {
         this(new WebClientImpl());
     }
