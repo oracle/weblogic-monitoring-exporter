@@ -10,7 +10,7 @@
   <dependencies>
     <dependency>
       <groupId>io.prometheus.wls</groupId>
-      <artifactId>rest-exporter</artifactId>
+      <artifactId>wls-exporter</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
