@@ -22,6 +22,7 @@ import static io.prometheus.wls.rest.ExporterServlet.CONFIGURATION_FILE;
 import static io.prometheus.wls.rest.ExporterServletTest.ServletConfigStub.withNoParams;
 import static io.prometheus.wls.rest.ExporterServletTest.ServletConfigStub.withParams;
 import static io.prometheus.wls.rest.domain.JsonPathMatcher.hasJsonPath;
+import static io.prometheus.wls.rest.matchers.PrometheusMetricsMatcher.followsPrometheusRules;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
@@ -103,13 +104,14 @@ public class ExporterServletTest {
     @Test
     public void onGet_displayMetrics() throws Exception {
         webClient.response = new Gson().toJson(getResponseMap());
-        InMemoryFileSystem.defineResource(REST_YML, "---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: sample1");
+        InMemoryFileSystem.defineResource(REST_YML, "---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [sample1,sample2]");
         servlet.init(withParams(CONFIGURATION_FILE, REST_YML));
 
         servlet.doGet(request, response);
 
         assertThat(toHtml(response), containsString("groupValue_sample1{name=\"first\"} red"));
         assertThat(toHtml(response), containsString("groupValue_sample1{name=\"second\"} green"));
+        assertThat(toHtml(response), containsString("groupValue_sample2{name=\"second\"} 71.0"));
     }
 
     private String toHtml(HttpServletResponseStub response) {
@@ -118,15 +120,26 @@ public class ExporterServletTest {
 
     private Map getResponseMap() {
         return ImmutableMap.of("groups", new ItemHolder(
-                    ImmutableMap.of("name", "first", "sample1", "red"),
-                    ImmutableMap.of("name", "second", "sample1", "green"),
-                    ImmutableMap.of("name", "third", "sample1", "blue")
+                    ImmutableMap.of("name", "first", "sample1", "red", "sample2", "12.3"),
+                    ImmutableMap.of("name", "second", "sample1", "green", "sample2", "71.0"),
+                    ImmutableMap.of("name", "third", "sample1", "blue", "sample2", "65.8")
         ));
     }
 
     // todo test: no config, no queries, multiple queries
     // todo test: sort metrics, show TYPE on first instance
     // todo test: pass-through authentication, using the authentication from the client ?
+
+    @Test
+    public void onGet_metricsAreSorted() throws Exception {
+        webClient.response = new Gson().toJson(getResponseMap());
+        InMemoryFileSystem.defineResource(REST_YML, "---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [sample1,sample2]");
+        servlet.init(withParams(CONFIGURATION_FILE, REST_YML));
+
+        servlet.doGet(request, response);
+
+        assertThat(toHtml(response), followsPrometheusRules());
+    }
 
     static class WebClientStub implements WebClient {
         private String url;
@@ -238,4 +251,5 @@ public class ExporterServletTest {
             html = baos.toString("UTF-8");
         }
     }
+
 }

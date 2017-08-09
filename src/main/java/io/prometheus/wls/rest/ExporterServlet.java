@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.Map;
+import java.util.TreeMap;
 
 import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
 
@@ -85,10 +86,14 @@ public class ExporterServlet extends HttpServlet {
         try {
             Map<String, Object> metrics = getMetrics(selector);
             if (metrics != null)
-                metrics.forEach((name, value) -> ps.println(name + " " + value));
+                sort(metrics).forEach((name, value) -> ps.println(name + " " + value));
         } catch (RestQueryException e) {
             ps.println("REST service was unable to handle this query\n" + selector.getPrintableRequest());
         }
+    }
+
+    private TreeMap<String, Object> sort(Map<String, Object> metrics) {
+        return new TreeMap<>(metrics);
     }
 
     private Map<String, Object> getMetrics(MBeanSelector selector) throws IOException {
