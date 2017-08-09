@@ -1,5 +1,6 @@
 package io.prometheus.wls.rest.matchers;
 
+import com.google.common.base.Strings;
 import org.hamcrest.Description;
 
 import java.util.Arrays;
@@ -13,9 +14,43 @@ public class PrometheusMetricsMatcher extends org.hamcrest.TypeSafeDiagnosingMat
     public static PrometheusMetricsMatcher followsPrometheusRules() {
         return new PrometheusMetricsMatcher();
     }
+
     @Override
     protected boolean matchesSafely(String metricsList, Description description) {
         String[] metrics = metricsList.split("\n");
+        return allMetricsAreNumeric(description, metrics) && metricsInOrder(description, metrics);
+    }
+
+    private boolean allMetricsAreNumeric(Description description, String[] metrics) {
+        for (String metric : metrics)
+            if (hasNonNumericValue(metric)) return reportValueMismatch(metric, description);
+
+        return true;
+    }
+
+    private boolean reportValueMismatch(String metric, Description description) {
+        description.appendText("Non-numeric metric found at:\n  ");
+        description.appendValue(metric);
+
+        return false;
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private boolean hasNonNumericValue(String metric) {
+        if (Strings.isNullOrEmpty(metric) || metric.trim().startsWith("#")) return false;
+        if (!metric.contains(" ")) return false;
+
+        String metricValue = metric.split(" ")[1];
+
+        try {
+            Double.parseDouble(metricValue.trim());
+            return false;
+        } catch (NumberFormatException e) {
+            return true;
+        }
+    }
+
+    private boolean metricsInOrder(Description description, String[] metrics) {
         String outOfOrderMetric = getOutOfOrderMetric(metrics);
         if (outOfOrderMetric == null) return true;
 
@@ -58,12 +93,6 @@ public class PrometheusMetricsMatcher extends org.hamcrest.TypeSafeDiagnosingMat
                 .filter(new Uniq())
                 .sorted()
                 .collect(Collectors.toList());
-    }
-
-    private static String duplicate(String s1, String s2) {
-        String result = s1 == null || !s1.equals(s2) ? null : s2;
-        System.out.printf("Input %s and %s -> result %s%n", s1, s2, result);
-        return result;
     }
 
     private static String getMetricName(String s) {

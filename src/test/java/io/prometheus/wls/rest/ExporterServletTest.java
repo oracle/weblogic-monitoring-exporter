@@ -109,8 +109,8 @@ public class ExporterServletTest {
 
         servlet.doGet(request, response);
 
-        assertThat(toHtml(response), containsString("groupValue_sample1{name=\"first\"} red"));
-        assertThat(toHtml(response), containsString("groupValue_sample1{name=\"second\"} green"));
+        assertThat(toHtml(response), containsString("groupValue_sample1{name=\"first\"} 12"));
+        assertThat(toHtml(response), containsString("groupValue_sample1{name=\"second\"} -3"));
         assertThat(toHtml(response), containsString("groupValue_sample2{name=\"second\"} 71.0"));
     }
 
@@ -120,9 +120,9 @@ public class ExporterServletTest {
 
     private Map getResponseMap() {
         return ImmutableMap.of("groups", new ItemHolder(
-                    ImmutableMap.of("name", "first", "sample1", "red", "sample2", "12.3"),
-                    ImmutableMap.of("name", "second", "sample1", "green", "sample2", "71.0"),
-                    ImmutableMap.of("name", "third", "sample1", "blue", "sample2", "65.8")
+                    ImmutableMap.of("name", "first", "sample1", 12, "sample2", 12.3, "bogus", "red"),
+                    ImmutableMap.of("name", "second", "sample1", -3, "sample2", 71.0),
+                    ImmutableMap.of("name", "third", "sample1", 85, "sample2", 65.8)
         ));
     }
 
@@ -131,9 +131,9 @@ public class ExporterServletTest {
     // todo test: pass-through authentication, using the authentication from the client ?
 
     @Test
-    public void onGet_metricsAreSorted() throws Exception {
+    public void onGet_metricsArePrometheusCompliant() throws Exception {
         webClient.response = new Gson().toJson(getResponseMap());
-        InMemoryFileSystem.defineResource(REST_YML, "---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [sample1,sample2]");
+        InMemoryFileSystem.defineResource(REST_YML, "---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [sample1,sample2,bogus]");
         servlet.init(withParams(CONFIGURATION_FILE, REST_YML));
 
         servlet.doGet(request, response);

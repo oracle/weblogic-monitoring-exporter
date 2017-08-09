@@ -190,9 +190,15 @@ public class MetricsScraperTest {
     public void whenGenerateHierarchicalMetrics_containsTopLevel() throws Exception {
         generateNestedMetrics(twoLevelMap, TWO_LEVEL_RESPONSE);
 
-        assertThat(scraper.getMetrics(),
-                   allOf(hasEntry("component_sourceInfo{component=\"ejb30_weblogic\"}", "weblogic.war"),
-                         hasEntry("component_internal{component=\"ejb30_weblogic\"}", "true")));
+        assertThat(scraper.getMetrics(), hasEntry("component_deploymentState{component=\"ejb30_weblogic\"}", 2));
+    }
+
+    @Test
+    public void whenGenerateHierarchicalMetrics_ignoresNonNumericValues() throws Exception {
+        generateNestedMetrics(twoLevelMap, TWO_LEVEL_RESPONSE);
+
+        assertThat(scraper.getMetrics(), not(hasEntry("component_sourceInfo{component=\"ejb30_weblogic\"}", "weblogic.war")));
+        assertThat(scraper.getMetrics(), not(hasEntry("component_internal{component=\"ejb30_weblogic\"}", "true")));
     }
 
     @Test
@@ -211,7 +217,6 @@ public class MetricsScraperTest {
     public void generateFromFullResponse() throws Exception {
         Map<String, Object> metrics = scraper.scrape(MBeanSelector.create(getFullMap()), getJsonResponse(RESPONSE));
         
-        assertThat(metrics, hasEntry("component_sourceInfo{application=\"weblogic\",component=\"ejb30_weblogic\"}", "weblogic.war"));
         assertThat(metrics, hasEntry("component_deploymentState{application=\"weblogic\",component=\"ejb30_weblogic\"}", 2));
         assertThat(metrics, hasEntry("servlet_invocationTotalCount{application=\"weblogic\",component=\"ejb30_weblogic\",servletName=\"JspServlet\"}", 0));
     }
