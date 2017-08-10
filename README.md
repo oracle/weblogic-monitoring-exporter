@@ -35,12 +35,12 @@ queries:
         key: servletName
         values: invocationTotalCount
 ```
-Note that there are two parts to the configuration. The top portion tells the exporter how to connect to the REST API:
+Note that there are two parts to the configuration. The optional top portion tells the exporter how to connect to the REST API:
 
 | Name | Description |
 | --- | --- |
-| host | the host on which the WLS instance is running. Required |
-| port | the port on which the WLS instance is listening. Required |
+| host | the host on which the WLS instance is running. Defaults to "localhost" |
+| port | the port on which the WLS instance is listening. Defaults to 7001 |
 | username | the name required for access to the REST API. Optional |
 | password | the password required for access to the REST API. Optional |
 

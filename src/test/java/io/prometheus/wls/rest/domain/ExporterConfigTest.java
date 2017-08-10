@@ -99,6 +99,14 @@ public class ExporterConfigTest {
     }
 
     @Test
+    public void whenNotSpecified_useDefaultHostAndPort() throws Exception {
+        ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
+
+        assertThat(config.getHost(), equalTo(ExporterConfig.DEFAULT_HOST));
+        assertThat(config.getPort(), equalTo(ExporterConfig.DEFAULT_PORT));
+    }
+
+    @Test
     public void whenSpecified_readQueriesFromYaml() throws Exception {
         yamlConfig = loadFromString(YAML_STRING);
 

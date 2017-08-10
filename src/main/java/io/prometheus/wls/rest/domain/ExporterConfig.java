@@ -12,6 +12,8 @@ import java.util.Map;
  * This class represents the configuration for the exporter, created by parsing YAML.
  */
 public class ExporterConfig {
+    static final String DEFAULT_HOST = "localhost";
+    static final int DEFAULT_PORT = 7001;
     static final String START_DELAY_SECONDS = "startDelaySeconds";
     static final String HOST = "host";
     static final String PORT = "port";
@@ -23,8 +25,8 @@ public class ExporterConfig {
     private String userName = "";
     private String password = "";
     private MBeanSelector[] queries;
-    private String host;
-    private int port;
+    private String host = DEFAULT_HOST;
+    private int port = DEFAULT_PORT;
 
     /**
      * Loads a YAML configuration to create a new configuration object.

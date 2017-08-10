@@ -1,5 +1,4 @@
-host: localhost
-port: 7001
+---
 queries:
 - applicationRuntimes:
     key: name
