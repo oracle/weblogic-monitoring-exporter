@@ -1,7 +1,5 @@
 host: localhost
 port: 7001
-username: system
-password: gumby1234
 queries:
 - applicationRuntimes:
     key: name

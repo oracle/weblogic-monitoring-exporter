@@ -1,4 +1,4 @@
-REST Exporter (experimental)
+WLS Prometheus Exporter (experimental)
 =====
 
 WLS REST to Prometheus exporter.
@@ -35,8 +35,17 @@ queries:
         key: servletName
         values: invocationTotalCount
 ```
-Note that there are two parts to the configuration. The top portion tells the exporter how to connect to the REST API;
-the fields are required, and their purpose should be obvious.
+Note that there are two parts to the configuration. The top portion tells the exporter how to connect to the REST API:
+
+| Name | Description |
+| --- | --- |
+| host | the host on which the WLS instance is running. Required |
+| port | the port on which the WLS instance is listening. Required |
+| username | the name required for access to the REST API. Optional |
+| password | the password required for access to the REST API. Optional |
+
+Note that if the username and password credentials are not specified, the exporter will pass through any authentication
+challenge from the REST API to the client, and will pass through any authorization header from the client.
 
 The `query` field is more complex. Each query consists of a hierarchy of the mbeans, starting relative to `ServerRuntimes`.
 Within each section, there are a number of options:

@@ -16,6 +16,8 @@ import java.io.PrintStream;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static io.prometheus.wls.rest.StatusCodes.AUTHENTICATION_REQUIRED;
+import static io.prometheus.wls.rest.StatusCodes.NOT_AUTHORIZED;
 import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
 
 public class ExporterServlet extends HttpServlet {
@@ -41,7 +43,8 @@ public class ExporterServlet extends HttpServlet {
         if (configurationFile == null) return;
 
         config = ExporterConfig.loadConfig(configurationFile);
-        webClient.initialize(createQueryUrl(config), config.getUserName(), config.getPassword());
+        webClient.initialize(createQueryUrl(config));
+        webClient.setCredentials(config.getUserName(), config.getPassword());
     }
 
     private InputStream getConfigurationFile(ServletConfig config) {
@@ -69,11 +72,19 @@ public class ExporterServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        try (PrintStream ps = new PrintStream(resp.getOutputStream())) {
-            if (initError != null)
-                ps.println(initError);
-            else
-                printMetrics(ps);
+        webClient.setAuthenticationCredentials(req.getHeader("Authorization"));
+        try {
+            try (PrintStream ps = new PrintStream(resp.getOutputStream())) {
+                if (initError != null)
+                    ps.println(initError);
+                else
+                    printMetrics(ps);
+            }
+        } catch (NotAuthorizedException e) {
+            resp.sendError(NOT_AUTHORIZED, "Not authorized");
+        } catch (BasicAuthenticationChallengeException e) {
+            resp.setHeader("WWW-Authenticate", String.format("Basic realm=\"%s\"", e.getRealm()));
+            resp.sendError(AUTHENTICATION_REQUIRED, "Authentication required");
         }
     }
 

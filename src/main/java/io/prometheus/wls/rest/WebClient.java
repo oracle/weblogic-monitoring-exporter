@@ -10,10 +10,21 @@ interface WebClient {
     /**
      * Initializes the client
      * @param url the URL of the WLS REST service
+     */
+    void initialize(String url);
+
+    /**
+     * Sets the credentials for the client.
      * @param username the user authorization required for the service
      * @param password the password required to access the service
      */
-    void initialize(String url, String username, String password);
+    void setCredentials(String username, String password);
+
+    /**
+     * Sets the content of the authentication header to be sent on every request
+     * @param authentication authentication credentials
+     */
+    void setAuthenticationCredentials(String authentication);
 
     /**
      * Sends a query to the REST service and returns the reply.
