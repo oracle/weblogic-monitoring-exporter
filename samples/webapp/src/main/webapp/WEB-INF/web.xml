@@ -15,6 +15,6 @@
 
   <servlet-mapping>
     <servlet-name>rest-exporter</servlet-name>
-    <url-pattern>/*</url-pattern>
+    <url-pattern>/metrics</url-pattern>
   </servlet-mapping>
 </web-app>

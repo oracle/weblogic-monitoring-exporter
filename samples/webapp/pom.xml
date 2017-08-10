@@ -15,6 +15,6 @@
     </dependency>
   </dependencies>
   <build>
-    <finalName>metrics</finalName>
+    <finalName>wls-exporter</finalName>
   </build>
 </project>
