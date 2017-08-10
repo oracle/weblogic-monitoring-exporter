@@ -77,6 +77,8 @@ public class ExporterServlet extends HttpServlet {
             try (PrintStream ps = new PrintStream(resp.getOutputStream())) {
                 if (initError != null)
                     ps.println(initError);
+                else if (config == null || config.getQueries() == null)
+                    ps.println("# No configuration defined.");
                 else
                     printMetrics(ps);
             }

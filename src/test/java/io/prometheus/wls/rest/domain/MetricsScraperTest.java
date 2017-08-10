@@ -116,7 +116,14 @@ public class MetricsScraperTest {
                             "servlets", leafMap,
                             MBeanSelector.VALUES, new String[]{"sourceInfo", "internal", "deploymentState"}));
 
+    private final Map<String,Object> noPrefixComponentMap = new HashMap<>(
+            ImmutableMap.of(MBeanSelector.KEY_NAME, "component", MBeanSelector.KEY, "name",
+                            "servlets", leafMap,
+                            MBeanSelector.VALUES, new String[]{"sourceInfo", "internal", "deploymentState"}));
+
     private final Map<String,Object> twoLevelMap = ImmutableMap.of("componentRuntimes", componentMap);
+
+    private final Map<String,Object> noPrefixTwoLevelMap = ImmutableMap.of("componentRuntimes", noPrefixComponentMap);
 
     private final MetricsScraper scraper = new MetricsScraper();
 
@@ -191,6 +198,13 @@ public class MetricsScraperTest {
         generateNestedMetrics(twoLevelMap, TWO_LEVEL_RESPONSE);
 
         assertThat(scraper.getMetrics(), hasEntry("component_deploymentState{component=\"ejb30_weblogic\"}", 2));
+    }
+
+    @Test
+    public void whenNoPrefix_generateBareMetrics() throws Exception {
+        generateNestedMetrics(noPrefixTwoLevelMap, TWO_LEVEL_RESPONSE);
+
+        assertThat(scraper.getMetrics(), hasEntry("deploymentState{component=\"ejb30_weblogic\"}", 2));
     }
 
     @Test

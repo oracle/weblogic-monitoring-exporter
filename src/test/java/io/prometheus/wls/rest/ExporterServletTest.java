@@ -2,8 +2,6 @@ package io.prometheus.wls.rest;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
-import org.hamcrest.Description;
-import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,20 +15,23 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
 import static io.prometheus.wls.rest.ExporterServlet.CONFIGURATION_FILE;
-import static io.prometheus.wls.rest.ExporterServletTest.ResponseHeaderMatcher.containsHeader;
 import static io.prometheus.wls.rest.ExporterServletTest.ServletConfigStub.withNoParams;
 import static io.prometheus.wls.rest.ExporterServletTest.ServletConfigStub.withParams;
 import static io.prometheus.wls.rest.StatusCodes.*;
 import static io.prometheus.wls.rest.domain.JsonPathMatcher.hasJsonPath;
+import static io.prometheus.wls.rest.matchers.CommentsOnlyMatcher.containsOnlyComments;
 import static io.prometheus.wls.rest.matchers.PrometheusMetricsMatcher.followsPrometheusRules;
+import static io.prometheus.wls.rest.matchers.ResponseHeaderMatcher.containsHeader;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
@@ -142,21 +143,21 @@ public class ExporterServletTest {
 
     @Test
     public void onGet_displayMetrics() throws Exception {
-        webClient.response = new Gson().toJson(getResponseMap());
+        webClient.addJsonResponse(getGroupResponseMap());
         initServlet("---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [sample1,sample2]");
 
-        servlet.doGet(request, response);
+        servlet.doGet(request, this.response);
 
-        assertThat(toHtml(response), containsString("groupValue_sample1{name=\"first\"} 12"));
-        assertThat(toHtml(response), containsString("groupValue_sample1{name=\"second\"} -3"));
-        assertThat(toHtml(response), containsString("groupValue_sample2{name=\"second\"} 71.0"));
+        assertThat(toHtml(this.response), containsString("groupValue_sample1{name=\"first\"} 12"));
+        assertThat(toHtml(this.response), containsString("groupValue_sample1{name=\"second\"} -3"));
+        assertThat(toHtml(this.response), containsString("groupValue_sample2{name=\"second\"} 71.0"));
     }
 
     private String toHtml(HttpServletResponseStub response) {
         return response.getHtml();
     }
 
-    private Map getResponseMap() {
+    private Map getGroupResponseMap() {
         return ImmutableMap.of("groups", new ItemHolder(
                     ImmutableMap.of("name", "first", "sample1", 12, "sample2", 12.3, "bogus", "red"),
                     ImmutableMap.of("name", "second", "sample1", -3, "sample2", 71.0),
@@ -164,12 +165,11 @@ public class ExporterServletTest {
         ));
     }
 
-    // todo test: no config, no queries, multiple queries
     // todo test: show TYPE on first instance
 
     @Test
     public void onGet_metricsArePrometheusCompliant() throws Exception {
-        webClient.response = new Gson().toJson(getResponseMap());
+        webClient.addJsonResponse(getGroupResponseMap());
         initServlet("---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [sample1,sample2,bogus]");
 
         servlet.doGet(request, response);
@@ -177,15 +177,59 @@ public class ExporterServletTest {
         assertThat(toHtml(response), followsPrometheusRules());
     }
 
+    @Test
+    public void onGetWithMultipleQueries_displayMetrics() throws Exception {
+        webClient.addJsonResponse(getGroupResponseMap());
+        webClient.addJsonResponse(getColorResponseMap());
+        initServlet("---\nqueries:" +
+                "\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [sample1,sample2]" +
+                "\n- colors:                         \n    key: hue \n    values: wavelength");
+
+        servlet.doGet(request, this.response);
+
+        assertThat(toHtml(this.response), containsString("groupValue_sample1{name=\"first\"} 12"));
+        assertThat(toHtml(this.response), containsString("groupValue_sample1{name=\"second\"} -3"));
+        assertThat(toHtml(this.response), containsString("wavelength{hue=\"green\"} 540"));
+    }
+
+    private Map getColorResponseMap() {
+        return ImmutableMap.of("colors", new ItemHolder(
+                    ImmutableMap.of("hue", "red", "wavelength", 700),
+                    ImmutableMap.of("hue", "green", "wavelength", 540),
+                    ImmutableMap.of("hue", "blue", "wavelength", 475)
+        ));
+    }
+
+    @Test
+    public void whenNoQueries_produceNoOutput() throws Exception {
+        initServlet("");
+
+        servlet.doGet(request, response);
+
+        assertThat(toHtml(response), containsOnlyComments());
+    }
+
+    @Test
+    public void whenNoConfiguration_produceNoOutput() throws Exception {
+        servlet.doGet(request, response);
+
+        assertThat(toHtml(response), containsOnlyComments());
+    }
+
     static class WebClientStub implements WebClient {
         private String url;
         private String username;
         private String password;
         private String jsonQuery;
-        private String response = "";
         private int status = SUCCESS;
         private String basicRealmName;
         private String authenticationCredentials;
+        private List<String> responseList = new ArrayList<>();
+        private Iterator<String> responses;
+
+        private void addJsonResponse(Map responseMap) {
+            responseList.add(new Gson().toJson(responseMap));
+        }
 
         void reportNotAuthorized() {
             status = NOT_AUTHORIZED;
@@ -222,7 +266,14 @@ public class ExporterServletTest {
             if (basicRealmName != null) throw new BasicAuthenticationChallengeException(basicRealmName);
             
             this.jsonQuery = jsonQuery;
-            return response;
+            return nextJsonResponse();
+        }
+
+        private String nextJsonResponse() {
+            if (responses == null)
+                responses = responseList.iterator();
+
+            return responses.hasNext() ? responses.next() : null;
         }
     }
 
@@ -359,49 +410,6 @@ public class ExporterServletTest {
         public void close() throws IOException {
             super.close();
             html = baos.toString("UTF-8");
-        }
-    }
-
-    static class ResponseHeaderMatcher extends TypeSafeDiagnosingMatcher<HttpServletResponse> {
-        private String expectedHeaderName;
-        private String expectedHeaderValue;
-
-        private ResponseHeaderMatcher(String expectedHeaderName, String expectedHeaderValue) {
-            this.expectedHeaderName = expectedHeaderName;
-            this.expectedHeaderValue = expectedHeaderValue;
-        }
-
-        static ResponseHeaderMatcher containsHeader(String expectedHeaderName, String expectedHeaderValue) {
-            return new ResponseHeaderMatcher(expectedHeaderName, expectedHeaderValue);
-        }
-
-        @Override
-        protected boolean matchesSafely(HttpServletResponse response, Description description) {
-            if (!response.containsHeader(expectedHeaderName))
-                return reportNoSuchHeader(response, description);
-            else if (!response.getHeaders(expectedHeaderName).contains(expectedHeaderValue))
-                return reportNoMatchingHeaderValue(response, description);
-            else
-                return true;
-        }
-
-        private boolean reportNoSuchHeader(HttpServletResponse response, Description description) {
-            description.appendValueList("found header names: {", ", ", "}", response.getHeaderNames());
-            return false;
-        }
-
-        private boolean reportNoMatchingHeaderValue(HttpServletResponse response, Description description) {
-            description.appendText("found ").appendText(expectedHeaderName)
-                    .appendValueList(" with value(s) ", ", ", "", response.getHeaders(expectedHeaderName));
-            return false;
-        }
-
-        @Override
-        public void describeTo(Description description) {
-            description.appendText("response containing header ")
-                    .appendValue(expectedHeaderName)
-                    .appendText(" with value ")
-                    .appendValue(expectedHeaderValue);
         }
     }
 

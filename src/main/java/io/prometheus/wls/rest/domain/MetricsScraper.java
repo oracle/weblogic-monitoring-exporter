@@ -63,7 +63,9 @@ class MetricsScraper {
     }
 
     private String getMetricName(String valueName, MBeanSelector beanSelector, String qualifiers) {
-        StringBuilder sb = new StringBuilder(beanSelector.getPrefix()).append(valueName);
+        StringBuilder sb = new StringBuilder();
+        if (beanSelector.getPrefix() != null) sb.append(beanSelector.getPrefix());
+        sb.append(valueName);
         if (!isNullOrEmptyString(qualifiers))
             sb.append('{').append(qualifiers).append('}');
         return sb.toString();
