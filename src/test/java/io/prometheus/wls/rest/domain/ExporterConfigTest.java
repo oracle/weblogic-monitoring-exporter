@@ -15,6 +15,8 @@ public class ExporterConfigTest {
     private static final String EXPECTED_USERNAME = "testuser";
     private static final String EXPECTED_PASSWORD = "letmein";
     private static final String YAML_STRING = "---\n" +
+            "host: " + EXPECTED_HOST + "\n" +
+            "port: " + EXPECTED_PORT + "\n" +
             "queries:\n" +
             "- applicationRuntimes:\n" +
             "    key: name\n" +
@@ -108,34 +110,104 @@ public class ExporterConfigTest {
 
     @Test
     public void whenSpecified_readQueriesFromYaml() throws Exception {
-        yamlConfig = loadFromString(YAML_STRING);
-
-        ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
+        ExporterConfig config = loadFromString(YAML_STRING);
 
         assertThat(config.getQueries(), arrayWithSize(1));
     }
 
+    @SuppressWarnings("unchecked")
+    private ExporterConfig loadFromString(String yamlString) {
+        yamlConfig = (Map<String, Object>) new Yaml().load(yamlString);
+
+        return ExporterConfig.loadConfig(yamlConfig);
+    }
+
     @Test
     public void topOfParsedSelectorIsApplicationRuntimes() throws Exception {
-        yamlConfig = loadFromString(YAML_STRING);
-
-        ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
+        ExporterConfig config = loadFromString(YAML_STRING);
 
         assertThat(config.getQueries()[0].getNestedSelectors().keySet(), contains("applicationRuntimes"));
     }
 
     @Test
     public void firstNestedSelectedIsComponentRuntimes() throws Exception {
-        yamlConfig = loadFromString(YAML_STRING);
-
-        ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
+        ExporterConfig config = loadFromString(YAML_STRING);
 
         MBeanSelector applicationRuntimes = config.getQueries()[0].getNestedSelectors().get("applicationRuntimes");
         assertThat(applicationRuntimes.getNestedSelectors().keySet(), contains("componentRuntimes"));
     }
 
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> loadFromString(String yamlString) {
-        return (Map<String, Object>) new Yaml().load(yamlString);
+    @Test
+    public void afterLoad_convertToString() throws Exception {
+        ExporterConfig config = loadFromString(YAML_STRING);
+
+        assertThat(config.toString(), equalToIgnoringWhiteSpace(YAML_STRING));
+    }
+
+    @Test
+    public void afterAppend_configHasOriginalDestination() throws Exception {
+        ExporterConfig config = getAppendedConfiguration();
+
+        assertThat(config.getHost(), equalTo(EXPECTED_HOST));
+        assertThat(config.getPort(), equalTo(EXPECTED_PORT));
+    }
+
+    private ExporterConfig getAppendedConfiguration() {
+        ExporterConfig config = loadFromString(YAML_STRING);
+        ExporterConfig config2 = loadFromString(YAML_STRING2);
+        config.append(config2);
+        return config;
+    }
+
+    private static final String YAML_STRING2 = "---\n" +
+            "host: otherhost\n" +
+            "port: 9876\n" +
+            "queries:\n" +
+            "- applicationRuntimes:\n" +
+            "    key: name\n" +
+            "    workManagerRuntimes:\n" +
+            "      prefix: workmanager_\n" +
+            "      key: applicationName\n" +
+            "      values: [pendingRequests, completedRequests, stuckThreadCount]\n";
+
+    @Test
+    public void afterAppend_configHasOriginalQuery() throws Exception {
+        ExporterConfig config = getAppendedConfiguration();
+
+        MBeanSelector applicationRuntimes = config.getQueries()[0].getNestedSelectors().get("applicationRuntimes");
+        assertThat(applicationRuntimes.getNestedSelectors().keySet(), contains("componentRuntimes"));
+    }
+
+    @Test
+    public void afterAppend_configHasAdditionalQuery() throws Exception {
+        ExporterConfig config = getAppendedConfiguration();
+
+        assertThat(config.getQueries(), arrayWithSize(2));
+        MBeanSelector applicationRuntimes = config.getQueries()[1].getNestedSelectors().get("applicationRuntimes");
+        assertThat(applicationRuntimes.getNestedSelectors().keySet(), contains("workManagerRuntimes"));
+    }
+
+    @Test
+    public void afterReplace_configHasOriginalDestination() throws Exception {
+        ExporterConfig config = getReplacedConfiguration();
+
+        assertThat(config.getHost(), equalTo(EXPECTED_HOST));
+        assertThat(config.getPort(), equalTo(EXPECTED_PORT));
+    }
+
+    private ExporterConfig getReplacedConfiguration() {
+        ExporterConfig config = loadFromString(YAML_STRING);
+        ExporterConfig config2 = loadFromString(YAML_STRING2);
+        config.replace(config2);
+        return config;
+    }
+
+    @Test
+    public void afterReplace_configHasReplacedQuery() throws Exception {
+        ExporterConfig config = getReplacedConfiguration();
+
+        assertThat(config.getQueries(), arrayWithSize(1));
+        MBeanSelector applicationRuntimes = config.getQueries()[0].getNestedSelectors().get("applicationRuntimes");
+        assertThat(applicationRuntimes.getNestedSelectors().keySet(), contains("workManagerRuntimes"));
     }
 }

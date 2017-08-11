@@ -45,6 +45,26 @@ class DemoInputs {
             "        key: servletName\n" +
             "        values: invocationTotalCount\n";
 
+    static final String YAML_STRING3 = "---\n" +
+            "queries:\n" +
+            "- applicationRuntimes:\n" +
+            "    key: name\n" +
+            "    keyName: app\n" +
+            "    componentRuntimes:\n" +
+            "      type: WebAppComponentRuntime\n" +
+            "      prefix: webapp_config_\n" +
+            "      key: name\n" +
+            "      values: [deploymentState, contextRoot, sourceInfo, openSessionsHighCount, openSessionsCurrentCount, sessionsOpenedTotalCount]\n" +
+            "      servlets:\n" +
+            "        prefix: weblogic_servlet_\n" +
+            "        key: servletName\n" +
+            "        values: invocationTotalCount\n" +
+            "  bogusRuntimes:\n" +
+            "    key: areyoukidding\n" +
+            "    values: nothing";
+
+    static final String YAML_EMPTY = "---\n";
+
     private static final char SINGLE_QUOTE = '\'';
     private static final char DOUBLE_QUOTE = '"';
 

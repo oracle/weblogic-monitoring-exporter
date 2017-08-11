@@ -4,6 +4,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ public class ExporterConfig {
     static final String PORT = "port";
     static final String USERNAME = "username";
     static final String PASSWORD = "password";
+
     private static final String QUERIES = "queries";
 
     private int startDelaySeconds;
@@ -105,5 +107,47 @@ public class ExporterConfig {
 
     public int getPort() {
         return port;
+    }
+
+    /**
+     * Appends the queries from the specified configuration
+     * @param config2 an additional configuration to combine with this one
+     */
+    public void append(ExporterConfig config2) {
+        MBeanSelector[] newQueries = new MBeanSelector[queries.length + config2.queries.length];
+        System.arraycopy(queries, 0, newQueries, 0, queries.length);
+        System.arraycopy(config2.queries, 0, newQueries, queries.length, config2.queries.length);
+        queries = newQueries;
+    }
+
+    /**
+     * Replacies the queries from the specified configuration.
+     * @param config2 a new configuration whose queries will replace those from this one
+     */
+    public void replace(ExporterConfig config2) {
+        queries = Arrays.copyOf(config2.queries, config2.queries.length);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("---\n")
+                .append("host: ").append(host).append('\n')
+                .append("port: ").append(port).append('\n')
+                .append("queries:\n");
+
+        for (MBeanSelector query : queries)
+            appendQuery(sb, query);
+
+        return sb.toString();
+    }
+
+    private void appendQuery(StringBuilder sb, MBeanSelector query) {
+        String indent = "- ";
+        List<String> selectorKeys = new ArrayList<>(query.getNestedSelectors().keySet());
+        for (String selectorKey : selectorKeys) {
+            sb.append(indent).append(selectorKey).append(":\n");
+            query.getNestedSelectors().get(selectorKey).appendNestedQuery(sb, "    ");
+            indent = "  ";
+        }
     }
 }

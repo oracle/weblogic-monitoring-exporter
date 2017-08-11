@@ -13,7 +13,7 @@ public class YamlDemo {
 
     @SuppressWarnings("unchecked")
     public static void main(String... args) throws Exception {
-        String yamlString = YAML_STRING2;
+        String yamlString = YAML_EMPTY;
         System.out.println("The following configuration:\n" + yamlString);
         ExporterConfig exporterConfig = ExporterConfig.loadConfig(new ByteArrayInputStream(yamlString.getBytes()));
 

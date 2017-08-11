@@ -8,5 +8,12 @@
 This is the Weblogic Prometheus Exporter. <p>
 The metrics are found at <a href="metrics">metrics</a> relative to this location.
 </p>
+<p>To change the configuration:</p>
+<form action="metrics" method="post" enctype="multipart/form-data">
+    <input type="radio" name="effect" value="append" checked="checked">Append
+    <input type="radio" name="effect" value="replace">Replace
+    <br><input type="file" name="configuration">
+    <br><input type="submit">
+</form>
 </body>
 </html>

@@ -50,6 +50,32 @@ public class MBeanSelector {
         }
     }
 
+    void appendNestedQuery(StringBuilder sb, String indent) {
+        appendScalar(sb, indent, "type", type);
+        appendScalar(sb, indent, "prefix", prefix);
+        appendScalar(sb, indent, "key", key);
+        appendScalar(sb, indent, "keyName", keyName);
+        appendValues(sb, indent, values);
+
+        for (String qualifier : getNestedSelectors().keySet()) {
+            sb.append(indent).append(qualifier).append(":\n");
+            getNestedSelectors().get(qualifier).appendNestedQuery(sb, indent + "  ");
+        }
+    }
+
+    private static void appendScalar(StringBuilder sb, String indent, String name, String value) {
+        if (value != null)
+            sb.append(indent).append(name).append(": ").append(value).append('\n');
+    }
+
+    private static void appendValues(StringBuilder sb, String indent, String[] values) {
+        if (values == null || values.length == 0) return;
+        if (values.length == 1)
+            appendScalar(sb, indent, "values", values[0]);
+
+        sb.append(indent).append("values").append(": [").append(String.join(", ", values)).append("]\n");
+    }
+
     /**
      * Creates a set of metrics from a Json object
      * @param response a parsed JSON REST response

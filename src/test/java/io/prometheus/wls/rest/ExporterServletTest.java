@@ -2,12 +2,16 @@ package io.prometheus.wls.rest;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
+import org.apache.http.HttpEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.ServletInputStream;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -15,6 +19,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,6 +30,9 @@ import java.util.Map;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
 import static io.prometheus.wls.rest.ExporterServlet.CONFIGURATION_FILE;
+import static io.prometheus.wls.rest.ExporterServletTest.HttpServletRequestStub.createGetRequest;
+import static io.prometheus.wls.rest.ExporterServletTest.HttpServletRequestStub.createPostRequest;
+import static io.prometheus.wls.rest.ExporterServletTest.HttpServletResponseStub.createServletResponse;
 import static io.prometheus.wls.rest.ExporterServletTest.ServletConfigStub.withNoParams;
 import static io.prometheus.wls.rest.ExporterServletTest.ServletConfigStub.withParams;
 import static io.prometheus.wls.rest.StatusCodes.*;
@@ -45,8 +53,8 @@ public class ExporterServletTest {
     private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
     private WebClientStub webClient = new WebClientStub();
     private ExporterServlet servlet = new ExporterServlet(webClient);
-    private HttpServletRequestStub request = createStrictStub(HttpServletRequestStub.class);
-    private HttpServletResponseStub response = createStrictStub(HttpServletResponseStub.class);
+    private HttpServletRequestStub request = createGetRequest();
+    private HttpServletResponseStub response = createServletResponse();
 
     @Before
     public void setUp() throws Exception {
@@ -96,7 +104,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void whenServerSends403Status_returnToClient() throws Exception {
+    public void whenServerSends403StatusOnGet_returnToClient() throws Exception {
         initServlet("---\nqueries:\n- groups:\n    key: name\n    values: sample1");
 
         webClient.reportNotAuthorized();
@@ -106,7 +114,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void whenServerSends401Status_returnToClient() throws Exception {
+    public void whenServerSends401StatusOnGet_returnToClient() throws Exception {
         initServlet("---\nqueries:\n- groups:\n    key: name\n    values: sample1");
 
         webClient.reportAuthenticationRequired("Test-Realm");
@@ -117,7 +125,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void whenClientSendsAuthenticationHeader_passToServer() throws Exception {
+    public void whenClientSendsAuthenticationHeaderOnGet_passToServer() throws Exception {
         initServlet("---\nqueries:\n- groups:\n    key: name\n    values: sample1");
 
         request.setHeader("Authorization", "auth-credentials");
@@ -216,7 +224,123 @@ public class ExporterServletTest {
         assertThat(toHtml(response), containsOnlyComments());
     }
 
+
+    private final static String BOUNDARY = "C3n5NKoslNBKj4wBHR8kCX6OtVYEqeFYNjorlBP";
+    private static final String NEW_CONFIGURATION = "---\n" +
+            "host: localhost\n" +
+            "port: 7001\n" +
+            "queries:\n" + "" +
+            "- groups:\n" +
+            "    prefix: new_\n" +
+            "    key: name\n" +
+            "    values: [sample1, sample2]\n";
+
+
+    @Test
+    public void whenServerSends403StatusOnPost_returnToClient() throws Exception {
+        initServlet("---\nqueries:\n- groups:\n    key: name\n    values: sample1");
+
+        webClient.reportNotAuthorized();
+        servlet.doPost(createPostRequest(), response);
+
+        assertThat(response.getStatus(), equalTo(NOT_AUTHORIZED));
+    }
+
+    @Test
+    public void whenServerSends401StatusOnPost_returnToClient() throws Exception {
+        initServlet("---\nqueries:\n- groups:\n    key: name\n    values: sample1");
+
+        webClient.reportAuthenticationRequired("Test-Realm");
+        servlet.doPost(createPostRequest(), response);
+
+        assertThat(response.getStatus(), equalTo(AUTHENTICATION_REQUIRED));
+        assertThat(response, containsHeader("WWW-Authenticate", "Basic realm=\"Test-Realm\""));
+    }
+
+    @Test
+    public void whenClientSendsAuthenticationHeaderOnPost_passToServer() throws Exception {
+        initServlet("---\nqueries:\n- groups:\n    key: name\n    values: sample1");
+
+        HttpServletRequestStub request = createUploadRequest(createEncodedForm("replace", NEW_CONFIGURATION));
+        request.setHeader("Authorization", "auth-credentials");
+        servlet.doPost(request, createServletResponse());
+
+        assertThat(webClient.getAuthenticationCredentials(), equalTo("auth-credentials"));
+    }
+
+    @Test(expected = ServletException.class)
+    public void whenPostWithoutFile_reportFailure() throws Exception {
+        servlet.doPost(createPostRequest(), response);
+    }
+
+    @Test
+    public void afterUploadWithReplace_showNewConfiguration() throws Exception {
+        webClient.addJsonResponse(getGroupResponseMap());
+        initServlet("---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [sample1,sample2]");
+
+        servlet.doPost(createUploadRequest(createEncodedForm("replace", NEW_CONFIGURATION)), response);
+
+        assertThat(toHtml(response), containsString(NEW_CONFIGURATION));
+    }
+
+    @Test
+    public void afterUploadWithReplace_useNewConfiguration() throws Exception {
+        webClient.addJsonResponse(getGroupResponseMap());
+        initServlet("---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [sample1,sample2]");
+
+        servlet.doPost(createUploadRequest(createEncodedForm("replace", NEW_CONFIGURATION)), createServletResponse());
+
+        servlet.doGet(createGetRequest(), response);
+
+        assertThat(toHtml(response), containsString("new_sample1{name=\"first\"} 12"));
+        assertThat(toHtml(response), containsString("new_sample1{name=\"second\"} -3"));
+    }
+
+    private String createEncodedForm(String effect, String configuration) throws IOException {
+        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+        builder.setBoundary(BOUNDARY);
+        builder.addTextBody("effect", effect);
+        builder.addBinaryBody("configuration", configuration.getBytes(), ContentType.create("text/plain", Charset.defaultCharset()), "newconfig.yml");
+        HttpEntity entity = builder.build();
+        return asString(entity);
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private String asString(HttpEntity entity) throws IOException {
+        byte[] result = new byte[(int) entity.getContentLength()];
+        InputStream inputStream = entity.getContent();
+        inputStream.read(result);
+        return new String(result);
+    }
+
+    private HttpServletRequestStub createUploadRequest(String contents) {
+        HttpServletRequestStub postRequest = createPostRequest();
+        postRequest.setMultipartContent(contents, BOUNDARY);
+        return postRequest;
+    }
+
+    @Test
+    public void afterUploadWithAppend_useBothConfiguration() throws Exception {
+        webClient.addJsonResponse(getGroupResponseMap());
+        webClient.addJsonResponse(getGroupResponseMap());
+        initServlet("---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [sample1,sample2]");
+
+        servlet.doPost(createUploadRequest(createEncodedForm("append", NEW_CONFIGURATION)), createServletResponse());
+
+        servlet.doGet(createGetRequest(), response);
+
+        assertThat(toHtml(response), containsString("groupValue_sample1{name=\"first\"} 12"));
+        assertThat(toHtml(response), containsString("groupValue_sample1{name=\"second\"} -3"));
+        assertThat(toHtml(response), containsString("new_sample1{name=\"first\"} 12"));
+        assertThat(toHtml(response), containsString("new_sample1{name=\"second\"} -3"));
+    }
+
+    // todo field name is not 'configuration'
+    // todo content type is not 'text/plain'?
+
+
     static class WebClientStub implements WebClient {
+        static final String EMPTY_RESPONSE = "{}";
         private String url;
         private String username;
         private String password;
@@ -266,7 +390,7 @@ public class ExporterServletTest {
             if (basicRealmName != null) throw new BasicAuthenticationChallengeException(basicRealmName);
             
             this.jsonQuery = jsonQuery;
-            return nextJsonResponse();
+            return jsonQuery.equals(ExporterServlet.EMPTY_QUERY) ? EMPTY_RESPONSE : nextJsonResponse();
         }
 
         private String nextJsonResponse() {
@@ -331,11 +455,43 @@ public class ExporterServletTest {
     }
 
     abstract static class HttpServletRequestStub implements HttpServletRequest {
+        private final static String DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded";
         private Map<String,String> headers = new HashMap<>();
+        private String method;
+        private String contentType = DEFAULT_CONTENT_TYPE;
+        private String contents;
+        private ServletInputStream inputStream;
+
+        static HttpServletRequestStub createGetRequest() {
+            return createStrictStub(HttpServletRequestStub.class, "GET");
+        }
+
+        static HttpServletRequestStub createPostRequest() {
+            return createStrictStub(HttpServletRequestStub.class, "POST");
+        }
+
+        HttpServletRequestStub(String method) {
+            this.method = method;
+        }
 
         @SuppressWarnings("SameParameterValue")
         void setHeader(String headerName, String headerValue) {
             headers.put(headerName, headerValue);
+        }
+
+        void setMultipartContent(String contents, String boundary) {
+            this.contentType = "multipart/form-data; boundary=" + boundary;
+            this.contents = contents;
+        }
+
+        @Override
+        public String getMethod() {
+            return method;
+        }
+
+        @Override
+        public String getContentType() {
+            return contentType;
         }
 
         @Override
@@ -347,6 +503,36 @@ public class ExporterServletTest {
         public String getHeader(String name) {
             return headers.get(name);
         }
+
+        @Override
+        public int getContentLength() {
+            return contents == null ? 0 : contents.getBytes().length;
+        }
+
+        @Override
+        public String getCharacterEncoding() {
+            return Charset.defaultCharset().name();
+        }
+
+        @Override
+        public ServletInputStream getInputStream() throws IOException {
+            if (inputStream == null)
+                inputStream = createStrictStub(ServletInputStreamStub.class, contents);
+            return inputStream;
+        }
+    }
+
+    abstract static class ServletInputStreamStub extends ServletInputStream {
+        private InputStream inputStream;
+
+        public ServletInputStreamStub(String contents) {
+            inputStream = new ByteArrayInputStream(contents.getBytes());
+        }
+
+        @Override
+        public int read() throws IOException {
+            return inputStream.read();
+        }
     }
 
     abstract static class HttpServletResponseStub implements HttpServletResponse {
@@ -354,6 +540,10 @@ public class ExporterServletTest {
         private ServletOutputStreamStub out = createStrictStub(ServletOutputStreamStub.class);
         private Map<String,List<String>> headers = new HashMap<>();
         private boolean responseSent = false;
+
+        static HttpServletResponseStub createServletResponse() {
+            return createStrictStub(HttpServletResponseStub.class);
+        }
 
         String getHtml() {
             return out.html;
@@ -377,7 +567,8 @@ public class ExporterServletTest {
 
         @Override
         public void setHeader(String name, String value) {
-            assert !responseSent : "May not set headers after response has been sent";
+            if (responseSent) throw new IllegalStateException("Response already committed");
+            
             headers.put(name, Collections.singletonList(value));
         }
 

@@ -4,6 +4,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.prometheus.wls.rest.domain.ExporterConfig;
 import io.prometheus.wls.rest.domain.MBeanSelector;
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -13,6 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -23,6 +28,8 @@ import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
 public class ExporterServlet extends HttpServlet {
 
     static final String CONFIGURATION_FILE = "configuration";
+    static final String EMPTY_QUERY = "{fields:[],links:[]}";
+
     private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
     private WebClient webClient;
     private ExporterConfig config;
@@ -71,10 +78,10 @@ public class ExporterServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        webClient.setAuthenticationCredentials(req.getHeader("Authorization"));
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        webClient.setAuthenticationCredentials(request.getHeader("Authorization"));
         try {
-            try (PrintStream ps = new PrintStream(resp.getOutputStream())) {
+            try (PrintStream ps = new PrintStream(response.getOutputStream())) {
                 if (initError != null)
                     ps.println(initError);
                 else if (config == null || config.getQueries() == null)
@@ -83,10 +90,10 @@ public class ExporterServlet extends HttpServlet {
                     printMetrics(ps);
             }
         } catch (NotAuthorizedException e) {
-            resp.sendError(NOT_AUTHORIZED, "Not authorized");
+            response.sendError(NOT_AUTHORIZED, "Not authorized");
         } catch (BasicAuthenticationChallengeException e) {
-            resp.setHeader("WWW-Authenticate", String.format("Basic realm=\"%s\"", e.getRealm()));
-            resp.sendError(AUTHENTICATION_REQUIRED, "Authentication required");
+            response.setHeader("WWW-Authenticate", String.format("Basic realm=\"%s\"", e.getRealm()));
+            response.sendError(AUTHENTICATION_REQUIRED, "Authentication required");
         }
     }
 
@@ -118,5 +125,77 @@ public class ExporterServlet extends HttpServlet {
 
     private JsonObject toJsonObject(String response) {
         return new JsonParser().parse(response).getAsJsonObject();
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        webClient.setAuthenticationCredentials(request.getHeader("Authorization"));
+        try {
+            webClient.doQuery(EMPTY_QUERY);
+            if (!ServletFileUpload.isMultipartContent(request)) throw new ServletException("Must be a multi-part request");
+
+            createPostAction(request).perform();
+            reportUpdatedConfiguration(response);
+        } catch (NotAuthorizedException e) {
+            response.sendError(NOT_AUTHORIZED, "Not authorized");
+        } catch (BasicAuthenticationChallengeException e) {
+            response.setHeader("WWW-Authenticate", String.format("Basic realm=\"%s\"", e.getRealm()));
+            response.sendError(AUTHENTICATION_REQUIRED, "Authentication required");
+        }
+    }
+
+    private void reportUpdatedConfiguration(HttpServletResponse response) throws IOException {
+        try (PrintStream ps = new PrintStream(response.getOutputStream())) {
+            ps.println("<html><head><title>Updated Configuration</title></head>");
+            ps.println("<body<h1>Updated Configuration</h1><p><code><pre>");
+            ps.printf(config.toString());
+            ps.println("</pre></code></p>");
+            ps.println("</body></html>");
+        }
+    }
+
+    private PostAction createPostAction(HttpServletRequest request) throws IOException, ServletException {
+        PostAction postAction = new PostAction();
+        try {
+            ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
+            configure(postAction, upload.parseRequest(request));
+        } catch (FileUploadException e) {
+            throw new ServletException("unable to parse post body", e);
+        }
+        return postAction;
+    }
+
+    private void configure(PostAction postAction, List<FileItem> fileItems) throws IOException {
+        for (FileItem item : fileItems) {
+            if (!item.isFormField()) {
+                postAction.defineUploadedFile(item.getInputStream());
+            } else if (item.getFieldName().equals("effect"))
+                postAction.setEffect(item.getString());
+        }
+    }
+
+    private class PostAction {
+        private String effect = "replace";
+        private ExporterConfig uploadedConfig;
+
+        private void defineUploadedFile(InputStream inputStream) {
+            uploadedConfig = ExporterConfig.loadConfig(inputStream);
+        }
+
+        void perform() throws ServletException {
+            if (config == null)
+                throw new ServletException("Exporter Servlet not initialized");
+            if (uploadedConfig == null)
+                throw new ServletException("No configuration specified");
+
+            if (effect.equalsIgnoreCase("replace"))
+                config.replace(uploadedConfig);
+            else if (effect.equalsIgnoreCase("append"))
+                config.append(uploadedConfig);
+        }
+
+        void setEffect(String effect) {
+            this.effect = effect;
+        }
     }
 }
