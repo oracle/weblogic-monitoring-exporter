@@ -39,7 +39,7 @@ public class ConfigurationServletTest {
     }
 
     @Test
-    public void servletAnnotationIndicatesMainPage() throws Exception {
+    public void servletAnnotationIndicatesConfigurationPage() throws Exception {
         WebServlet annotation = ConfigurationServlet.class.getAnnotation(WebServlet.class);
 
         assertThat(annotation.value(), arrayContaining("/configure"));

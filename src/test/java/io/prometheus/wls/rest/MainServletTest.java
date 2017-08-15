@@ -53,16 +53,25 @@ public class MainServletTest {
 
     @Test
     public void getRequestShowsCurrentConfiguration() throws Exception {
-        LiveConfiguration.loadFromString(CONFIGURATION);
+        LiveConfiguration.loadFromString(PARSED_CONFIGURATION);
 
         servlet.doGet(request, response);
 
-        assertThat(response.getHtml(), containsString(CONFIGURATION));
+        assertThat(response.getHtml(), containsString(EFFECTIVE_CONFIGURATION));
     }
 
-    private static final String CONFIGURATION = "---\n" +
+    private static final String PARSED_CONFIGURATION = "---\n" +
             "host: localhost\n" +
             "port: 7001\n" +
+            "queries:\n" + "" +
+            "- groups:\n" +
+            "    prefix: new_\n" +
+            "    key: name\n" +
+            "    values: [sample1, sample2]\n";
+
+    private static final String EFFECTIVE_CONFIGURATION = "---\n" +
+            "host: " + HttpServletRequestStub.HOST + "\n" +
+            "port: " + HttpServletRequestStub.PORT + "\n" +
             "queries:\n" + "" +
             "- groups:\n" +
             "    prefix: new_\n" +

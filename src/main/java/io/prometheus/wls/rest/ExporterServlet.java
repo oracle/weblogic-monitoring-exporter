@@ -73,11 +73,12 @@ public class ExporterServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        LiveConfiguration.setServer(req.getServerName(), req.getServerPort());
         webClient.defineQueryUrl(createQueryUrl(LiveConfiguration.getConfig()));
-        webClient.setAuthenticationCredentials(request.getHeader("Authorization"));
+        webClient.setAuthenticationCredentials(req.getHeader("Authorization"));
         try {
-            try (PrintStream ps = new PrintStream(response.getOutputStream())) {
+            try (PrintStream ps = new PrintStream(resp.getOutputStream())) {
                 if (initError != null)
                     ps.println(initError);
                 else if (!LiveConfiguration.hasQueries())
@@ -86,10 +87,10 @@ public class ExporterServlet extends HttpServlet {
                     printMetrics(ps);
             }
         } catch (NotAuthorizedException e) {
-            response.sendError(NOT_AUTHORIZED, "Not authorized");
+            resp.sendError(NOT_AUTHORIZED, "Not authorized");
         } catch (BasicAuthenticationChallengeException e) {
-            response.setHeader("WWW-Authenticate", String.format("Basic realm=\"%s\"", e.getRealm()));
-            response.sendError(AUTHENTICATION_REQUIRED, "Authentication required");
+            resp.setHeader("WWW-Authenticate", String.format("Basic realm=\"%s\"", e.getRealm()));
+            resp.sendError(AUTHENTICATION_REQUIRED, "Authentication required");
         }
     }
 

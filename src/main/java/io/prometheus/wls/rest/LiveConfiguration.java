@@ -31,4 +31,8 @@ class LiveConfiguration {
     static boolean hasQueries() {
         return getConfig() != null && getConfig().getQueries().length > 0;
     }
+
+    static void setServer(String serverName, int serverPort) {
+        config.setServer(serverName, serverPort);
+    }
 }

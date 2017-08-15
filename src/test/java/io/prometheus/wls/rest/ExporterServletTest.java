@@ -36,8 +36,6 @@ import static org.hamcrest.junit.MatcherAssert.assertThat;
 
 public class ExporterServletTest {
     private static final String REST_YML = "/rest.yml";
-    private static final String HOST = "myhost";
-    private static final int PORT = 7654;
     private static final String USER = "system";
     private static final String PASSWORD = "gumby1234";
     private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
@@ -63,7 +61,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void servletAnnotationIndicatesMainPage() throws Exception {
+    public void servletAnnotationIndicatesMetricsPage() throws Exception {
         WebServlet annotation = ExporterServlet.class.getAnnotation(WebServlet.class);
 
         assertThat(annotation.value(), arrayContaining("/metrics"));
@@ -105,11 +103,11 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void onGet_defineConnectionUrlFromConfiguration() throws Exception {
-        initServlet(String.format("---\nhost: %s\nport: %d\n", HOST, PORT));
+    public void onGet_defineConnectionUrlFromContext() throws Exception {
+        initServlet("");
 
         servlet.doGet(request, response);
-        assertThat(webClient.url, equalTo(String.format(URL_PATTERN, HOST, PORT)));
+        assertThat(webClient.url, equalTo(String.format(URL_PATTERN, HttpServletRequestStub.HOST, HttpServletRequestStub.PORT)));
     }
 
     @Test

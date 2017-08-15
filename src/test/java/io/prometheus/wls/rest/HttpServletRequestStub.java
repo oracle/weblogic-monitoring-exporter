@@ -10,6 +10,9 @@ import java.util.Map;
 import static com.meterware.simplestub.Stub.createStrictStub;
 
 abstract class HttpServletRequestStub implements HttpServletRequest {
+    final static String HOST = "myhost";
+    final static int PORT = 7654;
+
     private final static String DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded";
     private Map<String,String> headers = new HashMap<>();
     private String method;
@@ -67,6 +70,16 @@ abstract class HttpServletRequestStub implements HttpServletRequest {
     @Override
     public String getCharacterEncoding() {
         return Charset.defaultCharset().name();
+    }
+
+    @Override
+    public String getServerName() {
+        return HOST;
+    }
+
+    @Override
+    public int getServerPort() {
+        return PORT;
     }
 
     @Override

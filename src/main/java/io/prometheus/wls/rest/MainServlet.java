@@ -25,6 +25,7 @@ public class MainServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        LiveConfiguration.setServer(req.getServerName(), req.getServerPort());
         resp.getOutputStream().println(PAGE_HEADER);
         displayMetricsLink(resp.getOutputStream());
         displayForm(resp.getOutputStream());

@@ -111,6 +111,16 @@ public class ExporterConfig {
     }
 
     /**
+     * Sets the host and port explicitly.
+     * @param host the host to contact for data
+     * @param port the port to contact for data
+     */
+    public void setServer(String host, int port) {
+        this.host = host;
+        this.port = port;
+    }
+
+    /**
      * Appends the queries from the specified configuration
      * @param config2 an additional configuration to combine with this one
      */
