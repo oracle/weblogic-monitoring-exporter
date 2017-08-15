@@ -1,0 +1,10 @@
+host: otherhost
+port: 9876
+queries:
+- applicationRuntimes:
+    key: name
+    workManagerRuntimes:
+      prefix: workmanager_
+      key: applicationName
+      values: [pendingRequests, completedRequests, stuckThreadCount]
+

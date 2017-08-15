@@ -1,0 +1,15 @@
+---
+queries:
+- applicationRuntimes:
+    key: name
+    keyName: app
+    componentRuntimes:
+      type: WebAppComponentRuntime
+      prefix: webapp_config_
+      key: name
+      values: [deploymentState, contextRoot, sourceInfo, openSessionsHighCount, openSessionsCurrentCount, sessionsOpenedTotalCount]
+      servlets:
+        prefix: weblogic_servlet_
+        key: servletName
+        values: invocationTotalCount
+
