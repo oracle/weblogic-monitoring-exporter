@@ -6,19 +6,14 @@ WLS REST to Prometheus exporter.
 A Collector that uses the [WLS proprietary REST API](https://docs.oracle.com/middleware/1221/wls/WLRUR/overview.htm#WLRUR111) to scrape runtime information. It is intended to be deployed as a
 web application in a WLS instance. Typically, this is deployed to the instance you want to scrape.
 
-## Creating a webapp
-
-To deploy, you will need to create a web app. A [sample maven project](samples) is included. 
-
 ## Building
 
-`mvn package` to build.
+`mvn install` to build the exporter and servlets. Then
+`cd webapp & mvn package` to build the webapp `wls-exporter.war`, which can then be deployed to WLS
 
 ## Configuration
 Here is an example `yaml` configuration:
 ```
-host: localhost
-port: 7001
 username: myuser
 password: mysecretpassword
 queries:
@@ -39,8 +34,6 @@ Note that there are two parts to the configuration. The optional top portion tel
 
 | Name | Description |
 | --- | --- |
-| host | the host on which the WLS instance is running. Defaults to "localhost" |
-| port | the port on which the WLS instance is listening. Defaults to 7001 |
 | username | the name required for access to the REST API. Optional |
 | password | the password required for access to the REST API. Optional |
 
