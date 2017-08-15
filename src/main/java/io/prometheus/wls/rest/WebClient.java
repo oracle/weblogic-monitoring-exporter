@@ -11,7 +11,7 @@ interface WebClient {
      * Initializes the client
      * @param url the URL of the WLS REST service
      */
-    void initialize(String url);
+    void defineQueryUrl(String url);
 
     /**
      * Sets the credentials for the client.

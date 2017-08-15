@@ -48,6 +48,13 @@ public class ExporterConfigTest {
     }
 
     @Test
+    public void whenYamlConfigEmpty_queryReturnsEmptyArray() throws Exception {
+        ExporterConfig config = ExporterConfig.loadConfig(NULL_MAP);
+
+        assertThat(config.getQueries(), emptyArray());
+    }
+
+    @Test
     public void whenSpecified_readStartDelayFromYaml() throws Exception {
         int expected = getRandomInt(10,100);
         yamlConfig.put(ExporterConfig.START_DELAY_SECONDS, expected);
@@ -188,6 +195,28 @@ public class ExporterConfigTest {
     }
 
     @Test
+    public void whenAppendToNoQueries_configHasNewQueryOnly() throws Exception {
+        ExporterConfig config = loadFromString("");
+        ExporterConfig config2 = loadFromString(YAML_STRING2);
+        config.append(config2);
+
+        assertThat(config.getQueries(), arrayWithSize(1));
+        MBeanSelector applicationRuntimes = config.getQueries()[0].getNestedSelectors().get("applicationRuntimes");
+        assertThat(applicationRuntimes.getNestedSelectors().keySet(), contains("workManagerRuntimes"));
+    }
+
+    @Test
+    public void whenAppendedConfigurationHasNoQueries_configHasOriginalQueryOnly() throws Exception {
+        ExporterConfig config = loadFromString(YAML_STRING);
+        ExporterConfig config2 = loadFromString("");
+        config.append(config2);
+
+        assertThat(config.getQueries(), arrayWithSize(1));
+        MBeanSelector applicationRuntimes = config.getQueries()[0].getNestedSelectors().get("applicationRuntimes");
+        assertThat(applicationRuntimes.getNestedSelectors().keySet(), contains("componentRuntimes"));
+    }
+
+    @Test
     public void afterReplace_configHasOriginalDestination() throws Exception {
         ExporterConfig config = getReplacedConfiguration();
 
@@ -209,5 +238,14 @@ public class ExporterConfigTest {
         assertThat(config.getQueries(), arrayWithSize(1));
         MBeanSelector applicationRuntimes = config.getQueries()[0].getNestedSelectors().get("applicationRuntimes");
         assertThat(applicationRuntimes.getNestedSelectors().keySet(), contains("workManagerRuntimes"));
+    }
+
+    @Test
+    public void afterReplaceWithEmptyConfig_configHasNoQueries() throws Exception {
+        ExporterConfig config = loadFromString(YAML_STRING);
+        ExporterConfig config2 = loadFromString("");
+        config.replace(config2);
+
+        assertThat(config.getQueries(), arrayWithSize(0));
     }
 }

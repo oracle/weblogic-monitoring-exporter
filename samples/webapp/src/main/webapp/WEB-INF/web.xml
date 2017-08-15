@@ -13,8 +13,28 @@
       </init-param>
   </servlet>
 
+  <servlet>
+    <servlet-name>landing-page</servlet-name>
+    <servlet-class>io.prometheus.wls.rest.MainServlet</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>configuration</servlet-name>
+    <servlet-class>io.prometheus.wls.rest.ConfigurationServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>landing-page</servlet-name>
+    <url-pattern>/</url-pattern>
+  </servlet-mapping>
+
   <servlet-mapping>
     <servlet-name>rest-exporter</servlet-name>
     <url-pattern>/metrics</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>configuration</servlet-name>
+    <url-pattern>/configure</url-pattern>
   </servlet-mapping>
 </web-app>

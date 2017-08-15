@@ -35,7 +35,7 @@ public class WebClientImpl implements WebClient {
     private String credentials;
 
     @Override
-    public void initialize(String url) {
+    public void defineQueryUrl(String url) {
         this.url = url;
     }
 

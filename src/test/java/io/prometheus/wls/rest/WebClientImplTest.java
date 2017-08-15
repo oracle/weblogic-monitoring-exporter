@@ -37,7 +37,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        webClient.initialize(getHostPath() + "/unprotected");
+        webClient.defineQueryUrl(getHostPath() + "/unprotected");
         webClient.doQuery(QUERY);
 
         assertThat(sentInfo, equalTo(QUERY));
@@ -56,7 +56,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        webClient.initialize(getHostPath() + "/checkXRequested");
+        webClient.defineQueryUrl(getHostPath() + "/checkXRequested");
         webClient.doQuery("abced");
     }
 
@@ -76,7 +76,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        webClient.initialize(getHostPath() + "/challenge");
+        webClient.defineQueryUrl(getHostPath() + "/challenge");
         webClient.setCredentials("user", "password");
         webClient.doQuery("abced");
 
@@ -99,7 +99,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
 
         String authentication = "Basic " + Base64.encode("user:password");
 
-        webClient.initialize(getHostPath() + "/preemptive");
+        webClient.defineQueryUrl(getHostPath() + "/preemptive");
         webClient.setAuthenticationCredentials(authentication);
         webClient.doQuery("abced");
 
@@ -116,7 +116,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        webClient.initialize(getHostPath() + "/query");
+        webClient.defineQueryUrl(getHostPath() + "/query");
         webClient.setCredentials("user", "password");
         assertThat(webClient.doQuery("abced"), equalTo(RESPONSE));
     }
@@ -130,7 +130,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        webClient.initialize(getHostPath() + "/badRestQuery");
+        webClient.defineQueryUrl(getHostPath() + "/badRestQuery");
         webClient.doQuery("abcd");
     }
 
@@ -145,7 +145,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        webClient.initialize(getHostPath() + "/protected");
+        webClient.defineQueryUrl(getHostPath() + "/protected");
         webClient.doQuery("abcd");
     }
 
@@ -160,7 +160,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        webClient.initialize(getHostPath() + "/protected");
+        webClient.defineQueryUrl(getHostPath() + "/protected");
 
         try {
             webClient.doQuery("abcd");
@@ -178,7 +178,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        webClient.initialize(getHostPath() + "/forbidden");
+        webClient.defineQueryUrl(getHostPath() + "/forbidden");
         webClient.doQuery("abcd");
     }
 }

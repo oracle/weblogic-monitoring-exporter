@@ -22,6 +22,7 @@ public class ExporterConfig {
     static final String PASSWORD = "password";
 
     private static final String QUERIES = "queries";
+    private static final MBeanSelector[] NO_QUERIES = {};
 
     private int startDelaySeconds;
     private String userName = "";
@@ -46,10 +47,10 @@ public class ExporterConfig {
      * @return an array of mbean selectors.
      */
     public MBeanSelector[] getQueries() {
-        return queries;
+        return queries == null ? NO_QUERIES : queries;
     }
 
-    static ExporterConfig loadConfig(Map<String, Object> yamlConfig) {
+    public static ExporterConfig loadConfig(Map<String, Object> yamlConfig) {
         if (yamlConfig == null) yamlConfig = new HashMap<>();
 
         return new ExporterConfig(yamlConfig);
@@ -114,10 +115,12 @@ public class ExporterConfig {
      * @param config2 an additional configuration to combine with this one
      */
     public void append(ExporterConfig config2) {
-        MBeanSelector[] newQueries = new MBeanSelector[queries.length + config2.queries.length];
-        System.arraycopy(queries, 0, newQueries, 0, queries.length);
-        System.arraycopy(config2.queries, 0, newQueries, queries.length, config2.queries.length);
-        queries = newQueries;
+        MBeanSelector[] originalQueries = getQueries();
+        MBeanSelector[] appendedQueries = config2.getQueries();
+        MBeanSelector[] newQueries = new MBeanSelector[originalQueries.length + appendedQueries.length];
+        System.arraycopy(originalQueries, 0, newQueries, 0, originalQueries.length);
+        System.arraycopy(appendedQueries, 0, newQueries, originalQueries.length, appendedQueries.length);
+        this.queries = newQueries;
     }
 
     /**
@@ -125,7 +128,8 @@ public class ExporterConfig {
      * @param config2 a new configuration whose queries will replace those from this one
      */
     public void replace(ExporterConfig config2) {
-        queries = Arrays.copyOf(config2.queries, config2.queries.length);
+        MBeanSelector[] newQueries = config2.getQueries();
+        this.queries = Arrays.copyOf(newQueries, newQueries.length);
     }
 
     @Override
@@ -135,7 +139,7 @@ public class ExporterConfig {
                 .append("port: ").append(port).append('\n')
                 .append("queries:\n");
 
-        for (MBeanSelector query : queries)
+        for (MBeanSelector query : getQueries())
             appendQuery(sb, query);
 
         return sb.toString();
