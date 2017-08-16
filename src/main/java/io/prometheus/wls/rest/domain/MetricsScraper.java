@@ -3,7 +3,6 @@ package io.prometheus.wls.rest.domain;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +15,7 @@ import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
 class MetricsScraper {
     private static final char QUOTE = '"';
     private Map<String, Object> metrics = new HashMap<>();
+    private boolean metricNameSnakeCase;
 
     Map<String, Object> getMetrics() {
         return metrics;
@@ -30,6 +30,10 @@ class MetricsScraper {
         metrics = new HashMap<>();
         scrapeItem(response, selector, "");
         return metrics;
+    }
+
+    void setMetricNameSnakeCase(boolean metricNameSnakeCase) {
+        this.metricNameSnakeCase = metricNameSnakeCase;
     }
 
     private void scrapeItemList(JsonObject itemWrapper, MBeanSelector beanSelector, String parentQualifiers) {
@@ -64,18 +68,15 @@ class MetricsScraper {
 
     private String getMetricName(String valueName, MBeanSelector beanSelector, String qualifiers) {
         StringBuilder sb = new StringBuilder();
-        if (beanSelector.getPrefix() != null) sb.append(beanSelector.getPrefix());
-        sb.append(valueName);
+        if (beanSelector.getPrefix() != null) sb.append(withCorrectCase(beanSelector.getPrefix()));
+        sb.append(withCorrectCase(valueName));
         if (!isNullOrEmptyString(qualifiers))
             sb.append('{').append(qualifiers).append('}');
         return sb.toString();
     }
 
-    private Object getPrimitiveValue(JsonPrimitive value) {
-        if (value.isNumber())
-            return value.getAsNumber();
-        else
-            return value.getAsString();
+    private String withCorrectCase(String valueName) {
+        return metricNameSnakeCase ? SnakeCaseUtil.convert(valueName) : valueName;
     }
 
     private String getItemQualifiers(JsonObject object, MBeanSelector beanSelector, String parentQualifiers) {

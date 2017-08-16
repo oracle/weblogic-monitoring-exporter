@@ -25,7 +25,7 @@ public class YamlDemo {
         String response = compressedJsonForm(RESPONSE);
         System.out.println("The response\n" + response + "\nwill be transformed into the following metrics:");
 
-        selector.scrapeMetrics(getJsonResponse(response)).
+        exporterConfig.scrapeMetrics(selector, getJsonResponse(response)).
                 forEach((name, value) -> System.out.printf("  %s %s%n", name, value));
     }
 

@@ -117,7 +117,7 @@ public class ExporterServlet extends HttpServlet {
         String jsonResponse = webClient.doQuery(selector.getRequest());
         if (isNullOrEmptyString(jsonResponse)) return null;
 
-        return selector.scrapeMetrics(toJsonObject(jsonResponse));
+        return LiveConfiguration.getConfig().scrapeMetrics(selector, toJsonObject(jsonResponse));
     }
 
     private JsonObject toJsonObject(String response) {

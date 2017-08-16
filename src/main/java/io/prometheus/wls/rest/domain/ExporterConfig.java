@@ -1,5 +1,6 @@
 package io.prometheus.wls.rest.domain;
 
+import com.google.gson.JsonObject;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
@@ -15,7 +16,7 @@ import java.util.Map;
 public class ExporterConfig {
     static final String DEFAULT_HOST = "localhost";
     static final int DEFAULT_PORT = 7001;
-    static final String START_DELAY_SECONDS = "startDelaySeconds";
+    static final String SNAKE_CASE = "metricsNameSnakeCase";
     static final String HOST = "host";
     static final String PORT = "port";
     static final String USERNAME = "username";
@@ -24,12 +25,12 @@ public class ExporterConfig {
     private static final String QUERIES = "queries";
     private static final MBeanSelector[] NO_QUERIES = {};
 
-    private int startDelaySeconds;
     private String userName = "";
     private String password = "";
     private MBeanSelector[] queries;
     private String host = DEFAULT_HOST;
     private int port = DEFAULT_PORT;
+    private boolean metricsNameSnakeCase;
 
     /**
      * Loads a YAML configuration to create a new configuration object.
@@ -39,6 +40,19 @@ public class ExporterConfig {
     @SuppressWarnings("unchecked")
     public static ExporterConfig loadConfig(InputStream inputStream) {
         return loadConfig((Map<String, Object>) new Yaml().load(inputStream));
+    }
+
+    /**
+     * Creates a set of metrics from a Json object
+     *
+     * @param selector the description of the metrics to scrape.
+     * @param response  a parsed JSON REST response
+     * @return a map of metric names to values
+     */
+    public Map<String, Object> scrapeMetrics(MBeanSelector selector, JsonObject response) {
+        MetricsScraper scraper = new MetricsScraper();
+        scraper.setMetricNameSnakeCase(metricsNameSnakeCase);
+        return scraper.scrape(selector, response);
     }
 
     /**
@@ -57,7 +71,7 @@ public class ExporterConfig {
     }
 
     private ExporterConfig(Map<String, Object> yaml) {
-        if (yaml.containsKey(START_DELAY_SECONDS)) startDelaySeconds = MapUtils.getIntegerValue(yaml, START_DELAY_SECONDS);
+        if (yaml.containsKey(SNAKE_CASE)) metricsNameSnakeCase = MapUtils.getBooleanValue(yaml, SNAKE_CASE);
         if (yaml.containsKey(USERNAME)) userName = MapUtils.getStringValue(yaml, USERNAME);
         if (yaml.containsKey(PASSWORD)) password = MapUtils.getStringValue(yaml, PASSWORD);
         if (yaml.containsKey(HOST)) host = MapUtils.getStringValue(yaml, HOST);
@@ -90,10 +104,6 @@ public class ExporterConfig {
         return list.isEmpty() || Map.class.isInstance(list.get(0));
     }
 
-    int getStartDelaySeconds() {
-        return startDelaySeconds;
-    }
-
     public String getUserName() {
         return userName;
     }
@@ -108,6 +118,14 @@ public class ExporterConfig {
 
     public int getPort() {
         return port;
+    }
+
+    /**
+     * Returns true if attribute names should be converted to snake case as metric names
+     * @return true if the conversion should be done
+     */
+    public boolean getMetricsNameSnakeCase() {
+        return metricsNameSnakeCase;
     }
 
     /**

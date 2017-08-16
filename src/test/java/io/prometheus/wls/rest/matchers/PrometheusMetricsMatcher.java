@@ -5,7 +5,6 @@ import org.hamcrest.Description;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 // verifies that metrics are grouped by name, ignores any comments
@@ -89,27 +88,10 @@ public class PrometheusMetricsMatcher extends org.hamcrest.TypeSafeDiagnosingMat
     private List<String> getSortedGroups(String[] metricsList) {
         return Arrays.stream(metricsList)
                 .filter((s) -> !s.startsWith("#"))
-                .map(PrometheusMetricsMatcher::getMetricName)
-                .filter(new Uniq())
+                .map(MetricsUtils::getMetricName)
+                .filter(new MetricsUtils.Uniq())
                 .sorted()
                 .collect(Collectors.toList());
-    }
-
-    private static String getMetricName(String s) {
-        String spec = s.trim().split(" ")[0];
-        return spec.contains("{") ? spec.split("\\{")[0] : spec;
-    }
-
-    static class Uniq implements Predicate<String> {
-        String last = "";
-        @Override
-        public boolean test(String s) {
-            try {
-                return s != null && !s.equals(last);
-            } finally {
-                last = s;
-            }
-        }
     }
 
     @Override

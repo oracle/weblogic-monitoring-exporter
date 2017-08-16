@@ -29,6 +29,7 @@ import static io.prometheus.wls.rest.HttpServletResponseStub.createServletRespon
 import static io.prometheus.wls.rest.StatusCodes.*;
 import static io.prometheus.wls.rest.domain.JsonPathMatcher.hasJsonPath;
 import static io.prometheus.wls.rest.matchers.CommentsOnlyMatcher.containsOnlyComments;
+import static io.prometheus.wls.rest.matchers.MetricsNamesSnakeCaseMatcher.usesSnakeCase;
 import static io.prometheus.wls.rest.matchers.PrometheusMetricsMatcher.followsPrometheusRules;
 import static io.prometheus.wls.rest.matchers.ResponseHeaderMatcher.containsHeader;
 import static org.hamcrest.Matchers.*;
@@ -112,7 +113,7 @@ public class ExporterServletTest {
 
     @Test
     public void whenServerSends403StatusOnGet_returnToClient() throws Exception {
-        initServlet("---\nqueries:\n- groups:\n    key: name\n    values: sample1");
+        initServlet("---\nqueries:\n- groups:\n    key: name\n    values: testSample1");
 
         webClient.reportNotAuthorized();
         servlet.doGet(request, response);
@@ -122,7 +123,7 @@ public class ExporterServletTest {
 
     @Test
     public void whenServerSends401StatusOnGet_returnToClient() throws Exception {
-        initServlet("---\nqueries:\n- groups:\n    key: name\n    values: sample1");
+        initServlet("---\nqueries:\n- groups:\n    key: name\n    values: testSample1");
 
         webClient.reportAuthenticationRequired("Test-Realm");
         servlet.doGet(request, response);
@@ -133,7 +134,7 @@ public class ExporterServletTest {
 
     @Test
     public void whenClientSendsAuthenticationHeaderOnGet_passToServer() throws Exception {
-        initServlet("---\nqueries:\n- groups:\n    key: name\n    values: sample1");
+        initServlet("---\nqueries:\n- groups:\n    key: name\n    values: testSample1");
 
         request.setHeader("Authorization", "auth-credentials");
         servlet.doGet(request, response);
@@ -143,12 +144,12 @@ public class ExporterServletTest {
 
     @Test
     public void onGet_sendJsonQuery() throws Exception {
-        initServlet("---\nqueries:\n- groups:\n    key: name\n    values: sample1");
+        initServlet("---\nqueries:\n- groups:\n    key: name\n    values: testSample1");
 
         servlet.doGet(request, response);
 
         assertThat(webClient.jsonQuery,
-                   hasJsonPath("$.children.groups.fields").withValues("name", "sample1"));
+                   hasJsonPath("$.children.groups.fields").withValues("name", "testSample1"));
     }
 
     private void initServlet(String configuration) throws ServletException {
@@ -159,13 +160,13 @@ public class ExporterServletTest {
     @Test
     public void onGet_displayMetrics() throws Exception {
         webClient.addJsonResponse(getGroupResponseMap());
-        initServlet("---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [sample1,sample2]");
+        initServlet("---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]");
 
         servlet.doGet(request, this.response);
 
-        assertThat(toHtml(this.response), containsString("groupValue_sample1{name=\"first\"} 12"));
-        assertThat(toHtml(this.response), containsString("groupValue_sample1{name=\"second\"} -3"));
-        assertThat(toHtml(this.response), containsString("groupValue_sample2{name=\"second\"} 71.0"));
+        assertThat(toHtml(this.response), containsString("groupValue_testSample1{name=\"first\"} 12"));
+        assertThat(toHtml(this.response), containsString("groupValue_testSample1{name=\"second\"} -3"));
+        assertThat(toHtml(this.response), containsString("groupValue_testSample2{name=\"second\"} 71.0"));
     }
 
     private String toHtml(HttpServletResponseStub response) {
@@ -174,18 +175,29 @@ public class ExporterServletTest {
 
     private Map getGroupResponseMap() {
         return ImmutableMap.of("groups", new ItemHolder(
-                    ImmutableMap.of("name", "first", "sample1", 12, "sample2", 12.3, "bogus", "red"),
-                    ImmutableMap.of("name", "second", "sample1", -3, "sample2", 71.0),
-                    ImmutableMap.of("name", "third", "sample1", 85, "sample2", 65.8)
+                    ImmutableMap.of("name", "first", "testSample1", 12, "testSample2", 12.3, "bogus", "red"),
+                    ImmutableMap.of("name", "second", "testSample1", -3, "testSample2", 71.0),
+                    ImmutableMap.of("name", "third", "testSample1", 85, "testSample2", 65.8)
         ));
     }
 
     // todo test: show TYPE on first instance
 
     @Test
+    public void onGet_displayMetricsInSnakeCase() throws Exception {
+        webClient.addJsonResponse(getGroupResponseMap());
+        initServlet("---\nmetricsNameSnakeCase: true\nqueries:\n- groups:\n" +
+                "    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]");
+
+        servlet.doGet(request, this.response);
+
+        assertThat(toHtml(this.response), usesSnakeCase());
+    }
+
+    @Test
     public void onGet_metricsArePrometheusCompliant() throws Exception {
         webClient.addJsonResponse(getGroupResponseMap());
-        initServlet("---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [sample1,sample2,bogus]");
+        initServlet("---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2,bogus]");
 
         servlet.doGet(request, response);
 
@@ -197,13 +209,13 @@ public class ExporterServletTest {
         webClient.addJsonResponse(getGroupResponseMap());
         webClient.addJsonResponse(getColorResponseMap());
         initServlet("---\nqueries:" +
-                "\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [sample1,sample2]" +
+                "\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]" +
                 "\n- colors:                         \n    key: hue \n    values: wavelength");
 
         servlet.doGet(request, this.response);
 
-        assertThat(toHtml(this.response), containsString("groupValue_sample1{name=\"first\"} 12"));
-        assertThat(toHtml(this.response), containsString("groupValue_sample1{name=\"second\"} -3"));
+        assertThat(toHtml(this.response), containsString("groupValue_testSample1{name=\"first\"} 12"));
+        assertThat(toHtml(this.response), containsString("groupValue_testSample1{name=\"second\"} -3"));
         assertThat(toHtml(this.response), containsString("wavelength{hue=\"green\"} 540"));
     }
 

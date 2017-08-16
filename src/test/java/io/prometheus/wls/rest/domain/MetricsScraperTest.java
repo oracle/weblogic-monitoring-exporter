@@ -243,6 +243,15 @@ public class MetricsScraperTest {
 
 
     @Test
+    public void generateFromFullResponseUsingSnakeCase() throws Exception {
+        scraper.setMetricNameSnakeCase(true);
+        Map<String, Object> metrics = scraper.scrape(MBeanSelector.create(getFullMap()), getJsonResponse(RESPONSE));
+
+        assertThat(metrics, hasEntry("component_deployment_state{application=\"weblogic\",component=\"ejb30_weblogic\"}", 2));
+        assertThat(metrics, hasEntry("servlet_invocation_total_count{application=\"weblogic\",component=\"ejb30_weblogic\",servletName=\"JspServlet\"}", 0));
+    }
+
+    @Test
     public void whenTypeNotSpecified_includeAllComponents() throws Exception {
         Map<String, Object> metrics = scraper.scrape(MBeanSelector.create(getFullMap()), getJsonResponse(RESPONSE));
 

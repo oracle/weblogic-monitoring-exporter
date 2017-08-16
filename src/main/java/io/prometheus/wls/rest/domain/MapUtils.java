@@ -31,6 +31,21 @@ public class MapUtils {
     }
 
     /**
+     * Attempts to retrieve the specified value as a boolean. It can recognize the value
+     * either as a Boolean object or a string.
+     * @param map a map containing the value
+     * @param key the map key at which the value is found
+     * @return a boolean value derived from the item in the map
+     */
+    static Boolean getBooleanValue(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value instanceof Boolean)
+            return (Boolean) value;
+
+        return Boolean.parseBoolean(value.toString());
+    }
+
+    /**
      * Creates an exception which describes the failure to interpret a map value
      * @param key the map key used to retrieve the value
      * @param value the actual problematic value found

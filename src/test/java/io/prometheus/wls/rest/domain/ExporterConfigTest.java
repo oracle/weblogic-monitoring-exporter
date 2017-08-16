@@ -42,7 +42,7 @@ public class ExporterConfigTest {
     public void whenYamlConfigEmpty_returnDefaultConfiguration() throws Exception {
         ExporterConfig config = ExporterConfig.loadConfig(NULL_MAP);
 
-        assertThat(config.getStartDelaySeconds(), equalTo(0));
+        assertThat(config.getMetricsNameSnakeCase(), equalTo(false));
         assertThat(config.getUserName(), emptyString());
         assertThat(config.getPassword(), emptyString());
     }
@@ -55,34 +55,12 @@ public class ExporterConfigTest {
     }
 
     @Test
-    public void whenSpecified_readStartDelayFromYaml() throws Exception {
-        int expected = getRandomInt(10,100);
-        yamlConfig.put(ExporterConfig.START_DELAY_SECONDS, expected);
+    public void whenSpecified_readSnakeCaseSettingFromYaml() throws Exception {
+        yamlConfig.put(ExporterConfig.SNAKE_CASE, true);
 
         ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
 
-        assertThat(config.getStartDelaySeconds(), equalTo(expected));
-     }
-
-    private int getRandomInt(int low, int high) {
-        return low + (int) Math.floor(Math.random() * (high + 1 - low));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void whenNonNumericValueSpecifiedForStartDelay_throwException() throws Exception {
-        yamlConfig.put(ExporterConfig.START_DELAY_SECONDS, "abc");
-
-        ExporterConfig.loadConfig(yamlConfig);
-     }
-
-    @Test
-    public void whenIntegerStringSpecifiedForStartDelay_convertIt() throws Exception {
-        int expected = getRandomInt(1,50);
-        yamlConfig.put(ExporterConfig.START_DELAY_SECONDS, Integer.toString(expected));
-
-        ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
-
-        assertThat(config.getStartDelaySeconds(), equalTo(expected));
+        assertThat(config.getMetricsNameSnakeCase(), is(true));
      }
 
     @Test

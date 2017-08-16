@@ -21,6 +21,7 @@ host: localhost
 port: 7001
 username: myuser
 password: mysecretpassword
+metricsNameSnakeCase: true
 queries:
 - applicationRuntimes:
     key: name
@@ -41,6 +42,7 @@ Note that there are two parts to the configuration. The optional top portion tel
 | --- | --- |
 | host | the host on which the WLS instance is running. Defaults to "localhost" |
 | port | the port on which the WLS instance is listening. Defaults to 7001 |
+| metricsNameSnakeCase | If true, metrics names will be converted to snake case. Defaults to false |
 | username | the name required for access to the REST API. Optional |
 | password | the password required for access to the REST API. Optional |
 
