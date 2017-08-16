@@ -14,8 +14,6 @@ web application in a WLS instance. Typically, this is deployed to the instance y
 ## Configuration
 Here is an example `yaml` configuration:
 ```
-username: myuser
-password: mysecretpassword
 metricsNameSnakeCase: true
 queries:
 - applicationRuntimes:
@@ -31,16 +29,11 @@ queries:
         key: servletName
         values: invocationTotalCount
 ```
-Note that there are two parts to the configuration. The optional top portion tells the exporter how to connect to the REST API:
+Note that there are two parts to the configuration. The optional top portion defines general processing rules:
 
 | Name | Description |
 | --- | --- |
 | metricsNameSnakeCase | If true, metrics names will be converted to snake case. Defaults to false |
-| username | the name required for access to the REST API. Optional |
-| password | the password required for access to the REST API. Optional |
-
-Note that if the username and password credentials are not specified, the exporter will pass through any authentication
-challenge from the REST API to the client, and will pass through any authorization header from the client.
 
 The `query` field is more complex. Each query consists of a hierarchy of the mbeans, starting relative to `ServerRuntimes`.
 Within each section, there are a number of options:
