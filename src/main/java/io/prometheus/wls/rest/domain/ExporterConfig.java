@@ -152,10 +152,12 @@ public class ExporterConfig {
     }
 
     /**
-     * Replacies the queries from the specified configuration.
-     * @param config2 a new configuration whose queries will replace those from this one
+     * Replaces the display rules from the specified configuration. Display rules in
+     * the queries and the metricsNameSnakeCase setting.
+     * @param config2 a new configuration whose display rules will replace those from this one
      */
     public void replace(ExporterConfig config2) {
+        this.metricsNameSnakeCase = config2.metricsNameSnakeCase;
         MBeanSelector[] newQueries = config2.getQueries();
         this.queries = Arrays.copyOf(newQueries, newQueries.length);
     }

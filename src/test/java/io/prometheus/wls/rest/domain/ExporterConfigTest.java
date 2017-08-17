@@ -140,15 +140,15 @@ public class ExporterConfigTest {
 
     @Test
     public void afterAppend_configHasOriginalDestination() throws Exception {
-        ExporterConfig config = getAppendedConfiguration();
+        ExporterConfig config = getAppendedConfiguration(YAML_STRING, YAML_STRING2);
 
         assertThat(config.getHost(), equalTo(EXPECTED_HOST));
         assertThat(config.getPort(), equalTo(EXPECTED_PORT));
     }
 
-    private ExporterConfig getAppendedConfiguration() {
-        ExporterConfig config = loadFromString(YAML_STRING);
-        ExporterConfig config2 = loadFromString(YAML_STRING2);
+    private ExporterConfig getAppendedConfiguration(String firstConfiguration, String secondConfiguration) {
+        ExporterConfig config = loadFromString(firstConfiguration);
+        ExporterConfig config2 = loadFromString(secondConfiguration);
         config.append(config2);
         return config;
     }
@@ -156,6 +156,7 @@ public class ExporterConfigTest {
     private static final String YAML_STRING2 = "---\n" +
             "host: otherhost\n" +
             "port: 9876\n" +
+            "metricsNameSnakeCase: true\n" +
             "queries:\n" +
             "- applicationRuntimes:\n" +
             "    key: name\n" +
@@ -165,8 +166,14 @@ public class ExporterConfigTest {
             "      values: [pendingRequests, completedRequests, stuckThreadCount]\n";
 
     @Test
+    public void afterAppend_configHasOriginalSnakeCase() throws Exception {
+        assertThat(getAppendedConfiguration(YAML_STRING, YAML_STRING2).getMetricsNameSnakeCase(), is(false));
+        assertThat(getAppendedConfiguration(YAML_STRING2, YAML_STRING).getMetricsNameSnakeCase(), is(true));
+     }
+
+    @Test
     public void afterAppend_configHasOriginalQuery() throws Exception {
-        ExporterConfig config = getAppendedConfiguration();
+        ExporterConfig config = getAppendedConfiguration(YAML_STRING, YAML_STRING2);
 
         MBeanSelector applicationRuntimes = config.getQueries()[0].getNestedSelectors().get("applicationRuntimes");
         assertThat(applicationRuntimes.getNestedSelectors().keySet(), contains("componentRuntimes"));
@@ -174,7 +181,7 @@ public class ExporterConfigTest {
 
     @Test
     public void afterAppend_configHasAdditionalQuery() throws Exception {
-        ExporterConfig config = getAppendedConfiguration();
+        ExporterConfig config = getAppendedConfiguration(YAML_STRING, YAML_STRING2);
 
         assertThat(config.getQueries(), arrayWithSize(2));
         MBeanSelector applicationRuntimes = config.getQueries()[1].getNestedSelectors().get("applicationRuntimes");
@@ -183,9 +190,7 @@ public class ExporterConfigTest {
 
     @Test
     public void whenAppendToNoQueries_configHasNewQueryOnly() throws Exception {
-        ExporterConfig config = loadFromString("");
-        ExporterConfig config2 = loadFromString(YAML_STRING2);
-        config.append(config2);
+        ExporterConfig config = getAppendedConfiguration("", YAML_STRING2);
 
         assertThat(config.getQueries(), arrayWithSize(1));
         MBeanSelector applicationRuntimes = config.getQueries()[0].getNestedSelectors().get("applicationRuntimes");
@@ -194,9 +199,7 @@ public class ExporterConfigTest {
 
     @Test
     public void whenAppendedConfigurationHasNoQueries_configHasOriginalQueryOnly() throws Exception {
-        ExporterConfig config = loadFromString(YAML_STRING);
-        ExporterConfig config2 = loadFromString("");
-        config.append(config2);
+        ExporterConfig config = getAppendedConfiguration(YAML_STRING, "");
 
         assertThat(config.getQueries(), arrayWithSize(1));
         MBeanSelector applicationRuntimes = config.getQueries()[0].getNestedSelectors().get("applicationRuntimes");
@@ -205,22 +208,28 @@ public class ExporterConfigTest {
 
     @Test
     public void afterReplace_configHasOriginalDestination() throws Exception {
-        ExporterConfig config = getReplacedConfiguration();
+        ExporterConfig config = getReplacedConfiguration(YAML_STRING, YAML_STRING2);
 
         assertThat(config.getHost(), equalTo(EXPECTED_HOST));
         assertThat(config.getPort(), equalTo(EXPECTED_PORT));
     }
 
-    private ExporterConfig getReplacedConfiguration() {
-        ExporterConfig config = loadFromString(YAML_STRING);
-        ExporterConfig config2 = loadFromString(YAML_STRING2);
+    private ExporterConfig getReplacedConfiguration(String firstConfiguration, String secondConfiguration) {
+        ExporterConfig config = loadFromString(firstConfiguration);
+        ExporterConfig config2 = loadFromString(secondConfiguration);
         config.replace(config2);
         return config;
     }
 
     @Test
+    public void afterReplace_configHasChangedSnakeCase() throws Exception {
+        assertThat(getReplacedConfiguration(YAML_STRING, YAML_STRING2).getMetricsNameSnakeCase(), is(true));
+        assertThat(getReplacedConfiguration(YAML_STRING2, YAML_STRING).getMetricsNameSnakeCase(), is(false));
+     }
+
+    @Test
     public void afterReplace_configHasReplacedQuery() throws Exception {
-        ExporterConfig config = getReplacedConfiguration();
+        ExporterConfig config = getReplacedConfiguration(YAML_STRING, YAML_STRING2);
 
         assertThat(config.getQueries(), arrayWithSize(1));
         MBeanSelector applicationRuntimes = config.getQueries()[0].getNestedSelectors().get("applicationRuntimes");
