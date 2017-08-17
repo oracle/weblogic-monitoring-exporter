@@ -1,11 +1,13 @@
 package io.prometheus.wls.rest;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 
+import static io.prometheus.wls.rest.InMemoryFileSystem.withNoParams;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
 
@@ -17,7 +19,13 @@ public class MainServletTest {
 
     @Before
     public void setUp() throws Exception {
+        InMemoryFileSystem.install();
         LiveConfiguration.loadFromString("");
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        InMemoryFileSystem.uninstall();
     }
 
     @Test
@@ -53,7 +61,8 @@ public class MainServletTest {
 
     @Test
     public void getRequestShowsCurrentConfiguration() throws Exception {
-        LiveConfiguration.loadFromString(PARSED_CONFIGURATION);
+        InMemoryFileSystem.defineResource(LiveConfiguration.CONFIG_YML, PARSED_CONFIGURATION);
+        servlet.init(withNoParams());
 
         servlet.doGet(request, response);
 

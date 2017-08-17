@@ -1,7 +1,9 @@
 package io.prometheus.wls.rest;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
+import javax.servlet.annotation.WebInitParam;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -12,7 +14,8 @@ import java.io.PrintStream;
 /**
  * This servlet represents the 'landing page' for the wls-exporter.
  */
-@WebServlet(value = "/")
+@WebServlet(value = "/",
+        initParams = {@WebInitParam(name = "saveDir", value = "D:/FileUpload"),})
 public class MainServlet extends HttpServlet {
     private static final String PAGE_HEADER
           = "<!DOCTYPE html>\n" +
@@ -22,6 +25,11 @@ public class MainServlet extends HttpServlet {
             "    <title>Weblogic Prometheus Exporter</title>\n" +
             "</head>\n" +
             "<body>";
+
+    @Override
+    public void init(ServletConfig servletConfig) throws ServletException {
+        LiveConfiguration.init(servletConfig);
+    }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -55,7 +63,7 @@ public class MainServlet extends HttpServlet {
         try (PrintStream ps = new PrintStream(outputStream)) {
             ps.println("<p>Current Configuration</p>");
             ps.println("<p><code><pre>");
-            ps.printf(LiveConfiguration.getConfig().toString());
+            ps.printf(LiveConfiguration.asString());
             ps.println("</pre></code></p>");
         }
     }

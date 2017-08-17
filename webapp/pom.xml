@@ -14,6 +14,9 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
+    <properties>
+        <configuration.directory>${project.build.directory}/configuration</configuration.directory>
+    </properties>
     <build>
         <finalName>wls-exporter</finalName>
         <pluginManagement>
@@ -23,9 +26,43 @@
                     <version>2.6</version>
                     <configuration>
                         <failOnMissingWebXml>false</failOnMissingWebXml>
+                        <warSourceDirectory>${configuration.directory}</warSourceDirectory>
                     </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
     </build>
+
+    <profiles>
+        <profile>
+            <id>initial-configuration</id>
+            <activation>
+                <property>
+                    <name>configuration</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.coderplus.maven.plugins</groupId>
+                        <artifactId>copy-rename-maven-plugin</artifactId>
+                        <version>1.0</version>
+                        <executions>
+                            <execution>
+                                <id>copy-configuration</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
+                                <configuration>
+                                    <sourceFile>${configuration}</sourceFile>
+                                    <destinationFile>${configuration.directory}/config.yml</destinationFile>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

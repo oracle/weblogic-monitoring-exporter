@@ -2,11 +2,10 @@ package io.prometheus.wls.rest;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
 import javax.servlet.annotation.WebServlet;
@@ -15,15 +14,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static com.meterware.simplestub.Stub.createStrictStub;
-import static io.prometheus.wls.rest.ExporterServlet.CONFIGURATION_FILE;
-import static io.prometheus.wls.rest.ExporterServletTest.ServletConfigStub.withNoParams;
-import static io.prometheus.wls.rest.ExporterServletTest.ServletConfigStub.withParams;
+import static io.prometheus.wls.rest.InMemoryFileSystem.withNoParams;
 import static io.prometheus.wls.rest.HttpServletRequestStub.createGetRequest;
 import static io.prometheus.wls.rest.HttpServletResponseStub.createServletResponse;
 import static io.prometheus.wls.rest.StatusCodes.*;
@@ -36,7 +31,6 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
 
 public class ExporterServletTest {
-    private static final String REST_YML = "/rest.yml";
     private static final String USER = "system";
     private static final String PASSWORD = "gumby1234";
     private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
@@ -49,6 +43,11 @@ public class ExporterServletTest {
     public void setUp() throws Exception {
         InMemoryFileSystem.install();
         LiveConfiguration.loadFromString("");
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        InMemoryFileSystem.uninstall();
     }
 
     @Test
@@ -79,20 +78,20 @@ public class ExporterServletTest {
 
     @Test
     public void whenConfigFileNameNotAbsolute_getReportsTheIssue() throws Exception {
-        servlet.init(withParams(CONFIGURATION_FILE, "no.yml"));
+        servlet.init(withNoParams());
 
         servlet.doGet(request, response);
 
-        assertThat(toHtml(response), containsString("start with"));
+        assertThat(toHtml(response), containsString("# No configuration"));
     }
 
     @Test
     public void whenConfigFileNotFound_getReportsTheIssue() throws Exception {
-        servlet.init(withParams(CONFIGURATION_FILE, REST_YML));
+        servlet.init(withNoParams());
 
         servlet.doGet(request, response);
 
-        assertThat(toHtml(response), containsString(REST_YML));
+        assertThat(toHtml(response), containsString("# No configuration"));
     }
 
     @Test
@@ -153,8 +152,8 @@ public class ExporterServletTest {
     }
 
     private void initServlet(String configuration) throws ServletException {
-        InMemoryFileSystem.defineResource(REST_YML, configuration);
-        servlet.init(withParams(CONFIGURATION_FILE, REST_YML));
+        InMemoryFileSystem.defineResource(LiveConfiguration.CONFIG_YML, configuration);
+        servlet.init(withNoParams());
     }
 
     @Test
@@ -305,58 +304,6 @@ public class ExporterServletTest {
         }
     }
 
-    static class InMemoryFileSystem {
-        private static Map<String, InputStream> resources;
-
-        static void install() throws NoSuchFieldException {
-            resources = new HashMap<>();
-        }
-
-        static void defineResource(String filePath, String contents) {
-            resources.put(filePath, toInputStream(contents));
-        }
-
-        private static InputStream toInputStream(String contents) {
-            return new ByteArrayInputStream(contents.getBytes());
-        }
-    }
-
-
-    abstract static class ServletConfigStub implements ServletConfig {
-        static ServletConfig withNoParams() {
-            return createStrictStub(ServletConfigStub.class, ImmutableMap.of());
-        }
-
-        static ServletConfig withParams(String name1, String value1) {
-            return createStrictStub(ServletConfigStub.class, ImmutableMap.of(name1, value1));
-        }
-
-        private Map<String,String> params;
-        private ServletContext context;
-
-        public ServletConfigStub(Map<String, String> params) {
-            this.params = params;
-            context = createStrictStub(ServletContextStub.class);
-        }
-
-        @Override
-        public String getInitParameter(String s) {
-            return params.get(s);
-        }
-
-        @Override
-        public ServletContext getServletContext() {
-            return context;
-        }
-    }
-
-    abstract static class ServletContextStub implements ServletContext {
-
-        @Override
-        public InputStream getResourceAsStream(String path) {
-            return !REST_YML.equals(path) ?  null : InMemoryFileSystem.resources.get(path);
-        }
-    }
 
     abstract static class ServletInputStreamStub extends ServletInputStream {
         private InputStream inputStream;

@@ -8,8 +8,11 @@ web application in a WLS instance. Typically, this is deployed to the instance y
 
 ## Building
 
-`mvn install` to build the exporter and servlets. Then
-`cd webapp & mvn package` to build the webapp `wls-exporter.war`, which can then be deployed to WLS
+`mvn install` to build the exporter and servlets. 
+
+Then `cd webapp & mvn package` to build the webapp `wls-exporter.war`, which can then be deployed to WLS.
+
+Adding `-Dconfiguration=<some-config-file>` will create a webapp with the specified configuration as its default.
 
 ## Configuration
 Here is an example `yaml` configuration:

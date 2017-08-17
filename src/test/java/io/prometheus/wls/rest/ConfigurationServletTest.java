@@ -86,7 +86,7 @@ public class ConfigurationServletTest {
     public void afterUploadWithReplace_useNewConfiguration() throws Exception {
         servlet.doPost(createUploadRequest(createEncodedForm("replace", CONFIGURATION)), response);
 
-        assertThat(LiveConfiguration.getConfig().toString(), equalTo(CONFIGURATION));
+        assertThat(LiveConfiguration.asString(), equalTo(CONFIGURATION));
     }
 
     @Test
@@ -125,6 +125,6 @@ public class ConfigurationServletTest {
         LiveConfiguration.loadFromString(CONFIGURATION);
         servlet.doPost(createUploadRequest(createEncodedForm("append", ADDED_CONFIGURATION)), createServletResponse());
 
-        assertThat(LiveConfiguration.getConfig().toString(), equalTo(COMBINED_CONFIGURATION));
+        assertThat(LiveConfiguration.asString(), equalTo(COMBINED_CONFIGURATION));
     }
 }

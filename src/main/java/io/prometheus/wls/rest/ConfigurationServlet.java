@@ -59,19 +59,17 @@ public class ConfigurationServlet extends HttpServlet {
         }
 
         void perform() throws ServletException {
-            if (LiveConfiguration.getConfig() == null)
-                throw new ServletException("Exporter Servlet not initialized");
-            if (uploadedConfig == null)
-                throw new ServletException("No configuration specified");
+            ExporterConfig uploadedConfig = this.uploadedConfig;
 
             if (effect.equalsIgnoreCase("replace"))
-                LiveConfiguration.getConfig().replace(uploadedConfig);
+                LiveConfiguration.replaceConfiguration(uploadedConfig);
             else if (effect.equalsIgnoreCase("append"))
-                LiveConfiguration.getConfig().append(uploadedConfig);
+                LiveConfiguration.appendConfiguration(uploadedConfig);
         }
 
         void setEffect(String effect) {
             this.effect = effect;
         }
     }
+
 }
