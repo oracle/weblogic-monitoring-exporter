@@ -18,9 +18,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static io.prometheus.wls.rest.InMemoryFileSystem.withNoParams;
 import static io.prometheus.wls.rest.HttpServletRequestStub.createGetRequest;
 import static io.prometheus.wls.rest.HttpServletResponseStub.createServletResponse;
+import static io.prometheus.wls.rest.InMemoryFileSystem.withNoParams;
 import static io.prometheus.wls.rest.StatusCodes.*;
 import static io.prometheus.wls.rest.domain.JsonPathMatcher.hasJsonPath;
 import static io.prometheus.wls.rest.matchers.CommentsOnlyMatcher.containsOnlyComments;
@@ -201,6 +201,16 @@ public class ExporterServletTest {
         servlet.doGet(request, response);
 
         assertThat(toHtml(response), followsPrometheusRules());
+    }
+
+    @Test
+    public void onGet_producePerformanceMetrics() throws Exception {
+        webClient.addJsonResponse(getGroupResponseMap());
+        initServlet("queries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2,bogus]");
+
+        servlet.doGet(request, response);
+
+        assertThat(toHtml(response), containsString("wls_scrape_mbeans_count_total{instance=\"myhost:7654\"} 6"));
     }
 
     @Test

@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -23,7 +22,6 @@ public class ExporterServlet extends HttpServlet {
     static final String EMPTY_QUERY = "{fields:[],links:[]}";
 
     private WebClient webClient;
-    private String initError;
 
     @SuppressWarnings("unused")  // production constructor
     public ExporterServlet() {
@@ -46,11 +44,11 @@ public class ExporterServlet extends HttpServlet {
         webClient.defineQueryUrl(LiveConfiguration.getQueryUrl());
         webClient.setAuthenticationCredentials(req.getHeader("Authorization"));
         try {
-            try (PrintStream ps = new PrintStream(resp.getOutputStream())) {
+            try (MetricsStream metricsStream = new MetricsStream(resp.getOutputStream())) {
                 if (!LiveConfiguration.hasQueries())
-                    ps.println("# No configuration defined.");
+                    metricsStream.println("# No configuration defined.");
                 else
-                    printMetrics(ps);
+                    printMetrics(metricsStream);
             }
         } catch (NotAuthorizedException e) {
             resp.sendError(NOT_AUTHORIZED, "Not authorized");
@@ -60,18 +58,19 @@ public class ExporterServlet extends HttpServlet {
         }
     }
 
-    private void printMetrics(PrintStream ps) throws IOException {
+    private void printMetrics(MetricsStream metricsStream) throws IOException {
         for (MBeanSelector selector : LiveConfiguration.getQueries())
-            displayMetrics(ps, selector);
+            displayMetrics(metricsStream, selector);
+        metricsStream.printPerformanceMetrics();
     }
 
-    private void displayMetrics(PrintStream ps, MBeanSelector selector) throws IOException {
+    private void displayMetrics(MetricsStream metricsStream, MBeanSelector selector) throws IOException {
         try {
             Map<String, Object> metrics = getMetrics(selector);
             if (metrics != null)
-                sort(metrics).forEach((name, value) -> ps.println(name + " " + value));
+                sort(metrics).forEach(metricsStream::printMetric);
         } catch (RestQueryException e) {
-            ps.println("REST service was unable to handle this query\n" + selector.getPrintableRequest());
+            metricsStream.println("REST service was unable to handle this query\n" + selector.getPrintableRequest());
         }
     }
 

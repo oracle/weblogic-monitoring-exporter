@@ -45,6 +45,10 @@ class LiveConfiguration {
         return String.format(URL_PATTERN, config.getHost(), config.getPort() );
     }
 
+    static String getPerformanceQualifier() {
+        return String.format("{instance=\"%s:%d\"}", config.getHost(), config.getPort());
+    }
+
     static boolean hasQueries() {
         return getConfig() != null && getConfig().getQueries().length > 0;
     }

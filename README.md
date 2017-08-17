@@ -83,3 +83,13 @@ weblogic_servlet_invocationTotalCount{app="myapp",name="aWebApp",servletName="se
 weblogic_servlet_invocationTotalCount{app="myapp",name="aWebApp",servletName="simpleServlet"}                                                             
 ```                                                             
 Note that no help or type text is current produced, as the REST API has no access to the underlying mbean info.
+
+
+## Self-Monitoring
+
+The exporter produces metrics for monitoring its own performance:
+
+- `wls_scrape_mbeans_count_total` reports the number of metrics scraped
+- `wls_scrape_duration_seconds` reports the time required to do the scrape
+- `wls_scrape_cpu_percent` reports the percentage of CPU used during the scrape
+
