@@ -124,7 +124,7 @@ public class ExporterConfig {
      * Returns true if attribute names should be converted to snake case as metric names
      * @return true if the conversion should be done
      */
-    public boolean getMetricsNameSnakeCase() {
+    boolean getMetricsNameSnakeCase() {
         return metricsNameSnakeCase;
     }
 

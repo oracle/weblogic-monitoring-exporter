@@ -204,8 +204,6 @@ public class ExporterServletTest {
         ));
     }
 
-    // todo test: show TYPE on first instance
-
     @Test
     public void onGet_displayMetricsInSnakeCase() throws Exception {
         factory.addJsonResponse(getGroupResponseMap());
@@ -332,7 +330,6 @@ public class ExporterServletTest {
     }
 
     static class WebClientStub implements WebClient {
-        static final String EMPTY_RESPONSE = "{}";
 
         private String url;
         private String username;
@@ -373,7 +370,7 @@ public class ExporterServletTest {
             if (basicRealmName != null) throw new BasicAuthenticationChallengeException(basicRealmName);
             
             this.jsonQuery = jsonQuery;
-            return jsonQuery.equals(ExporterServlet.EMPTY_QUERY) ? EMPTY_RESPONSE : nextJsonResponse();
+            return nextJsonResponse();
         }
 
         @Override

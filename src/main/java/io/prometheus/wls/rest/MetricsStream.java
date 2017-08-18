@@ -63,10 +63,6 @@ class MetricsStream extends PrintStream {
         return performanceProbe.getCurrentCpu() - startCpu;
     }
 
-    private double asPercent(double ratio) {
-        return 100.0 * ratio;
-    }
-
     interface PerformanceProbe {
         long getCurrentTime();
         long getCurrentCpu();

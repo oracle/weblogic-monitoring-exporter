@@ -74,7 +74,6 @@ public class ConfigurationServletTest {
             "- people:\n" +
             "    key: name\n" +
             "    values: [age, sex]\n";
-            ;
 
 
     @Test(expected = ServletException.class)

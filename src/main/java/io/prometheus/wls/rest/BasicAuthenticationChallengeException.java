@@ -3,14 +3,14 @@ package io.prometheus.wls.rest;
 /**
  * Thrown when the server sends an authentication challenge and the client doesn't have credentials.
  */
-public class BasicAuthenticationChallengeException extends RuntimeException {
+class BasicAuthenticationChallengeException extends RuntimeException {
     private String realm;
 
-    public BasicAuthenticationChallengeException(String realm) {
+    BasicAuthenticationChallengeException(String realm) {
         this.realm = realm;
     }
 
-    public String getRealm() {
+    String getRealm() {
         return realm;
     }
 }

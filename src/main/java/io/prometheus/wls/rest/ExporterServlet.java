@@ -19,8 +19,7 @@ import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
 @WebServlet(value = "/metrics")
 public class ExporterServlet extends HttpServlet {
 
-    static final String EMPTY_QUERY = "{fields:[],links:[]}";
-    static final String[] FORWARDED_REQUEST_HEADERS = {"Authorization", "Cookie"};
+    private static final String[] FORWARDED_REQUEST_HEADERS = {"Authorization", "Cookie"};
 
     private WebClientFactory webClientFactory;
 

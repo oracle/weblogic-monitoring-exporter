@@ -1,4 +1,7 @@
 package io.prometheus.wls.rest;
 
-public class NotAuthorizedException extends RuntimeException {
+/**
+ * An exception thrown when a 403 request is received from the server.
+ */
+class NotAuthorizedException extends RuntimeException {
 }

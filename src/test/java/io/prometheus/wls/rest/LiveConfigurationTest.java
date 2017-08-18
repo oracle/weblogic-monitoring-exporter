@@ -27,18 +27,6 @@ public class LiveConfigurationTest {
             "    key: name\n" +
             "    values: [age, sex]\n";
 
-    private static final String COMBINED_CONFIGURATION = "---\n" +
-            "host: localhost\n" +
-            "port: 7001\n" +
-            "queries:\n" + "" +
-            "- groups:\n" +
-            "    prefix: new_\n" +
-            "    key: name\n" +
-            "    values: [sample1, sample2]\n" +
-            "- people:\n" +
-            "    key: name\n" +
-            "    values: [age, sex]\n";
-
     @Before
     public void setUp() throws Exception {
         InMemoryFileSystem.install();

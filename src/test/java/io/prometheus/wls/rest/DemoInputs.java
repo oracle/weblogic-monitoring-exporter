@@ -1,6 +1,7 @@
 package io.prometheus.wls.rest;
 
 class DemoInputs {
+    @SuppressWarnings("unused")
     static final String YAML_STRING = "---\n" +
             "startDelaySeconds: 5\n" +
             "host: localhost\n" +
@@ -25,6 +26,7 @@ class DemoInputs {
             "          key: servletName\n" +
             "          values: invocationTotalCount\n";
 
+    @SuppressWarnings("unused")
     static final String YAML_STRING2 = "---\n" +
             "startDelaySeconds: 5\n" +
             "host: localhost\n" +
@@ -45,6 +47,7 @@ class DemoInputs {
             "        key: servletName\n" +
             "        values: invocationTotalCount\n";
 
+    @SuppressWarnings("unused")
     static final String YAML_STRING3 = "---\n" +
             "queries:\n" +
             "- applicationRuntimes:\n" +
