@@ -104,7 +104,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
 
     @Test
     public void whenSetCookieHeaderReceived_hasValue() throws Exception {
-        final String SET_COOKIE_VALUE = "jsession=12345; Domain=mydomain";
+        final String SET_COOKIE_VALUE = "jsession=12345; Domain=localhost";
         defineResource("cookies", new PseudoServlet() {
             public WebResource getPostResponse() {
                 WebResource webResource = new WebResource("", "text/plain");
