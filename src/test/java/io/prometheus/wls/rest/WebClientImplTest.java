@@ -8,22 +8,25 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
-import static io.prometheus.wls.rest.StatusCodes.AUTHENTICATION_REQUIRED;
-import static io.prometheus.wls.rest.StatusCodes.BAD_REQUEST;
-import static io.prometheus.wls.rest.StatusCodes.NOT_AUTHORIZED;
+import static io.prometheus.wls.rest.StatusCodes.*;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
 
 public class WebClientImplTest extends HttpUserAgentTest {
 
-    private WebClient webClient = new WebClientImpl();
+    private WebClientFactory factory = new WebClientFactoryImpl();
 
     private static String sentInfo;
+    private static Map<String,String> sentHeaders = new HashMap<>();
 
     @Before
     public void setUp() throws Exception {
         sentInfo = null;
+        sentHeaders.clear();
     }
 
     @Test
@@ -37,8 +40,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        webClient.defineQueryUrl(getHostPath() + "/unprotected");
-        webClient.doQuery(QUERY);
+        factory.createClient(getHostPath() + "/unprotected").doQuery(QUERY);
 
         assertThat(sentInfo, equalTo(QUERY));
     }
@@ -56,8 +58,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        webClient.defineQueryUrl(getHostPath() + "/checkXRequested");
-        webClient.doQuery("abced");
+        factory.createClient(getHostPath() + "/checkXRequested").doQuery("abced");
     }
 
     @Test
@@ -70,40 +71,52 @@ public class WebClientImplTest extends HttpUserAgentTest {
                     webResource.addHeader("WWW-Authenticate: Basic realm=\"testrealm\"");
                     return webResource;
                 } else {
-                    sentInfo = header;
+                    sentHeaders.put("Authorization", header);
                     return new WebResource("", "text/plain");
                 }
             }
         });
 
-        webClient.defineQueryUrl(getHostPath() + "/challenge");
-        webClient.setCredentials("user", "password");
-        webClient.doQuery("abced");
+        factory.setCredentials("user", "password");
+        factory.createClient(getHostPath() + "/challenge").doQuery("abced");
 
-        assertThat(sentInfo, equalTo("Basic " + Base64.encode("user:password")));
+        assertThat(sentHeaders, hasEntry("Authorization", "Basic " + Base64.encode("user:password")));
     }
 
     @Test
-    public void whenPreemptiveAuthenticationDefined_sendAuthentication() throws Exception {
-        defineResource("preemptive", new PseudoServlet() {
+    public void whenHeadersDefined_sendThem() throws Exception {
+        defineResource("headers", new PseudoServlet() {
             public WebResource getPostResponse() {
-                String header = getHeader("Authorization");
-                if (header == null) {
-                    return new WebResource("not allowed", "text/plain", NOT_AUTHORIZED);
-                } else {
-                    sentInfo = header;
-                    return new WebResource("", "text/plain");
-                }
+                sentHeaders.put("header1", getHeader("header1"));
+                sentHeaders.put("header2", getHeader("header2"));
+                return new WebResource("", "text/plain");
             }
         });
 
-        String authentication = "Basic " + Base64.encode("user:password");
-
-        webClient.defineQueryUrl(getHostPath() + "/preemptive");
-        webClient.setAuthenticationCredentials(authentication);
+        WebClient webClient = factory.createClient(getHostPath() + "/headers");
+        webClient.putHeader("header1", "value1");
+        webClient.putHeader("header2", "value2");
         webClient.doQuery("abced");
 
-        assertThat(sentInfo, equalTo(authentication));
+        assertThat(sentHeaders, hasEntry("header1", "value1"));
+        assertThat(sentHeaders, hasEntry("header2", "value2"));
+    }
+
+    @Test
+    public void whenSetCookieHeaderReceived_hasValue() throws Exception {
+        final String SET_COOKIE_VALUE = "jsession=12345; Domain=mydomain";
+        defineResource("cookies", new PseudoServlet() {
+            public WebResource getPostResponse() {
+                WebResource webResource = new WebResource("", "text/plain");
+                webResource.addHeader("Set-Cookie: " + SET_COOKIE_VALUE);
+                return webResource;
+            }
+        });
+
+        WebClient webClient = factory.createClient(getHostPath() + "/cookies");
+        webClient.doQuery("abced");
+
+        assertThat(webClient.getSetCookieHeader(), equalTo(SET_COOKIE_VALUE));
     }
 
     @Test
@@ -116,8 +129,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        webClient.defineQueryUrl(getHostPath() + "/query");
-        webClient.setCredentials("user", "password");
+        WebClient webClient = factory.createClient(getHostPath() + "/query");
         assertThat(webClient.doQuery("abced"), equalTo(RESPONSE));
     }
 
@@ -130,8 +142,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        webClient.defineQueryUrl(getHostPath() + "/badRestQuery");
-        webClient.doQuery("abcd");
+        factory.createClient(getHostPath() + "/badRestQuery").doQuery("abced");
     }
 
     @Test(expected = BasicAuthenticationChallengeException.class)
@@ -145,8 +156,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        webClient.defineQueryUrl(getHostPath() + "/protected");
-        webClient.doQuery("abcd");
+        factory.createClient(getHostPath() + "/protected").doQuery("abced");
     }
 
     @Test
@@ -160,7 +170,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        webClient.defineQueryUrl(getHostPath() + "/protected");
+        WebClient webClient = factory.createClient(getHostPath() + "/protected");
 
         try {
             webClient.doQuery("abcd");
@@ -178,7 +188,6 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        webClient.defineQueryUrl(getHostPath() + "/forbidden");
-        webClient.doQuery("abcd");
+        factory.createClient(getHostPath() + "/forbidden").doQuery("abced");
     }
 }

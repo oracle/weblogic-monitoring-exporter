@@ -20,36 +20,38 @@ import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
 public class ExporterServlet extends HttpServlet {
 
     static final String EMPTY_QUERY = "{fields:[],links:[]}";
+    static final String[] FORWARDED_REQUEST_HEADERS = {"Authorization", "Cookie"};
 
-    private WebClient webClient;
+    private WebClientFactory webClientFactory;
 
     @SuppressWarnings("unused")  // production constructor
     public ExporterServlet() {
-        this(new WebClientImpl());
+        this(new WebClientFactoryImpl());
     }
 
-    ExporterServlet(WebClient webClient) {
-        this.webClient = webClient;
+    ExporterServlet(WebClientFactory webClientFactory) {
+        this.webClientFactory = webClientFactory;
     }
 
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
         LiveConfiguration.init(servletConfig);
-        webClient.setCredentials(LiveConfiguration.getUserName(), LiveConfiguration.getPassword());
+        webClientFactory.setCredentials(LiveConfiguration.getUserName(), LiveConfiguration.getPassword());
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         LiveConfiguration.setServer(req.getServerName(), req.getServerPort());
-        webClient.defineQueryUrl(LiveConfiguration.getQueryUrl());
-        webClient.setAuthenticationCredentials(req.getHeader("Authorization"));
-        try {
-            try (MetricsStream metricsStream = new MetricsStream(resp.getOutputStream())) {
-                if (!LiveConfiguration.hasQueries())
-                    metricsStream.println("# No configuration defined.");
-                else
-                    printMetrics(metricsStream);
-            }
+        WebClient webClient = webClientFactory.createClient(LiveConfiguration.getQueryUrl());
+        forwardRequestHeaders(webClient, req);
+
+        try (MetricsStream metricsStream = new MetricsStream(resp.getOutputStream())) {
+            if (!LiveConfiguration.hasQueries())
+                metricsStream.println("# No configuration defined.");
+            else
+                printMetrics(webClient, metricsStream);
+
+            forwardResponseHeaders(webClient, resp);
         } catch (NotAuthorizedException e) {
             resp.sendError(NOT_AUTHORIZED, "Not authorized");
         } catch (BasicAuthenticationChallengeException e) {
@@ -58,15 +60,24 @@ public class ExporterServlet extends HttpServlet {
         }
     }
 
-    private void printMetrics(MetricsStream metricsStream) throws IOException {
+    private void forwardRequestHeaders(WebClient webClient, HttpServletRequest req) {
+        for (String headerKey : FORWARDED_REQUEST_HEADERS)
+            webClient.putHeader(headerKey, req.getHeader(headerKey));
+    }
+
+    private void forwardResponseHeaders(WebClient webClient, HttpServletResponse resp) {
+        if (webClient.getSetCookieHeader() != null) resp.setHeader("Set-Cookie", webClient.getSetCookieHeader());
+    }
+
+    private void printMetrics(WebClient webClient, MetricsStream metricsStream) throws IOException {
         for (MBeanSelector selector : LiveConfiguration.getQueries())
-            displayMetrics(metricsStream, selector);
+            displayMetrics(webClient, metricsStream, selector);
         metricsStream.printPerformanceMetrics();
     }
 
-    private void displayMetrics(MetricsStream metricsStream, MBeanSelector selector) throws IOException {
+    private void displayMetrics(WebClient webClient, MetricsStream metricsStream, MBeanSelector selector) throws IOException {
         try {
-            Map<String, Object> metrics = getMetrics(selector);
+            Map<String, Object> metrics = getMetrics(webClient, selector);
             if (metrics != null)
                 sort(metrics).forEach(metricsStream::printMetric);
         } catch (RestQueryException e) {
@@ -78,7 +89,7 @@ public class ExporterServlet extends HttpServlet {
         return new TreeMap<>(metrics);
     }
 
-    private Map<String, Object> getMetrics(MBeanSelector selector) throws IOException {
+    private Map<String, Object> getMetrics(WebClient webClient, MBeanSelector selector) throws IOException {
         String jsonResponse = webClient.doQuery(selector.getRequest());
         if (isNullOrEmptyString(jsonResponse)) return null;
 

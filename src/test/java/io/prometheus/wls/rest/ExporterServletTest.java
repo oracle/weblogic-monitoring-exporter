@@ -14,6 +14,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -34,8 +35,8 @@ public class ExporterServletTest {
     private static final String USER = "system";
     private static final String PASSWORD = "gumby1234";
     private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
-    private WebClientStub webClient = new WebClientStub();
-    private ExporterServlet servlet = new ExporterServlet(webClient);
+    private WebClientFactoryStub factory = new WebClientFactoryStub();
+    private ExporterServlet servlet = new ExporterServlet(factory);
     private HttpServletRequestStub request = createGetRequest();
     private HttpServletResponseStub response = createServletResponse();
 
@@ -98,8 +99,8 @@ public class ExporterServletTest {
     public void afterInit_servletHasAuthenticationCredentials() throws Exception {
         initServlet(String.format("---\nusername: %s\npassword: %s\n", USER, PASSWORD));
 
-        assertThat(webClient.username, equalTo(USER));
-        assertThat(webClient.password, equalTo(PASSWORD));
+        assertThat(factory.getUsername(), equalTo(USER));
+        assertThat(factory.getPassword(), equalTo(PASSWORD));
     }
 
     @Test
@@ -107,14 +108,14 @@ public class ExporterServletTest {
         initServlet("");
 
         servlet.doGet(request, response);
-        assertThat(webClient.url, equalTo(String.format(URL_PATTERN, HttpServletRequestStub.HOST, HttpServletRequestStub.PORT)));
+        assertThat(factory.getClientUrl(), equalTo(String.format(URL_PATTERN, HttpServletRequestStub.HOST, HttpServletRequestStub.PORT)));
     }
 
     @Test
     public void whenServerSends403StatusOnGet_returnToClient() throws Exception {
         initServlet("---\nqueries:\n- groups:\n    key: name\n    values: testSample1");
 
-        webClient.reportNotAuthorized();
+        factory.reportNotAuthorized();
         servlet.doGet(request, response);
 
         assertThat(response.getStatus(), equalTo(NOT_AUTHORIZED));
@@ -124,11 +125,24 @@ public class ExporterServletTest {
     public void whenServerSends401StatusOnGet_returnToClient() throws Exception {
         initServlet("---\nqueries:\n- groups:\n    key: name\n    values: testSample1");
 
-        webClient.reportAuthenticationRequired("Test-Realm");
+        factory.reportAuthenticationRequired("Test-Realm");
         servlet.doGet(request, response);
 
         assertThat(response.getStatus(), equalTo(AUTHENTICATION_REQUIRED));
         assertThat(response, containsHeader("WWW-Authenticate", "Basic realm=\"Test-Realm\""));
+    }
+
+    @Test
+    public void whenServerSendsSetCookieHeader_returnToClient() throws Exception {
+        final String SET_COOKIE_HEADER = "ACookie=AValue; Secure";
+
+        factory.setCookieResponseHeader(SET_COOKIE_HEADER);
+        factory.addJsonResponse(getGroupResponseMap());
+        initServlet("---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]");
+
+        servlet.doGet(request, response);
+
+        assertThat(response, containsHeader("Set-Cookie", SET_COOKIE_HEADER));
     }
 
     @Test
@@ -138,7 +152,17 @@ public class ExporterServletTest {
         request.setHeader("Authorization", "auth-credentials");
         servlet.doGet(request, response);
 
-        assertThat(webClient.getAuthenticationCredentials(), equalTo("auth-credentials"));
+        assertThat(factory.getSentHeader("Authorization"), equalTo("auth-credentials"));
+    }
+
+    @Test
+    public void whenClientSendsCookieHeaderOnGet_passToServer() throws Exception {
+        initServlet("---\nqueries:\n- groups:\n    key: name\n    values: testSample1");
+
+        request.setHeader("Cookie", "with-chocolate-chips");
+        servlet.doGet(request, response);
+
+        assertThat(factory.getSentHeader("Cookie"), equalTo("with-chocolate-chips"));
     }
 
     @Test
@@ -147,7 +171,7 @@ public class ExporterServletTest {
 
         servlet.doGet(request, response);
 
-        assertThat(webClient.jsonQuery,
+        assertThat(factory.getSentQuery(),
                    hasJsonPath("$.children.groups.fields").withValues("name", "testSample1"));
     }
 
@@ -158,14 +182,14 @@ public class ExporterServletTest {
 
     @Test
     public void onGet_displayMetrics() throws Exception {
-        webClient.addJsonResponse(getGroupResponseMap());
+        factory.addJsonResponse(getGroupResponseMap());
         initServlet("---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]");
 
-        servlet.doGet(request, this.response);
+        servlet.doGet(request, response);
 
-        assertThat(toHtml(this.response), containsString("groupValue_testSample1{name=\"first\"} 12"));
-        assertThat(toHtml(this.response), containsString("groupValue_testSample1{name=\"second\"} -3"));
-        assertThat(toHtml(this.response), containsString("groupValue_testSample2{name=\"second\"} 71.0"));
+        assertThat(toHtml(response), containsString("groupValue_testSample1{name=\"first\"} 12"));
+        assertThat(toHtml(response), containsString("groupValue_testSample1{name=\"second\"} -3"));
+        assertThat(toHtml(response), containsString("groupValue_testSample2{name=\"second\"} 71.0"));
     }
 
     private String toHtml(HttpServletResponseStub response) {
@@ -184,7 +208,7 @@ public class ExporterServletTest {
 
     @Test
     public void onGet_displayMetricsInSnakeCase() throws Exception {
-        webClient.addJsonResponse(getGroupResponseMap());
+        factory.addJsonResponse(getGroupResponseMap());
         initServlet("---\nmetricsNameSnakeCase: true\nqueries:\n- groups:\n" +
                 "    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]");
 
@@ -195,7 +219,7 @@ public class ExporterServletTest {
 
     @Test
     public void onGet_metricsArePrometheusCompliant() throws Exception {
-        webClient.addJsonResponse(getGroupResponseMap());
+        factory.addJsonResponse(getGroupResponseMap());
         initServlet("---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2,bogus]");
 
         servlet.doGet(request, response);
@@ -205,7 +229,7 @@ public class ExporterServletTest {
 
     @Test
     public void onGet_producePerformanceMetrics() throws Exception {
-        webClient.addJsonResponse(getGroupResponseMap());
+        factory.addJsonResponse(getGroupResponseMap());
         initServlet("queries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2,bogus]");
 
         servlet.doGet(request, response);
@@ -215,8 +239,8 @@ public class ExporterServletTest {
 
     @Test
     public void onGetWithMultipleQueries_displayMetrics() throws Exception {
-        webClient.addJsonResponse(getGroupResponseMap());
-        webClient.addJsonResponse(getColorResponseMap());
+        factory.addJsonResponse(getGroupResponseMap());
+        factory.addJsonResponse(getColorResponseMap());
         initServlet("---\nqueries:" +
                 "\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]" +
                 "\n- colors:                         \n    key: hue \n    values: wavelength");
@@ -252,17 +276,74 @@ public class ExporterServletTest {
         assertThat(toHtml(response), containsOnlyComments());
     }
 
+    static class WebClientFactoryStub implements WebClientFactory {
+        private WebClientStub webClient = new WebClientStub();
+
+        @Override
+        public void setCredentials(String username, String password) {
+            webClient.username = username;
+            webClient.password = password;
+        }
+
+        @Override
+        public WebClient createClient(String url) {
+            webClient.url = url;
+            return webClient;
+        }
+
+        private void addJsonResponse(Map responseMap) {
+            webClient.addJsonResponse(responseMap);
+        }
+
+
+        private void setCookieResponseHeader(String setCookieHeader) {
+            webClient.setCookieHeader = setCookieHeader;
+        }
+
+
+        private String getSentQuery() {
+            return webClient.jsonQuery;
+        }
+
+        private String getSentHeader(String key) {
+            return webClient.getHeader(key);
+        }
+
+        private String getUsername() {
+            return webClient.username;
+        }
+
+        private String getPassword() {
+            return webClient.password;
+        }
+
+        private String getClientUrl() {
+            return webClient.url;
+        }
+
+        private void reportNotAuthorized() {
+            webClient.reportNotAuthorized();
+        }
+
+        @SuppressWarnings("SameParameterValue")
+        private void reportAuthenticationRequired(String basicRealmName) {
+            webClient.reportAuthenticationRequired(basicRealmName);
+        }
+    }
+
     static class WebClientStub implements WebClient {
         static final String EMPTY_RESPONSE = "{}";
+
         private String url;
         private String username;
         private String password;
         private String jsonQuery;
         private int status = SUCCESS;
         private String basicRealmName;
-        private String authenticationCredentials;
+        private String setCookieHeader;
         private List<String> responseList = new ArrayList<>();
         private Iterator<String> responses;
+        private Map<String,String> headers = new HashMap<>();
 
         private void addJsonResponse(Map responseMap) {
             responseList.add(new Gson().toJson(responseMap));
@@ -277,24 +358,13 @@ public class ExporterServletTest {
             this.basicRealmName = basicRealmName;
         }
 
-        String getAuthenticationCredentials() {
-            return authenticationCredentials;
+        String getHeader(String key) {
+            return headers.get(key);
         }
 
         @Override
-        public void defineQueryUrl(String url) {
-            this.url = url;
-        }
-
-        @Override
-        public void setCredentials(String username, String password) {
-            this.username = username;
-            this.password = password;
-        }
-
-        @Override
-        public void setAuthenticationCredentials(String authenticationCredentials) {
-            this.authenticationCredentials = authenticationCredentials;
+        public void putHeader(String key, String value) {
+            headers.put(key, value);
         }
 
         @Override
@@ -304,6 +374,11 @@ public class ExporterServletTest {
             
             this.jsonQuery = jsonQuery;
             return jsonQuery.equals(ExporterServlet.EMPTY_QUERY) ? EMPTY_RESPONSE : nextJsonResponse();
+        }
+
+        @Override
+        public String getSetCookieHeader() {
+            return setCookieHeader;
         }
 
         private String nextJsonResponse() {

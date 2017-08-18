@@ -22,9 +22,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static io.prometheus.wls.rest.StatusCodes.AUTHENTICATION_REQUIRED;
-import static io.prometheus.wls.rest.StatusCodes.BAD_REQUEST;
-import static io.prometheus.wls.rest.StatusCodes.NOT_AUTHORIZED;
+import static io.prometheus.wls.rest.StatusCodes.*;
 
 public class WebClientImpl implements WebClient {
     private static final char QUOTE = '"';
@@ -32,22 +30,20 @@ public class WebClientImpl implements WebClient {
     private String url;
     private String username;
     private String password;
-    private String credentials;
+    private List<BasicHeader> addedHeaders = new ArrayList<>();
+    private boolean authorizationHeaderDefined;
+    private String setCookieHeader = null;
 
-    @Override
-    public void defineQueryUrl(String url) {
+    WebClientImpl(String url, String username, String password) {
         this.url = url;
-    }
-
-    @Override
-    public void setCredentials(String username, String password) {
         this.username = username;
         this.password = password;
     }
 
     @Override
-    public void setAuthenticationCredentials(String credentials) {
-        this.credentials = credentials;
+    public void putHeader(String key, String value) {
+        addedHeaders.add(new BasicHeader(key, value));
+        if (key.equals("Authorization")) authorizationHeaderDefined = true;
     }
 
     @Override
@@ -74,6 +70,11 @@ public class WebClientImpl implements WebClient {
         return null;
     }
 
+    @Override
+    public String getSetCookieHeader() {
+        return setCookieHeader;
+    }
+
     private void processStatusCode(CloseableHttpResponse response) throws RestQueryException {
         switch (response.getStatusLine().getStatusCode()) {
             case BAD_REQUEST:
@@ -82,6 +83,8 @@ public class WebClientImpl implements WebClient {
                 throw createAuthenticationChallengeException(response);
             case NOT_AUTHORIZED:
                 throw new NotAuthorizedException();
+            case SUCCESS:
+                setCookieHeader = extractSetCookieHeader(response);
         }
     }
 
@@ -101,6 +104,12 @@ public class WebClientImpl implements WebClient {
         return start > 0 ? authenticationHeaderValue.substring(start+1, end) : "none";
     }
 
+    private String extractSetCookieHeader(CloseableHttpResponse response) {
+        Header header = response.getFirstHeader("Set-Cookie");
+        return header == null ? null : header.getValue();
+
+    }
+
     private CloseableHttpClient createHttpClient() {
         return HttpClientBuilder.create()
                 .setDefaultCredentialsProvider(getCredentialsProvider())
@@ -117,7 +126,11 @@ public class WebClientImpl implements WebClient {
     }
 
     private boolean useUsernamePassword() {
-        return credentials == null && username != null && password != null;
+        return !isAuthorizationHeaderDefined() && username != null && password != null;
+    }
+
+    private boolean isAuthorizationHeaderDefined() {
+        return authorizationHeaderDefined;
     }
 
     private static CredentialsProvider createCredentialsProvider(String username, String password) {
@@ -129,8 +142,7 @@ public class WebClientImpl implements WebClient {
 
     private Collection<? extends Header> getDefaultHeaders() {
         List<Header> headers = new ArrayList<>(Collections.singleton(new BasicHeader("X-Requested-By", "rest-exporter")));
-        if (credentials != null)
-            headers.add(new BasicHeader("Authorization", credentials));
+        headers.addAll(addedHeaders);
         return headers;
     }
 }

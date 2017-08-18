@@ -8,23 +8,11 @@ import java.io.IOException;
 interface WebClient {
 
     /**
-     * Initializes the client
-     * @param url the URL of the WLS REST service
+     * Adds a header to be sent on every request
+     * @param key the header name
+     * @param value the header value
      */
-    void defineQueryUrl(String url);
-
-    /**
-     * Sets the credentials for the client.
-     * @param username the user authorization required for the service
-     * @param password the password required to access the service
-     */
-    void setCredentials(String username, String password);
-
-    /**
-     * Sets the content of the authentication header to be sent on every request
-     * @param authentication authentication credentials
-     */
-    void setAuthenticationCredentials(String authentication);
+    void putHeader(String key, String value);
 
     /**
      * Sends a query to the REST service and returns the reply.
@@ -32,4 +20,9 @@ interface WebClient {
      * @return a string in json format
      */
     String doQuery(String jsonQuery) throws IOException;
+
+    /**
+     * Returns the set-cookie header received from the server, if any
+     */
+    String getSetCookieHeader();
 }
