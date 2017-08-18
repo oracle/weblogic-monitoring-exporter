@@ -77,10 +77,10 @@ In the above example, the presumed underlying data structure is:
 ```                                                             
  The above configuration will then produce metrics such as:
 ```
-webapp_config_deploymentState{app="myapp",name="aWebApp"}                                                             
-webapp_config_openSessionsHighCount{app="myapp",name="aWebApp"}
-weblogic_servlet_invocationTotalCount{app="myapp",name="aWebApp",servletName="servlet1"}                                                             
-weblogic_servlet_invocationTotalCount{app="myapp",name="aWebApp",servletName="simpleServlet"}                                                             
+webapp_config_deployment_state{app="myapp",name="aWebApp"}                                                             
+webapp_config_open_sessions_high_count{app="myapp",name="aWebApp"}
+weblogic_servlet_invocation_total_count{app="myapp",name="aWebApp",servletName="servlet1"}                                                             
+weblogic_servlet_invocation_total_count{app="myapp",name="aWebApp",servletName="simpleServlet"}                                                             
 ```                                                             
 Note that no help or type text is current produced, as the REST API has no access to the underlying mbean info.
 
