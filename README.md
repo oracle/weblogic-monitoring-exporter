@@ -91,5 +91,5 @@ The exporter produces metrics for monitoring its own performance:
 
 - `wls_scrape_mbeans_count_total` reports the number of metrics scraped
 - `wls_scrape_duration_seconds` reports the time required to do the scrape
-- `wls_scrape_cpu_percent` reports the percentage of CPU used during the scrape
+- `wls_scrape_cpu_seconds` reports the CPU time used during the scrape
 

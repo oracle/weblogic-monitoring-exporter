@@ -1,11 +1,12 @@
 package io.prometheus.wls.rest;
 
+import com.sun.management.OperatingSystemMXBean;
+
 import javax.management.MBeanServerConnection;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadMXBean;
 
 class MetricsStream extends PrintStream {
     private static final double NANOSEC_PER_SECONDS = 1000000000;
@@ -35,8 +36,7 @@ class MetricsStream extends PrintStream {
     void printPerformanceMetrics() {
         printf( "%s %d%n", getCountName(), scrapeCount);
         printf("%s %.2f%n", getDurationName(), toSeconds(getElapsedTime()));
-        if (getElapsedTime() > 0)
-            printf("%s %.2f%n", getCpuUsageName(), asPercent(getCpuUsed() / getElapsedTime()));
+        printf("%s %.2f%n", getCpuUsageName(), toSeconds(getCpuUsed()));
     }
 
     private String getDurationName() {
@@ -44,7 +44,7 @@ class MetricsStream extends PrintStream {
     }
 
     private String getCpuUsageName() {
-        return "wls_scrape_cpu_percent" + LiveConfiguration.getPerformanceQualifier();
+        return "wls_scrape_cpu_seconds" + LiveConfiguration.getPerformanceQualifier();
     }
 
     private String getCountName() {
@@ -59,7 +59,7 @@ class MetricsStream extends PrintStream {
         return nanoSeconds / NANOSEC_PER_SECONDS;
     }
 
-    private double getCpuUsed() {
+    private long getCpuUsed() {
         return performanceProbe.getCurrentCpu() - startCpu;
     }
 
@@ -73,14 +73,13 @@ class MetricsStream extends PrintStream {
     }
 
     private static class PlatformPeformanceProbe implements PerformanceProbe {
-        private final ThreadMXBean threadMXBean;
-        private long threadId = Thread.currentThread().getId();
+        private final OperatingSystemMXBean osMBean;
 
         PlatformPeformanceProbe() throws IOException {
             MBeanServerConnection mbsc = ManagementFactory.getPlatformMBeanServer();
-            threadMXBean = ManagementFactory.newPlatformMXBeanProxy(mbsc,
-                                                       ManagementFactory.THREAD_MXBEAN_NAME,
-                                                       ThreadMXBean.class);
+            osMBean = ManagementFactory.newPlatformMXBeanProxy(mbsc,
+                                                       ManagementFactory.OPERATING_SYSTEM_MXBEAN_NAME,
+                                                       OperatingSystemMXBean.class);
         }
 
         @Override
@@ -90,7 +89,7 @@ class MetricsStream extends PrintStream {
 
         @Override
         public long getCurrentCpu() {
-            return threadMXBean.getThreadCpuTime(threadId);
+            return osMBean.getProcessCpuTime();
         }
     }
 }

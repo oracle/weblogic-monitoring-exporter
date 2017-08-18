@@ -47,11 +47,10 @@ public class MetricsStreamTest {
 
     @Test
     public void afterProcessing_reportCpuPercent() throws Exception {
-        performanceProbe.incrementElapsedTime(20);
-        performanceProbe.incrementCpuTime(3);
+        performanceProbe.incrementCpuTime(3.2);
 
         assertThat(getPrintedMetrics(),
-                containsString("wls_scrape_cpu_percent{instance=\"localhost:7001\"} 15.00"));
+                containsString("wls_scrape_cpu_seconds{instance=\"localhost:7001\"} 3.20"));
     }
 
     @Test
