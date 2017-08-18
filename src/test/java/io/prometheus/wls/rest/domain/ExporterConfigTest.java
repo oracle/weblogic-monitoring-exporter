@@ -139,6 +139,13 @@ public class ExporterConfigTest {
     }
 
     @Test
+    public void includeSnakeCaseTrueSettingInToString() throws Exception {
+        ExporterConfig config = loadFromString(YAML_STRING2);
+
+        assertThat(config.toString(), equalToIgnoringWhiteSpace(YAML_STRING2));
+    }
+
+    @Test
     public void afterAppend_configHasOriginalDestination() throws Exception {
         ExporterConfig config = getAppendedConfiguration(YAML_STRING, YAML_STRING2);
 

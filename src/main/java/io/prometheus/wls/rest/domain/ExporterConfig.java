@@ -166,8 +166,11 @@ public class ExporterConfig {
     public String toString() {
         StringBuilder sb = new StringBuilder("---\n")
                 .append("host: ").append(host).append('\n')
-                .append("port: ").append(port).append('\n')
-                .append("queries:\n");
+                .append("port: ").append(port).append('\n');
+
+        if (metricsNameSnakeCase)
+            sb.append("metricsNameSnakeCase: true\n");
+        sb.append("queries:\n");
 
         for (MBeanSelector query : getQueries())
             appendQuery(sb, query);
