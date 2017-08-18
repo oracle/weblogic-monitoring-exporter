@@ -1,12 +1,11 @@
 package io.prometheus.wls.rest;
 
-import com.sun.management.OperatingSystemMXBean;
-
 import javax.management.MBeanServerConnection;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 
 class MetricsStream extends PrintStream {
     private static final double NANOSEC_PER_SECONDS = 1000000000;
@@ -74,13 +73,14 @@ class MetricsStream extends PrintStream {
     }
 
     private static class PlatformPeformanceProbe implements PerformanceProbe {
-        private final OperatingSystemMXBean osMBean;
+        private final ThreadMXBean threadMXBean;
+        private long threadId = Thread.currentThread().getId();
 
         PlatformPeformanceProbe() throws IOException {
             MBeanServerConnection mbsc = ManagementFactory.getPlatformMBeanServer();
-            osMBean = ManagementFactory.newPlatformMXBeanProxy(mbsc,
-                                                       ManagementFactory.OPERATING_SYSTEM_MXBEAN_NAME,
-                                                       OperatingSystemMXBean.class);
+            threadMXBean = ManagementFactory.newPlatformMXBeanProxy(mbsc,
+                                                       ManagementFactory.THREAD_MXBEAN_NAME,
+                                                       ThreadMXBean.class);
         }
 
         @Override
@@ -90,7 +90,7 @@ class MetricsStream extends PrintStream {
 
         @Override
         public long getCurrentCpu() {
-            return osMBean.getProcessCpuTime();
+            return threadMXBean.getThreadCpuTime(threadId);
         }
     }
 }
