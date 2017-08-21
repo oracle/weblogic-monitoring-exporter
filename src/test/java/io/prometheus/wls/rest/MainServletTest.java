@@ -21,6 +21,7 @@ public class MainServletTest {
     public void setUp() throws Exception {
         InMemoryFileSystem.install();
         LiveConfiguration.loadFromString("");
+        request.setContextPath("/exporter");
     }
 
     @After
@@ -46,10 +47,19 @@ public class MainServletTest {
     }
 
     @Test
-    public void getRequest_showsLinkToMetrics() throws Exception {
+    public void whenServletPathIsSlash_showSimpleLinkToMetrics() throws Exception {
+        request.setServletPath("/");
         servlet.doGet(request, response);
 
         assertThat(response.getHtml(), containsString("href=\"metrics\""));
+    }
+
+    @Test
+    public void whenServletPathIsEmpty_showFullLinkToMetrics() throws Exception {
+        request.setServletPath("");
+        servlet.doGet(request, response);
+
+        assertThat(response.getHtml(), containsString("href=\"/exporter/metrics\""));
     }
 
     @Test

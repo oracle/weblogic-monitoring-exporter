@@ -9,6 +9,7 @@ import java.util.Map;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
 
+@SuppressWarnings("SameParameterValue")
 abstract class HttpServletRequestStub implements HttpServletRequest {
     final static String HOST = "myhost";
     final static int PORT = 7654;
@@ -19,6 +20,8 @@ abstract class HttpServletRequestStub implements HttpServletRequest {
     private String contentType = DEFAULT_CONTENT_TYPE;
     private String contents;
     private ServletInputStream inputStream;
+    private String contextPath;
+    private String servletPath = "";
 
     static HttpServletRequestStub createGetRequest() {
         return createStrictStub(HttpServletRequestStub.class, "GET");
@@ -32,7 +35,6 @@ abstract class HttpServletRequestStub implements HttpServletRequest {
         this.method = method;
     }
 
-    @SuppressWarnings("SameParameterValue")
     void setHeader(String headerName, String headerValue) {
         headers.put(headerName, headerValue);
     }
@@ -40,6 +42,14 @@ abstract class HttpServletRequestStub implements HttpServletRequest {
     void setMultipartContent(String contents, String boundary) {
         this.contentType = "multipart/form-data; boundary=" + boundary;
         this.contents = contents;
+    }
+
+    void setContextPath(String contextPath) {
+        this.contextPath = contextPath;
+    }
+
+    void setServletPath(String servletPath) {
+        this.servletPath = servletPath;
     }
 
     @Override
@@ -80,6 +90,16 @@ abstract class HttpServletRequestStub implements HttpServletRequest {
     @Override
     public int getServerPort() {
         return PORT;
+    }
+
+    @Override
+    public String getContextPath() {
+        return contextPath;
+    }
+
+    @Override
+    public String getServletPath() {
+        return servletPath;
     }
 
     @Override
