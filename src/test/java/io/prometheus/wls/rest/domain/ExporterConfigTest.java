@@ -1,11 +1,14 @@
 package io.prometheus.wls.rest.domain;
 
+import org.hamcrest.Description;
+import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static io.prometheus.wls.rest.domain.ExporterConfigTest.QueryHierarchyMatcher.hasQueryFor;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
@@ -14,7 +17,7 @@ public class ExporterConfigTest {
     private static final int EXPECTED_PORT = 3456;
     private static final String EXPECTED_USERNAME = "testuser";
     private static final String EXPECTED_PASSWORD = "letmein";
-    private static final String YAML_STRING = "---\n" +
+    private static final String SERVLET_CONFIG = "---\n" +
             "host: " + EXPECTED_HOST + "\n" +
             "port: " + EXPECTED_PORT + "\n" +
             "queries:\n" +
@@ -104,7 +107,7 @@ public class ExporterConfigTest {
 
     @Test
     public void whenSpecified_readQueriesFromYaml() throws Exception {
-        ExporterConfig config = loadFromString(YAML_STRING);
+        ExporterConfig config = loadFromString(SERVLET_CONFIG);
 
         assertThat(config.getQueries(), arrayWithSize(1));
     }
@@ -117,37 +120,29 @@ public class ExporterConfigTest {
     }
 
     @Test
-    public void topOfParsedSelectorIsApplicationRuntimes() throws Exception {
-        ExporterConfig config = loadFromString(YAML_STRING);
+    public void afterLoad_hasExpectedQuery() throws Exception {
+        ExporterConfig config = loadFromString(SERVLET_CONFIG);
 
-        assertThat(config.getQueries()[0].getNestedSelectors().keySet(), contains("applicationRuntimes"));
-    }
-
-    @Test
-    public void firstNestedSelectedIsComponentRuntimes() throws Exception {
-        ExporterConfig config = loadFromString(YAML_STRING);
-
-        MBeanSelector applicationRuntimes = config.getQueries()[0].getNestedSelectors().get("applicationRuntimes");
-        assertThat(applicationRuntimes.getNestedSelectors().keySet(), contains("componentRuntimes"));
+        assertThat(config, hasQueryFor("applicationRuntimes", "componentRuntimes"));
     }
 
     @Test
     public void afterLoad_convertToString() throws Exception {
-        ExporterConfig config = loadFromString(YAML_STRING);
+        ExporterConfig config = loadFromString(SERVLET_CONFIG);
 
-        assertThat(config.toString(), equalToIgnoringWhiteSpace(YAML_STRING));
+        assertThat(config.toString(), equalToIgnoringWhiteSpace(SERVLET_CONFIG));
     }
 
     @Test
     public void includeSnakeCaseTrueSettingInToString() throws Exception {
-        ExporterConfig config = loadFromString(YAML_STRING2);
+        ExporterConfig config = loadFromString(WORK_MANAGER_CONFIG);
 
-        assertThat(config.toString(), equalToIgnoringWhiteSpace(YAML_STRING2));
+        assertThat(config.toString(), equalToIgnoringWhiteSpace(WORK_MANAGER_CONFIG));
     }
 
     @Test
     public void afterAppend_configHasOriginalDestination() throws Exception {
-        ExporterConfig config = getAppendedConfiguration(YAML_STRING, YAML_STRING2);
+        ExporterConfig config = getAppendedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG);
 
         assertThat(config.getHost(), equalTo(EXPECTED_HOST));
         assertThat(config.getPort(), equalTo(EXPECTED_PORT));
@@ -160,7 +155,7 @@ public class ExporterConfigTest {
         return config;
     }
 
-    private static final String YAML_STRING2 = "---\n" +
+    private static final String WORK_MANAGER_CONFIG = "---\n" +
             "host: otherhost\n" +
             "port: 9876\n" +
             "metricsNameSnakeCase: true\n" +
@@ -174,48 +169,41 @@ public class ExporterConfigTest {
 
     @Test
     public void afterAppend_configHasOriginalSnakeCase() throws Exception {
-        assertThat(getAppendedConfiguration(YAML_STRING, YAML_STRING2).getMetricsNameSnakeCase(), is(false));
-        assertThat(getAppendedConfiguration(YAML_STRING2, YAML_STRING).getMetricsNameSnakeCase(), is(true));
+        assertThat(getAppendedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG).getMetricsNameSnakeCase(), is(false));
+        assertThat(getAppendedConfiguration(WORK_MANAGER_CONFIG, SERVLET_CONFIG).getMetricsNameSnakeCase(), is(true));
      }
 
     @Test
     public void afterAppend_configHasOriginalQuery() throws Exception {
-        ExporterConfig config = getAppendedConfiguration(YAML_STRING, YAML_STRING2);
+        ExporterConfig config = getAppendedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG);
 
-        MBeanSelector applicationRuntimes = config.getQueries()[0].getNestedSelectors().get("applicationRuntimes");
-        assertThat(applicationRuntimes.getNestedSelectors().keySet(), contains("componentRuntimes"));
+        assertThat(config, hasQueryFor("applicationRuntimes", "componentRuntimes", "servlets"));
     }
 
     @Test
-    public void afterAppend_configHasAdditionalQuery() throws Exception {
-        ExporterConfig config = getAppendedConfiguration(YAML_STRING, YAML_STRING2);
+    public void afterAppend_configContainsNewQuery() throws Exception {
+        ExporterConfig config = getAppendedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG);
 
-        assertThat(config.getQueries(), arrayWithSize(2));
-        MBeanSelector applicationRuntimes = config.getQueries()[1].getNestedSelectors().get("applicationRuntimes");
-        assertThat(applicationRuntimes.getNestedSelectors().keySet(), contains("workManagerRuntimes"));
+        assertThat(config, hasQueryFor("applicationRuntimes", "workManagerRuntimes"));
     }
 
     @Test
-    public void whenAppendToNoQueries_configHasNewQueryOnly() throws Exception {
-        ExporterConfig config = getAppendedConfiguration("", YAML_STRING2);
+    public void whenAppendToNoQueries_configHasNewQuery() throws Exception {
+        ExporterConfig config = getAppendedConfiguration("", WORK_MANAGER_CONFIG);
 
-        assertThat(config.getQueries(), arrayWithSize(1));
-        MBeanSelector applicationRuntimes = config.getQueries()[0].getNestedSelectors().get("applicationRuntimes");
-        assertThat(applicationRuntimes.getNestedSelectors().keySet(), contains("workManagerRuntimes"));
+        assertThat(config, hasQueryFor("applicationRuntimes", "workManagerRuntimes"));
     }
 
     @Test
-    public void whenAppendedConfigurationHasNoQueries_configHasOriginalQueryOnly() throws Exception {
-        ExporterConfig config = getAppendedConfiguration(YAML_STRING, "");
+    public void whenAppendedConfigurationHasNoQueries_configHasOriginalQuery() throws Exception {
+        ExporterConfig config = getAppendedConfiguration(SERVLET_CONFIG, "");
 
-        assertThat(config.getQueries(), arrayWithSize(1));
-        MBeanSelector applicationRuntimes = config.getQueries()[0].getNestedSelectors().get("applicationRuntimes");
-        assertThat(applicationRuntimes.getNestedSelectors().keySet(), contains("componentRuntimes"));
+        assertThat(config, hasQueryFor("applicationRuntimes", "componentRuntimes", "servlets"));
     }
 
     @Test
     public void afterReplace_configHasOriginalDestination() throws Exception {
-        ExporterConfig config = getReplacedConfiguration(YAML_STRING, YAML_STRING2);
+        ExporterConfig config = getReplacedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG);
 
         assertThat(config.getHost(), equalTo(EXPECTED_HOST));
         assertThat(config.getPort(), equalTo(EXPECTED_PORT));
@@ -230,25 +218,148 @@ public class ExporterConfigTest {
 
     @Test
     public void afterReplace_configHasChangedSnakeCase() throws Exception {
-        assertThat(getReplacedConfiguration(YAML_STRING, YAML_STRING2).getMetricsNameSnakeCase(), is(true));
-        assertThat(getReplacedConfiguration(YAML_STRING2, YAML_STRING).getMetricsNameSnakeCase(), is(false));
+        assertThat(getReplacedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG).getMetricsNameSnakeCase(), is(true));
+        assertThat(getReplacedConfiguration(WORK_MANAGER_CONFIG, SERVLET_CONFIG).getMetricsNameSnakeCase(), is(false));
      }
 
     @Test
-    public void afterReplace_configHasReplacedQuery() throws Exception {
-        ExporterConfig config = getReplacedConfiguration(YAML_STRING, YAML_STRING2);
+    public void afterReplace_configHasNewQuery() throws Exception {
+        ExporterConfig config = getReplacedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG);
 
-        assertThat(config.getQueries(), arrayWithSize(1));
-        MBeanSelector applicationRuntimes = config.getQueries()[0].getNestedSelectors().get("applicationRuntimes");
-        assertThat(applicationRuntimes.getNestedSelectors().keySet(), contains("workManagerRuntimes"));
+        assertThat(config, hasQueryFor("applicationRuntimes", "workManagerRuntimes"));
+    }
+
+    @Test
+    public void afterReplace_configDoesNotHaveOriginalQuery() throws Exception {
+        ExporterConfig config = getReplacedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG);
+
+        assertThat(config, not(hasQueryFor("applicationRuntimes", "componentRuntimes", "servlets")));
     }
 
     @Test
     public void afterReplaceWithEmptyConfig_configHasNoQueries() throws Exception {
-        ExporterConfig config = loadFromString(YAML_STRING);
-        ExporterConfig config2 = loadFromString("");
-        config.replace(config2);
+        ExporterConfig config = getReplacedConfiguration(SERVLET_CONFIG, "");
 
         assertThat(config.getQueries(), arrayWithSize(0));
+    }
+
+
+    @Test
+    public void whenYamlContainsMergeableQueries_MergeThem() throws Exception {
+        ExporterConfig config = loadFromString(MERGEABLE_CONFIG);
+
+        assertThat(config.toString(), equalTo(MERGED_CONFIG));
+    }
+
+    private static final String MERGEABLE_CONFIG = "---\n" +
+            "host: otherhost\n" +
+            "port: 9876\n" +
+            "metricsNameSnakeCase: true\n" +
+            "queries:\n" +
+            "- applicationRuntimes:\n" +
+            "    key: name\n" +
+            "    workManagerRuntimes:\n" +
+            "      prefix: workmanager_\n" +
+            "      key: applicationName\n" +
+            "      values: [pendingRequests, completedRequests, stuckThreadCount]\n" +
+            "- applicationRuntimes:\n" +
+            "    key: name\n" +
+            "    componentRuntimes:\n" +
+            "      type: WebAppComponentRuntime\n" +
+            "      prefix: webapp_config_\n" +
+            "      key: name\n" +
+            "      values: [deploymentState, type, contextRoot, sourceInfo, openSessionsHighCount, openSessionsCurrentCount, sessionsOpenedTotalCount]\n" +
+            "      servlets:\n" +
+            "        prefix: weblogic_servlet_\n" +
+            "        key: servletName\n" +
+            "        values: [invocationTotalCount, executionTimeTotal]\n";
+
+    private static final String MERGED_CONFIG = "---\n" +
+            "host: otherhost\n" +
+            "port: 9876\n" +
+            "metricsNameSnakeCase: true\n" +
+            "queries:\n" +
+            "- applicationRuntimes:\n" +
+            "    key: name\n" +
+            "    workManagerRuntimes:\n" +
+            "      prefix: workmanager_\n" +
+            "      key: applicationName\n" +
+            "      values: [pendingRequests, completedRequests, stuckThreadCount]\n" +
+            "    componentRuntimes:\n" +
+            "      type: WebAppComponentRuntime\n" +
+            "      prefix: webapp_config_\n" +
+            "      key: name\n" +
+            "      values: [deploymentState, type, contextRoot, sourceInfo, openSessionsHighCount, openSessionsCurrentCount, sessionsOpenedTotalCount]\n" +
+            "      servlets:\n" +
+            "        prefix: weblogic_servlet_\n" +
+            "        key: servletName\n" +
+            "        values: [invocationTotalCount, executionTimeTotal]\n";
+
+    @Test
+    public void afterAppendWithNewTopLevelQuery_configHasMultipleTopLevelQueries() throws Exception {
+        ExporterConfig config = getAppendedConfiguration(SERVLET_CONFIG, PARTITION_CONFIG);
+
+        assertThat(config.getQueries(), arrayWithSize(2));
+    }
+
+    private static final String PARTITION_CONFIG =
+            "queries:\n" +
+            "- partitionRuntimes:\n" +
+            "    key: name\n" +
+            "    keyName: partition\n" +
+            "    applicationRuntimes:\n" +
+            "      key: name\n" +
+            "      workManagerRuntimes:\n" +
+            "        prefix: workmanager_\n" +
+            "        key: applicationName\n" +
+            "        values: [pendingRequests, completedRequests, stuckThreadCount]\n";
+
+
+    @Test
+    public void afterAppendWithMatchingTopLevelQuery_configHasMergedQueries() throws Exception {
+        ExporterConfig config = getAppendedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG);
+
+        assertThat(config.getQueries(), arrayWithSize(1));
+    }
+
+    static class QueryHierarchyMatcher extends TypeSafeDiagnosingMatcher<ExporterConfig> {
+        private String[] selectorKeys;
+
+        private QueryHierarchyMatcher(String[] selectorKeys) {
+            this.selectorKeys = selectorKeys;
+        }
+
+        static QueryHierarchyMatcher hasQueryFor(String... selectorKeys) {
+            return new QueryHierarchyMatcher(selectorKeys);
+        }
+
+        @Override
+        protected boolean matchesSafely(ExporterConfig config, Description description) {
+            for (MBeanSelector mBeanSelector : config.getQueries())
+                if (matchesQuery(mBeanSelector, selectorKeys)) return true;
+
+            reportMismatch(config, description);
+            return false;
+        }
+
+        private boolean matchesQuery(MBeanSelector mBeanSelector, String[] selectorKeys) {
+            MBeanSelector selector = mBeanSelector;
+            for (String selectorKey : selectorKeys) {
+                MBeanSelector nestedSelector = selector.getNestedSelectors().get(selectorKey);
+                if (nestedSelector == null) return false;
+                selector = nestedSelector;
+            }
+            return true;
+        }
+
+        private void reportMismatch(ExporterConfig config, Description description) {
+            description.appendText("configuration has queries:\n ").appendText(config.toQueryString());
+
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendValueList("query for [", ", ", "]", selectorKeys);
+        }
     }
 }

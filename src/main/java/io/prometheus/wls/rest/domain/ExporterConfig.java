@@ -27,7 +27,7 @@ public class ExporterConfig {
 
     private String userName = "";
     private String password = "";
-    private MBeanSelector[] queries;
+    private MBeanSelector[] queries = {};
     private String host = DEFAULT_HOST;
     private int port = DEFAULT_PORT;
     private boolean metricsNameSnakeCase;
@@ -76,16 +76,52 @@ public class ExporterConfig {
         if (yaml.containsKey(PASSWORD)) password = MapUtils.getStringValue(yaml, PASSWORD);
         if (yaml.containsKey(HOST)) host = MapUtils.getStringValue(yaml, HOST);
         if (yaml.containsKey(PORT)) port = MapUtils.getIntegerValue(yaml, PORT);
-        if (yaml.containsKey(QUERIES)) queries = readQueries(yaml.get(QUERIES));
+        if (yaml.containsKey(QUERIES)) appendQueries(yaml.get(QUERIES));
     }
 
-    private MBeanSelector[] readQueries(Object queriesYaml) {
-        List<MBeanSelector> queries = new ArrayList<>();
+    private void appendQueries(Object queriesYaml) {
+        for (Map<String,Object> selectorSpec : getAsListOfMaps(queriesYaml)) {
+            appendQuery(MBeanSelector.create(selectorSpec));
+        }
+    }
 
-        for (Map<String,Object> selectorSpec : getAsListOfMaps(queriesYaml))
-            queries.add(MBeanSelector.create(selectorSpec));
+    private void appendQuery(MBeanSelector selector) {
+        MBeanSelector queryToReplace = getExistingMergeableQuery(selector);
+        if (queryToReplace == null)
+            addAsNewQuery(selector);
+        else
+            replaceQuery(queryToReplace, queryToReplace.merge(selector));
+    }
 
-        return queries.toArray(new MBeanSelector[queries.size()]);
+    private MBeanSelector getExistingMergeableQuery(MBeanSelector selector) {
+        for (MBeanSelector query : queries)
+            if (isMergeableTopLevelQuery(selector, query))
+                return query;
+
+        return null;
+    }
+
+    private boolean isMergeableTopLevelQuery(MBeanSelector first, MBeanSelector second) {
+        if (!first.getNestedSelectors().keySet().equals(second.getNestedSelectors().keySet())) return false;
+
+        for (String key : first.getNestedSelectors().keySet())
+            if (!first.getNestedSelectors().get(key).mayMergeWith(second.getNestedSelectors().get(key))) return false;
+        
+        return true;
+    }
+
+    private void replaceQuery(MBeanSelector queryToReplace, MBeanSelector replacement) {
+        for (int i = 0; i < queries.length; i++)
+            if (queries[i] == queryToReplace)
+                queries[i] = replacement;
+    }
+
+
+    private void addAsNewQuery(MBeanSelector selector) {
+        MBeanSelector[] newQueries = new MBeanSelector[queries.length + 1];
+        System.arraycopy(queries, 0, newQueries, 0, queries.length);
+        newQueries[queries.length] = selector;
+        queries = newQueries;
     }
 
     @SuppressWarnings("unchecked")
@@ -143,12 +179,8 @@ public class ExporterConfig {
      * @param config2 an additional configuration to combine with this one
      */
     public void append(ExporterConfig config2) {
-        MBeanSelector[] originalQueries = getQueries();
-        MBeanSelector[] appendedQueries = config2.getQueries();
-        MBeanSelector[] newQueries = new MBeanSelector[originalQueries.length + appendedQueries.length];
-        System.arraycopy(originalQueries, 0, newQueries, 0, originalQueries.length);
-        System.arraycopy(appendedQueries, 0, newQueries, originalQueries.length, appendedQueries.length);
-        this.queries = newQueries;
+        for (MBeanSelector query : config2.getQueries())
+            appendQuery(query);
     }
 
     /**
@@ -173,12 +205,21 @@ public class ExporterConfig {
         sb.append("queries:\n");
 
         for (MBeanSelector query : getQueries())
-            appendQuery(sb, query);
+            appendQueryToString(sb, query);
 
         return sb.toString();
     }
 
-    private void appendQuery(StringBuilder sb, MBeanSelector query) {
+    String toQueryString() {
+        StringBuilder sb = new StringBuilder();
+
+        for (MBeanSelector query : getQueries())
+            appendQueryToString(sb, query);
+
+        return sb.toString();
+    }
+
+    private void appendQueryToString(StringBuilder sb, MBeanSelector query) {
         String indent = "- ";
         List<String> selectorKeys = new ArrayList<>(query.getNestedSelectors().keySet());
         for (String selectorKey : selectorKeys) {

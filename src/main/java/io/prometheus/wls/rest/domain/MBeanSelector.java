@@ -3,8 +3,12 @@ package io.prometheus.wls.rest.domain;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * A description of an mbean to be selected by the generated JSON query and captured from the result.
@@ -175,4 +179,47 @@ public class MBeanSelector {
         return spec;
     }
 
+    /**
+     * Merges this selector with the specified one. Returns the result of the merge.
+     * @param selector a new selector whose attributes are to be combined with this one
+     * @return the combined selector
+     */
+    MBeanSelector merge(MBeanSelector selector) {
+        return new MBeanSelector(this, selector);
+    }
+
+    private MBeanSelector(MBeanSelector first, MBeanSelector second) {
+        type = first.type;
+        prefix = first.prefix;
+        key = first.key;
+        keyName = first.keyName;
+
+        Set<String> mergedValues = new HashSet<>(Arrays.asList(first.values));
+        mergedValues.addAll(Arrays.asList(second.values));
+        values = mergedValues.toArray(new String[mergedValues.size()]);
+
+        nestedSelectors = new HashMap<>();
+        nestedSelectors.putAll(first.nestedSelectors);
+        for (String key : second.nestedSelectors.keySet()) {
+            if (!nestedSelectors.containsKey(key))
+                nestedSelectors.put(key, second.nestedSelectors.get(key));
+            else
+                nestedSelectors.put(key, nestedSelectors.get(key).merge(second.nestedSelectors.get(key)));
+        }
+    }
+
+    boolean mayMergeWith(MBeanSelector other) {
+        if (!Objects.equals(keyName, other.keyName)) return false;
+        if (!Objects.equals(key, other.key)) return false;
+        if (!Objects.equals(type, other.type)) return false;
+        if (!Objects.equals(prefix, other.prefix)) return false;
+
+        for (String key : nestedSelectors.keySet())
+            if (other.nestedSelectors.containsKey(key) && !mayMergeCorrespondingChildren(key, other)) return false;
+        return true;
+    }
+
+    private boolean mayMergeCorrespondingChildren(String selectorKey, MBeanSelector other) {
+        return nestedSelectors.get(selectorKey).mayMergeWith(other.nestedSelectors.get(selectorKey));
+    }
 }

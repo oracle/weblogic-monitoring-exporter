@@ -5,6 +5,8 @@ import com.google.gson.Gson;
 import org.junit.Test;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 import static io.prometheus.wls.rest.domain.JsonPathMatcher.hasJsonPath;
@@ -163,6 +165,115 @@ public class MBeanSelectorTest {
                 ImmutableMap.of(MBeanSelector.VALUES, new String[] {"first", "second"})));
 
         assertThat(querySpec(selector), hasJsonPath("$.children.servlets.fields").withValues("first", "second"));
+    }
+
+    @Test
+    public void whenMergingLeafElements_combineValues() throws Exception {
+        MBeanSelector selector1 = createLeaf("first", "second");
+        MBeanSelector selector2 = createLeaf("second", "third");
+
+        assertThat(querySpec(selector1.merge(selector2)), hasJsonPath("$.fields").withValues("first", "second", "third"));
+    }
+
+    @Test
+    public void whenLeafElementsHaveMatchingAttributes_mayCombine() throws Exception {
+        MBeanSelector selector1 = createLeaf("type:Type1", "prefix:#_", "key:name", "keyName:numbers", "first", "second");
+        MBeanSelector selector2 = createLeaf("type:Type1", "prefix:#_", "key:name", "keyName:numbers", "second", "third");
+
+        assertThat(selector1.mayMergeWith(selector2), is(true));
+    }
+
+    @Test
+    public void whenLeafElementsHaveMatchingAttributes_mergedResultHasOriginalAttributes() throws Exception {
+        MBeanSelector selector1 = createLeaf("type:Type1", "prefix:#_", "key:name", "keyName:numbers", "first", "second");
+        MBeanSelector selector2 = createLeaf("type:Type1", "prefix:#_", "key:name", "keyName:numbers", "second", "third");
+
+        MBeanSelector result = selector1.merge(selector2);
+        assertThat(result.getType(), equalTo("Type1"));
+        assertThat(result.getPrefix(), equalTo("#_"));
+        assertThat(result.getKey(), equalTo("name"));
+        assertThat(result.getKeyName(), equalTo("numbers"));
+    }
+
+    @Test
+    public void whenLeafElementsHaveMisMatchedAttributes_mayNotCombine() throws Exception {
+        assertThat(createLeaf("keyName:numbers", "first", "second").mayMergeWith(createLeaf("second", "third")), is(false));
+        assertThat(createLeaf("prefix:_", "key:Name").mayMergeWith(createLeaf("prefix:_", "aValue")), is(false));
+        assertThat(createLeaf("key:_", "type:Name").mayMergeWith(createLeaf("key:_", "type:color")), is(false));
+        assertThat(createLeaf("prefix:__").mayMergeWith(createLeaf("prefix:asdf")), is(false));
+    }
+
+    private MBeanSelector createLeaf(String... params) {
+        Map<String, Object> map = new HashMap<>();
+        int i = 0;
+        while (i < params.length) {
+            if (!params[i].contains(":")) break;
+            String[] split = params[i++].split(":");
+            map.put(split[0], split[1]);
+        }
+        map.put(MBeanSelector.VALUES, Arrays.copyOfRange(params, i, params.length));
+        return MBeanSelector.create(map);
+    }
+
+    @Test
+    public void whenSelectorsNoCommonNestedElementsWithSameName_mayMerge() throws Exception {
+        MBeanSelector selector1 = MBeanSelector.create(ImmutableMap.of("servlets",
+                ImmutableMap.of(MBeanSelector.KEY, "oneKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
+        MBeanSelector selector2 = MBeanSelector.create(ImmutableMap.of("kidlets",
+                ImmutableMap.of(MBeanSelector.KEY, "differentKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
+
+        assertThat(selector1.mayMergeWith(selector2), is(true));
+    }
+
+    @Test
+    public void whenSelectorsHaveMismatchedNestedElementsWithSameName_mayNotMerge() throws Exception {
+        MBeanSelector selector1 = MBeanSelector.create(ImmutableMap.of("servlets",
+                ImmutableMap.of(MBeanSelector.KEY, "oneKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
+        MBeanSelector selector2 = MBeanSelector.create(ImmutableMap.of("servlets",
+                ImmutableMap.of(MBeanSelector.KEY, "differentKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
+
+        assertThat(selector1.mayMergeWith(selector2), is(false));
+    }
+
+    @Test
+    public void whenSelectorsHaveMismatchedNestedElementsWithDifferentName_merge() throws Exception {
+        MBeanSelector selector1 = MBeanSelector.create(ImmutableMap.of("servlets",
+                ImmutableMap.of(MBeanSelector.KEY, "oneKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
+        MBeanSelector selector2 = MBeanSelector.create(ImmutableMap.of("ejbs",
+                ImmutableMap.of(MBeanSelector.KEY, "differentKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
+        MBeanSelector result = selector1.merge(selector2);
+
+        assertThat(result.getNestedSelectors(), both(hasKey("servlets")).and(hasKey("ejbs")));
+    }
+
+    @Test
+    public void whenSelectorsHaveDeeplyNestedElementsWithDifferentName_mayMerge() throws Exception {
+        MBeanSelector selector1 = MBeanSelector.create(
+                ImmutableMap.of("components",
+                    ImmutableMap.of("servlets",
+                        ImmutableMap.of(MBeanSelector.KEY, "oneKey", MBeanSelector.VALUES, new String[] {"first", "second"}))));
+        MBeanSelector selector2 = MBeanSelector.create(
+                ImmutableMap.of("components",
+                    ImmutableMap.of("ejbs",
+                        ImmutableMap.of(MBeanSelector.KEY, "differentKey", MBeanSelector.VALUES, new String[] {"first", "second"}))));
+
+        assertThat(selector1.mayMergeWith(selector2), is(true));
+    }
+
+    @Test
+    public void whenSelectorsHaveDeeplyNestedElementsWithDifferentName_merge() throws Exception {
+        MBeanSelector selector1 = MBeanSelector.create(
+                ImmutableMap.of("components",
+                    ImmutableMap.of("servlets",
+                        ImmutableMap.of(MBeanSelector.KEY, "oneKey", MBeanSelector.VALUES, new String[] {"first", "second"}))));
+        MBeanSelector selector2 = MBeanSelector.create(
+                ImmutableMap.of("components",
+                    ImmutableMap.of("ejbs",
+                        ImmutableMap.of(MBeanSelector.KEY, "differentKey", MBeanSelector.VALUES, new String[] {"first", "second"}))));
+        MBeanSelector result = selector1.merge(selector2);
+
+        assertThat(result.getNestedSelectors(), aMapWithSize(1));
+        assertThat(result.getNestedSelectors().get("components").getNestedSelectors(), both(hasKey("servlets")).and(hasKey("ejbs")));
     }
 
     @Test
