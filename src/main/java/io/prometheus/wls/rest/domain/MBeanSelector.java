@@ -75,8 +75,8 @@ public class MBeanSelector {
         if (values == null || values.length == 0) return;
         if (values.length == 1)
             appendScalar(sb, indent, "values", values[0]);
-
-        sb.append(indent).append("values").append(": [").append(String.join(", ", values)).append("]\n");
+        else
+            sb.append(indent).append("values").append(": [").append(String.join(", ", values)).append("]\n");
     }
 
     @SuppressWarnings("unchecked")

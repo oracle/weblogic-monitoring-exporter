@@ -322,6 +322,23 @@ public class ExporterConfigTest {
         assertThat(config.getQueries(), arrayWithSize(1));
     }
 
+    @Test
+    public void whenConfigHasSingleValue_displayAsScalar() throws Exception {
+        ExporterConfig exporterConfig = loadFromString(CONFIG_WITH_SINGLE_VALUE);
+
+        assertThat(exporterConfig.toString(), equalTo(CONFIG_WITH_SINGLE_VALUE));
+    }
+
+
+    private static final String CONFIG_WITH_SINGLE_VALUE = "---\n" +
+            "host: localhost\n" +
+            "port: 7001\n" +
+            "queries:\n" +
+            "- JVMRuntime:\n" +
+            "    key: name\n" +
+            "    values: heapFreeCurrent\n";
+
+
     static class QueryHierarchyMatcher extends TypeSafeDiagnosingMatcher<ExporterConfig> {
         private String[] selectorKeys;
 
