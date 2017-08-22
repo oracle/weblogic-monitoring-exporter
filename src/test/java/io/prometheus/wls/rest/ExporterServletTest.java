@@ -274,6 +274,17 @@ public class ExporterServletTest {
         assertThat(toHtml(response), containsOnlyComments());
     }
 
+    @Test
+    public void whenKeyAlsoListedAsValue_dontDisplayIt() throws Exception {
+        factory.addJsonResponse(getGroupResponseMap());
+        initServlet("---\nqueries:" +
+                "\n- groups:\n    prefix: groupValue_\n    key: testSample1\n    values: [testSample1]");
+
+        servlet.doGet(request, response);
+
+        assertThat(toHtml(this.response), not(containsString("groupValue_testSample1{testSample1")));
+    }
+
     static class WebClientFactoryStub implements WebClientFactory {
         private WebClientStub webClient = new WebClientStub();
 

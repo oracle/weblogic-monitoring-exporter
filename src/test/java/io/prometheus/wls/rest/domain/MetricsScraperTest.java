@@ -103,13 +103,14 @@ public class MetricsScraperTest {
             "                \"servlets\": {\"items\": [\n" +
             "                    {\n" +
             "                        \"servletName\": \"JspServlet\",\n" +
+            "                        \"invocationId\": 23,\n" +
             "                        \"invocationTotalCount\": 0\n" +
             "                    }\n" +
             "                ]}\n" +
             "            }";
 
     private final Map<String,Object> leafMap = new HashMap<>(ImmutableMap.of(MBeanSelector.KEY, "servletName",
-            MBeanSelector.PREFIX, "servlet_", MBeanSelector.VALUES, new String[]{"invocationTotalCount"}));
+            MBeanSelector.PREFIX, "servlet_", MBeanSelector.VALUES, new String[]{"invocationTotalCount","invocationId"}));
 
     private final Map<String,Object> componentMap = new HashMap<>(
             ImmutableMap.of(MBeanSelector.KEY_NAME, "component", MBeanSelector.KEY, "name", MBeanSelector.PREFIX, "component_",
@@ -190,6 +191,19 @@ public class MetricsScraperTest {
     @SuppressWarnings("SameParameterValue")
     private Map<String, Object> getServletsMapWithKeyName(String keyName) {
         leafMap.put(MBeanSelector.KEY_NAME, keyName);
+        return ImmutableMap.of("servlets", leafMap);
+    }
+
+    @Test
+    public void whenValuesIncludesKey_ignoreIt() throws Exception {
+        generateNestedMetrics(getServletsMapWithKey("invocationId"), SINGLE_SERVLET_RESPONSE);
+
+        assertThat(scraper.getMetrics(), not(hasEntry("servlet_invocationId{invocationId=\"23\"}", 23)));
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private Map<String, Object> getServletsMapWithKey(String key) {
+        leafMap.put(MBeanSelector.KEY, key);
         return ImmutableMap.of("servlets", leafMap);
     }
 

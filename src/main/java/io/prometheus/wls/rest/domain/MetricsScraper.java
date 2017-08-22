@@ -47,6 +47,7 @@ class MetricsScraper {
         String qualifiers = getItemQualifiers(object, beanSelector, parentQualifiers);
 
         for (String valueName : beanSelector.getValues()) {
+            if (valueName.equals(beanSelector.getKey())) continue;
             JsonElement value = object.get(valueName);
             if (value != null && value.isJsonPrimitive() && value.getAsJsonPrimitive().isNumber())
                 metrics.put(getMetricName(valueName, beanSelector, qualifiers), value.getAsJsonPrimitive().getAsNumber());
