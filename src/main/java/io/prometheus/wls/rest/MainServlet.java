@@ -36,7 +36,7 @@ public class MainServlet extends HttpServlet {
         LiveConfiguration.setServer(req.getServerName(), req.getServerPort());
         resp.getOutputStream().println(PAGE_HEADER);
         displayMetricsLink(req, resp.getOutputStream());
-        displayForm(resp.getOutputStream());
+        displayForm(req, resp.getOutputStream());
         displayConfiguration(resp.getOutputStream());
 
         resp.getOutputStream().close();
@@ -50,21 +50,29 @@ public class MainServlet extends HttpServlet {
     }
 
     private String getMetricsLink(HttpServletRequest req) {
-        if (req.getServletPath().startsWith("/"))
-            return RELATIVE_LINK;
-        else
-            return req.getContextPath() + "/" + RELATIVE_LINK;
+        return getEffectivePath(req, RELATIVE_LINK);
     }
 
-    private void displayForm(ServletOutputStream outputStream) throws IOException {
+    private String getEffectivePath(HttpServletRequest req, String relativePath) {
+        if (req.getServletPath().startsWith("/"))
+            return relativePath;
+        else
+            return req.getContextPath() + "/" + relativePath;
+    }
+
+    private void displayForm(HttpServletRequest req, ServletOutputStream outputStream) throws IOException {
         outputStream.println("<h2>Configuration</h2>");
         outputStream.println("<p>To change the configuration:</p>");
-        outputStream.println("<form action=\"configure\" method=\"post\" enctype=\"multipart/form-data\">");
+        outputStream.println("<form action=\"" + getConfigurationLink(req) + "\" method=\"post\" enctype=\"multipart/form-data\">");
         outputStream.println("    <input type=\"radio\" name=\"effect\" value=\"append\" checked=\"checked\">Append");
         outputStream.println("    <input type=\"radio\" name=\"effect\" value=\"replace\">Replace");
         outputStream.println("    <br><input type=\"file\" name=\"configuration\">");
         outputStream.println("    <br><input type=\"submit\">");
         outputStream.println("</form>");
+    }
+
+    private String getConfigurationLink(HttpServletRequest req) {
+        return getEffectivePath(req, "configure");
     }
 
     private void displayConfiguration(ServletOutputStream outputStream) throws IOException {

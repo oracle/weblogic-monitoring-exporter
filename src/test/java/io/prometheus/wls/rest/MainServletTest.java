@@ -64,9 +64,18 @@ public class MainServletTest {
 
     @Test
     public void getRequest_containsConfigurationForm() throws Exception {
+        request.setServletPath("/");
         servlet.doGet(request, response);
 
         assertThat(response.getHtml(), containsString("form action=\"configure\" method=\"post\" enctype=\"multipart/form-data\""));
+    }
+
+    @Test
+    public void whenServletPathIsEmpty_showFullPathToConfigurationServlet() throws Exception {
+        request.setServletPath("");
+        servlet.doGet(request, response);
+
+        assertThat(response.getHtml(), containsString("action=\"/exporter/configure\""));
     }
 
     @Test
