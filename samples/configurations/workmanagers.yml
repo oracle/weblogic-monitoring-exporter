@@ -1,3 +1,4 @@
+metricsNameSnakeCase: true
 queries:
 - applicationRuntimes:
     key: name
