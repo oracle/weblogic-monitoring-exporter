@@ -281,4 +281,30 @@ public class MetricsScraperTest {
         assertThat(metrics, hasEntry("component_deploymentState{application=\"weblogic\",component=\"ejb30_weblogic\"}", 2));
         assertThat(metrics, not(hasEntry("component_deploymentState{application=\"mbeans\",component=\"EjbStatusBean\"}", 2)));
     }
+
+    @Test
+    public void whenValuesAtTopLevel_scrapeThem() throws Exception {
+        final MBeanSelector selector = MBeanSelector.create(getMetricsMap());
+        final JsonObject jsonResponse = getJsonResponse(METRICS_RESPONSE);
+        Map<String, Object> metrics = scraper.scrape(selector, jsonResponse);
+
+        assertThat(metrics, hasEntry("heapSizeCurrent", 123456));
+    }
+
+
+    private Map<String, Object> getMetricsMap() {
+        return ImmutableMap.of("JVMRuntime",
+                    ImmutableMap.of(MBeanSelector.KEY, "name", MBeanSelector.VALUES, new String[]{"processCpuLoad", "heapSizeCurrent"}));
+    }
+
+
+    private static final String METRICS_RESPONSE =
+            "{\"JVMRuntime\": {\n" +
+            "    \"uptime\": 137762378,\n" +
+            "    \"heapSizeCurrent\": 123456,\n" +
+            "    \"heapFreeCurrent\": 287379152,\n" +
+            "    \"heapSizeMax\": 477626368,\n" +
+            "    \"heapFreePercent\": 69,\n" +
+            "    \"processCpuLoad\": .0028\n" +
+            "}}";
 }

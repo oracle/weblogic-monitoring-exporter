@@ -38,8 +38,11 @@ class MetricsScraper {
 
     private void scrapeItemList(JsonObject itemWrapper, MBeanSelector beanSelector, String parentQualifiers) {
         JsonArray items = itemWrapper.getAsJsonArray("items");
-        for (JsonElement jsonElement : items)
-            scrapeItem(jsonElement.getAsJsonObject(), beanSelector, parentQualifiers);
+        if (items == null)
+            scrapeItem(itemWrapper, beanSelector, parentQualifiers);
+        else
+            for (JsonElement jsonElement : items)
+                scrapeItem(jsonElement.getAsJsonObject(), beanSelector, parentQualifiers);
     }
 
     private void scrapeItem(JsonObject object, MBeanSelector beanSelector, String parentQualifiers) {
