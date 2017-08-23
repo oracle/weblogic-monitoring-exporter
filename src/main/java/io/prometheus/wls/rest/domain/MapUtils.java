@@ -42,7 +42,19 @@ public class MapUtils {
         if (value instanceof Boolean)
             return (Boolean) value;
 
-        return Boolean.parseBoolean(value.toString());
+        if (inValues(value, TRUE_VALUES)) return true;
+        if (inValues(value, FALSE_VALUES)) return false;
+        throw new ConfigurationException("Unable to interpret '" + value + "' as a boolean value");
+    }
+
+    private final static String[] TRUE_VALUES = {"true", "t", "yes", "on", "y"};
+    private final static String[] FALSE_VALUES = {"false", "f", "no", "off", "n"};
+
+    private static boolean inValues(Object candidate, String... matches) {
+        for (String match : matches)
+            if (candidate.toString().equalsIgnoreCase(match)) return true;
+
+        return false;
     }
 
     /**

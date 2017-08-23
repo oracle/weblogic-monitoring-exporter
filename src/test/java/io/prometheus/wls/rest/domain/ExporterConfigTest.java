@@ -338,6 +338,32 @@ public class ExporterConfigTest {
             "    key: name\n" +
             "    values: heapFreeCurrent\n";
 
+    @Test(expected = ConfigurationException.class)
+    public void whenConfigHasDuplicateValues_reportFailure() throws Exception {
+        loadFromString(CONFIG_WITH_DUPLICATE_VALUE);
+    }
+
+    private static final String CONFIG_WITH_DUPLICATE_VALUE = "---\n" +
+            "host: localhost\n" +
+            "port: 7001\n" +
+            "queries:\n" +
+            "- JVMRuntime:\n" +
+            "    key: name\n" +
+            "    values: [heapFreeCurrent,heapFreeCurrent]\n";
+
+    @Test(expected = ConfigurationException.class)
+    public void whenConfigHasNoValues_reportFailure() throws Exception {
+        loadFromString(CONFIG_WITH_NO_VALUES);
+    }
+
+    private static final String CONFIG_WITH_NO_VALUES = "---\n" +
+            "host: localhost\n" +
+            "port: 7001\n" +
+            "queries:\n" +
+            "- JVMRuntime:\n" +
+            "    key: name\n" +
+            "    values: []\n";
+
 
     static class QueryHierarchyMatcher extends TypeSafeDiagnosingMatcher<ExporterConfig> {
         private String[] selectorKeys;

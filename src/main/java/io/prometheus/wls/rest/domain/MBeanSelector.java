@@ -3,6 +3,7 @@ package io.prometheus.wls.rest.domain;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,13 +45,30 @@ public class MBeanSelector {
                     keyName = MapUtils.getStringValue(map, KEY_NAME);
                     break;
                 case VALUES:
-                    values = MapUtils.getStringArray(map, VALUES);
+                    setValues(MapUtils.getStringArray(map, VALUES));
                     break;
                 default:
                     nestedSelectors.put(key, createSelector(key, map.get(key)));
                     break;
             }
         }
+    }
+
+    private void setValues(String[] values) {
+        if (values.length == 0) throw new ConfigurationException("Values specified as empty array");
+        
+        Set<String> uniqueValues = new HashSet<>(Arrays.asList(values));
+        if (values.length != uniqueValues.size())
+            reportDuplicateValues(values, uniqueValues);
+        this.values = values;
+    }
+
+    private void reportDuplicateValues(String[] values, Set<String> uniqueValues) {
+        ArrayList<String> duplicate = new ArrayList<>(Arrays.asList(values));
+        for (String unique : uniqueValues)
+            duplicate.remove(duplicate.indexOf(unique));
+
+        throw new ConfigurationException("Duplicate values for " + duplicate);
     }
 
     void appendNestedQuery(StringBuilder sb, String indent) {

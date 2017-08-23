@@ -211,7 +211,8 @@ public class MBeanSelectorTest {
             String[] split = params[i++].split(":");
             map.put(split[0], split[1]);
         }
-        map.put(MBeanSelector.VALUES, Arrays.copyOfRange(params, i, params.length));
+        if (i < params.length)
+            map.put(MBeanSelector.VALUES, Arrays.copyOfRange(params, i, params.length));
         return MBeanSelector.create(map);
     }
 

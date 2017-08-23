@@ -1,5 +1,6 @@
 package io.prometheus.wls.rest;
 
+import io.prometheus.wls.rest.domain.ConfigurationException;
 import io.prometheus.wls.rest.domain.ExporterConfig;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
@@ -41,7 +42,7 @@ public class ConfigurationServlet extends HttpServlet {
         return postAction;
     }
 
-    private void configure(PostAction postAction, List<FileItem> fileItems) throws IOException {
+    private void configure(PostAction postAction, List<FileItem> fileItems) throws IOException, ServletException {
         for (FileItem item : fileItems) {
             if (!item.isFormField()) {
                 postAction.defineUploadedFile(item.getInputStream());
@@ -54,8 +55,14 @@ public class ConfigurationServlet extends HttpServlet {
         private String effect = "replace";
         private ExporterConfig uploadedConfig;
 
-        private void defineUploadedFile(InputStream inputStream) {
-            uploadedConfig = ExporterConfig.loadConfig(inputStream);
+        private void defineUploadedFile(InputStream inputStream) throws ServletException {
+            try {
+                uploadedConfig = ExporterConfig.loadConfig(inputStream);
+            } catch(ConfigurationException e) {
+                throw new ServletException(e.getMessage());
+            } catch (Throwable e) {
+                throw new ServletException("Unable to understand specified configuration");
+            }
         }
 
         void perform() throws ServletException {

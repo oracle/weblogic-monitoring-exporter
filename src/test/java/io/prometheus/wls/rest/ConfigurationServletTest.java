@@ -126,4 +126,30 @@ public class ConfigurationServletTest {
 
         assertThat(LiveConfiguration.asString(), equalTo(COMBINED_CONFIGURATION));
     }
+
+    @Test (expected = ServletException.class)
+    public void whenSelectedFileIsNotYaml_reportError() throws Exception {
+        LiveConfiguration.loadFromString(CONFIGURATION);
+        servlet.doPost(createUploadRequest(createEncodedForm("append", NON_YAML)), createServletResponse());
+
+        assertThat(LiveConfiguration.asString(), equalTo(CONFIGURATION));
+    }
+
+    private static final String NON_YAML = "---\n" +
+            "this is not yaml\n";
+
+    @Test (expected = ServletException.class)
+    public void whenSelectedFileHasBadBooleanValue_reportError() throws Exception {
+        LiveConfiguration.loadFromString(CONFIGURATION);
+        servlet.doPost(createUploadRequest(createEncodedForm("append", ADDED_CONFIGURATION_WITH_BAD_BOOLEAN)), createServletResponse());
+    }
+
+    private static final String ADDED_CONFIGURATION_WITH_BAD_BOOLEAN = "---\n" +
+            "host: localhost\n" +
+            "port: 7001\n" +
+            "metricsNameSnakeCase: blabla\n" +
+            "queries:\n" + "" +
+            "- people:\n" +
+            "    key: name\n" +
+            "    values: [age, sex]\n";
 }
