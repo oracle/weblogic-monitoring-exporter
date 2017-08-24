@@ -347,9 +347,12 @@ public class ExporterConfigTest {
             "host: localhost\n" +
             "port: 7001\n" +
             "queries:\n" +
-            "- JVMRuntime:\n" +
+            "- applicationRuntimes:\n" +
             "    key: name\n" +
-            "    values: [heapFreeCurrent,heapFreeCurrent]\n";
+            "    workManagerRuntimes:\n" +
+            "      prefix: workmanager_\n" +
+            "      key: applicationName\n" +
+            "      values: [heapFreeCurrent,heapFreeCurrent]\n";
 
     @Test(expected = ConfigurationException.class)
     public void whenConfigHasNoValues_reportFailure() throws Exception {

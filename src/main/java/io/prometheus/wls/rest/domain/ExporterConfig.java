@@ -71,12 +71,21 @@ public class ExporterConfig {
     }
 
     private ExporterConfig(Map<String, Object> yaml) {
-        if (yaml.containsKey(SNAKE_CASE)) metricsNameSnakeCase = MapUtils.getBooleanValue(yaml, SNAKE_CASE);
+        if (yaml.containsKey(SNAKE_CASE)) setMetricsNameSnakeCase(yaml);
         if (yaml.containsKey(USERNAME)) userName = MapUtils.getStringValue(yaml, USERNAME);
         if (yaml.containsKey(PASSWORD)) password = MapUtils.getStringValue(yaml, PASSWORD);
         if (yaml.containsKey(HOST)) host = MapUtils.getStringValue(yaml, HOST);
         if (yaml.containsKey(PORT)) port = MapUtils.getIntegerValue(yaml, PORT);
         if (yaml.containsKey(QUERIES)) appendQueries(yaml.get(QUERIES));
+    }
+
+    private void setMetricsNameSnakeCase(Map<String, Object> yaml) {
+        try {
+            metricsNameSnakeCase = MapUtils.getBooleanValue(yaml, SNAKE_CASE);
+        } catch (ConfigurationException e) {
+            e.addContext(SNAKE_CASE);
+            throw e;
+        }
     }
 
     private void appendQueries(Object queriesYaml) {

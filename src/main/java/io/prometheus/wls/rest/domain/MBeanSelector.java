@@ -48,9 +48,18 @@ public class MBeanSelector {
                     setValues(MapUtils.getStringArray(map, VALUES));
                     break;
                 default:
-                    nestedSelectors.put(key, createSelector(key, map.get(key)));
+                    addNestedSelector(key, map.get(key));
                     break;
             }
+        }
+    }
+
+    private void addNestedSelector(String key, Object selectorValue) {
+        try {
+            nestedSelectors.put(key, createSelector(key, selectorValue));
+        } catch (ConfigurationException e) {
+            e.addContext(key);
+            throw e;
         }
     }
 
