@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest.matchers;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import com.google.common.base.Strings;
 import org.hamcrest.Description;
 
@@ -8,6 +12,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 // verifies that metrics are grouped by name, ignores any comments
+/**
+ * @author Russell Gold
+ */
 public class PrometheusMetricsMatcher extends org.hamcrest.TypeSafeDiagnosingMatcher<String> {
 
     public static PrometheusMetricsMatcher followsPrometheusRules() {

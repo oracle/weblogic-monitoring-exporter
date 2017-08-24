@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.auth.AuthScope;
@@ -24,6 +28,9 @@ import java.util.List;
 
 import static io.prometheus.wls.rest.StatusCodes.*;
 
+/**
+ * @author Russell Gold
+ */
 public class WebClientImpl implements WebClient {
     private static final char QUOTE = '"';
 

@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest.domain;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import com.google.gson.JsonObject;
 import org.yaml.snakeyaml.Yaml;
 
@@ -12,6 +16,8 @@ import java.util.Map;
 
 /**
  * This class represents the configuration for the exporter, created by parsing YAML.
+ *
+ * @author Russell Gold
  */
 public class ExporterConfig {
     static final String DEFAULT_HOST = "localhost";

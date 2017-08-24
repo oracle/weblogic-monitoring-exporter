@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -12,6 +16,8 @@ import java.io.PrintStream;
 
 /**
  * This servlet represents the 'landing page' for the wls-exporter.
+ *
+ * @author Russell Gold
  */
 @WebServlet(value = "/")
 public class MainServlet extends HttpServlet {

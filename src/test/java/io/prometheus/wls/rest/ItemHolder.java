@@ -1,11 +1,17 @@
 package io.prometheus.wls.rest;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 
 /**
  * A class to provide the "items" potion of the json REST query.
+ *
+ * @author Russell Gold
  */
 class ItemHolder {
     ItemHolder(Map... maps) {

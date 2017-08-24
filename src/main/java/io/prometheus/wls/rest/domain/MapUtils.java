@@ -1,10 +1,16 @@
 package io.prometheus.wls.rest.domain;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import java.util.List;
 import java.util.Map;
 
 /**
  * Some common utilities for dealing with the maps produced for json and yaml
+ *
+ * @author Russell Gold
  */
 public class MapUtils {
 

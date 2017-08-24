@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.prometheus.wls.rest.domain.ExporterConfig;
@@ -9,6 +13,9 @@ import java.io.ByteArrayInputStream;
 
 import static io.prometheus.wls.rest.DemoInputs.*;
 
+/**
+ * @author Russell Gold
+ */
 public class YamlDemo {
 
     @SuppressWarnings("unchecked")

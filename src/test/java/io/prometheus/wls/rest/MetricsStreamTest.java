@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -9,6 +13,9 @@ import static io.prometheus.wls.rest.matchers.PrometheusMetricsMatcher.followsPr
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
+/**
+ * @author Russell Gold
+ */
 public class MetricsStreamTest {
     private static final long NANOSEC_PER_SECONDS = 1000000000;
     private PerformanceProbeStub performanceProbe = new PerformanceProbeStub();

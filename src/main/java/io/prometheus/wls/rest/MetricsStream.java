@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import com.sun.management.OperatingSystemMXBean;
 
 import javax.management.MBeanServerConnection;
@@ -8,6 +12,9 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 
+/**
+ * @author Russell Gold
+ */
 class MetricsStream extends PrintStream {
     private static final double NANOSEC_PER_SECONDS = 1000000000;
 

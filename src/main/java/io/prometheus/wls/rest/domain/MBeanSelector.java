@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest.domain;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -13,6 +17,8 @@ import java.util.Set;
 
 /**
  * A description of an mbean to be selected by the generated JSON query and captured from the result.
+ *
+ * @author Russell Gold
  */
 public class MBeanSelector {
     static final String TYPE = "type";

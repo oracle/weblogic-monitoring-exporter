@@ -1,10 +1,16 @@
 package io.prometheus.wls.rest.matchers;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 
 /**
  * A matcher which confirms that the text contains only comments (lines starting with '#')
+ *
+ * @author Russell Gold
  */
 public class CommentsOnlyMatcher extends TypeSafeDiagnosingMatcher<String> {
 

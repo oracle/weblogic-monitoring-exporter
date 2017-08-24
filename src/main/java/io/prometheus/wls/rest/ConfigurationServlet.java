@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import io.prometheus.wls.rest.domain.ConfigurationException;
 import io.prometheus.wls.rest.domain.ExporterConfig;
 import org.apache.commons.fileupload.FileItem;
@@ -16,6 +20,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+/**
+ * @author Russell Gold
+ */
 @WebServlet(value = "/configure")
 public class ConfigurationServlet extends HttpServlet {
 

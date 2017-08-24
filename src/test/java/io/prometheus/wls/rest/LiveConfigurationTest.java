@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,6 +13,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
+/**
+ * @author Russell Gold
+ */
 public class LiveConfigurationTest {
     private static final String CONFIGURATION = "---\n" +
             "host: localhost\n" +

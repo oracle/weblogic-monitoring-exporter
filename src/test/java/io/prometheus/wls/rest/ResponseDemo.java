@@ -1,10 +1,17 @@
 package io.prometheus.wls.rest;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.GsonBuilder;
 
 import java.util.Map;
 
+/**
+ * @author Russell Gold
+ */
 public class ResponseDemo {
 
     public static void main(String... args) {

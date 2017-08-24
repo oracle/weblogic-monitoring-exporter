@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest.matchers;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -9,6 +13,9 @@ import static java.util.stream.Collectors.joining;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * @author Russell Gold
+ */
 public class PrometheusMetricsMatcherTest {
 
     private final PrometheusMetricsMatcher matcher = followsPrometheusRules();

@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import io.prometheus.wls.rest.domain.MBeanSelector;
 
 import javax.servlet.ServletConfig;
@@ -16,6 +20,9 @@ import static io.prometheus.wls.rest.StatusCodes.AUTHENTICATION_REQUIRED;
 import static io.prometheus.wls.rest.StatusCodes.NOT_AUTHORIZED;
 import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
 
+/**
+ * @author Russell Gold
+ */
 @WebServlet(value = "/metrics")
 public class ExporterServlet extends HttpServlet {
 

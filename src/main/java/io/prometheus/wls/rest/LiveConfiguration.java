@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.prometheus.wls.rest.domain.ExporterConfig;
@@ -11,6 +15,9 @@ import javax.servlet.ServletException;
 import java.io.InputStream;
 import java.util.Map;
 
+/**
+ * @author Russell Gold
+ */
 class LiveConfiguration {
     static final String CONFIG_YML = "/config.yml";
     private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";

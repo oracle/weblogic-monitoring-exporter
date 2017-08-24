@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
@@ -13,6 +17,9 @@ import java.util.Map;
 import static com.meterware.simplestub.Stub.createStrictStub;
 import static io.prometheus.wls.rest.StatusCodes.SUCCESS;
 
+/**
+ * @author Russell Gold
+ */
 abstract class HttpServletResponseStub implements HttpServletResponse {
     private int status = SUCCESS;
     private ServletOutputStreamStub out = createStrictStub(ServletOutputStreamStub.class);

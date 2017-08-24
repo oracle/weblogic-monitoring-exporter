@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest.domain;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import org.junit.Test;
@@ -13,6 +17,9 @@ import static io.prometheus.wls.rest.domain.JsonPathMatcher.hasJsonPath;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
+/**
+ * @author Russell Gold
+ */
 public class MBeanSelectorTest {
 
     private static final String EXPECTED_TYPE = "WebAppComponentRuntime";

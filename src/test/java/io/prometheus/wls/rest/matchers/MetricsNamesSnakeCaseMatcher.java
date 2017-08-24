@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest.matchers;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import io.prometheus.wls.rest.domain.SnakeCaseUtil;
 import org.hamcrest.Description;
 
@@ -7,6 +11,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @author Russell Gold
+ */
 public class MetricsNamesSnakeCaseMatcher extends org.hamcrest.TypeSafeDiagnosingMatcher<String> {
 
     public static MetricsNamesSnakeCaseMatcher usesSnakeCase() {

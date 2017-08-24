@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest.domain;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import com.jayway.jsonpath.JsonPath;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
@@ -22,6 +26,8 @@ import java.util.Set;
  *    The difference in the query types is that "withValues" requires the specified values to be the full set
  *    of values in the array, while "includingValues" passes as long as all of those specified are present,
  *    even if the array contains other values.
+ *
+ * @author Russell Gold
  */
 public class JsonPathMatcher {
 

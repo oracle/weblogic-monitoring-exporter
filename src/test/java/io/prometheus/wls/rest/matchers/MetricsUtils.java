@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest.matchers;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import java.util.function.Predicate;
 
 class MetricsUtils {
@@ -8,6 +12,9 @@ class MetricsUtils {
         return spec.contains("{") ? spec.split("\\{")[0] : spec;
     }
 
+/**
+ * @author Russell Gold
+ */
     static class Uniq implements Predicate<String> {
         String last = "";
         @Override

@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import org.junit.After;
@@ -31,6 +35,9 @@ import static io.prometheus.wls.rest.matchers.ResponseHeaderMatcher.containsHead
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
 
+/**
+ * @author Russell Gold
+ */
 public class ExporterServletTest {
     private static final String USER = "system";
     private static final String PASSWORD = "gumby1234";

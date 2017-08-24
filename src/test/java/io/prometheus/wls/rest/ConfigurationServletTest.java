@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -18,6 +22,9 @@ import static io.prometheus.wls.rest.HttpServletResponseStub.createServletRespon
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
 
+/**
+ * @author Russell Gold
+ */
 public class ConfigurationServletTest {
 
     private ConfigurationServlet servlet = new ConfigurationServlet();

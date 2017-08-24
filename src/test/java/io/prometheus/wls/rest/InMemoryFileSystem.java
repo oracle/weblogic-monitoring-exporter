@@ -1,5 +1,9 @@
 package io.prometheus.wls.rest;
-
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 import com.google.common.collect.ImmutableMap;
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
@@ -15,6 +19,9 @@ import java.util.Map;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
 
+/**
+ * @author Russell Gold
+ */
 class InMemoryFileSystem {
     private static Map<String, InputStream> resources;
     private static List<Memento> mementos = new ArrayList<>();
