@@ -48,7 +48,7 @@ public class ConfigurationServlet extends HttpServlet {
     private void reportUnableToUpdateConfiguration(HttpServletRequest request, ServletOutputStream out, ConfigurationException e) throws IOException {
         out.println(ServletConstants.PAGE_HEADER);
         out.println("<H1>Unable to Update Configuration</H1><p>");
-        out.println(e.toString());
+        out.println(e.getMessage());
         out.println("</p>" +"</body></html>");
         out.println("<form action=\"" + request.getContextPath() + "/\">");
         out.println("    <br><input type=\"submit\" value=\"OK\">");
