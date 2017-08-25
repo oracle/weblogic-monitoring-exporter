@@ -12,6 +12,7 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -20,22 +21,39 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import static io.prometheus.wls.rest.ServletConstants.MAIN_PAGE;
+
 /**
  * @author Russell Gold
  */
-@WebServlet(value = "/configure")
+@WebServlet(value = "/" + ServletConstants.CONFIGURATION_ACTION)
 public class ConfigurationServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        if (!ServletFileUpload.isMultipartContent(request)) throw new ServletException("Must be a multi-part request");
+        try {
+            if (!ServletFileUpload.isMultipartContent(request)) throw new ServletException("Must be a multi-part request");
 
-        createPostAction(request).perform();
-        reportUpdatedConfiguration(response);
+            createPostAction(request).perform();
+            reportUpdatedConfiguration(response);
+        } catch (ConfigurationException e) {
+            reportUnableToUpdateConfiguration(request, response.getOutputStream(), e);
+        }
     }
 
     private void reportUpdatedConfiguration(HttpServletResponse response) throws IOException {
-        response.sendRedirect("");
+        response.sendRedirect(MAIN_PAGE);
+    }
+
+    private void reportUnableToUpdateConfiguration(HttpServletRequest request, ServletOutputStream out, ConfigurationException e) throws IOException {
+        out.println(ServletConstants.PAGE_HEADER);
+        out.println("<H1>Unable to Update Configuration</H1><p>");
+        out.println(e.toString());
+        out.println("</p>" +"</body></html>");
+        out.println("<form action=\"" + request.getContextPath() + "/\">");
+        out.println("    <br><input type=\"submit\" value=\"OK\">");
+        out.println("</form>");
+        out.close();
     }
 
     private PostAction createPostAction(HttpServletRequest request) throws IOException, ServletException {
@@ -66,7 +84,7 @@ public class ConfigurationServlet extends HttpServlet {
             try {
                 uploadedConfig = ExporterConfig.loadConfig(inputStream);
             } catch(ConfigurationException e) {
-                throw new ServletException(e.getMessage());
+                throw e;
             } catch (Throwable e) {
                 throw new ServletException("Unable to understand specified configuration");
             }

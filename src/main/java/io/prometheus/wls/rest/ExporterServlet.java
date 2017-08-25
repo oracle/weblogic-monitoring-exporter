@@ -16,8 +16,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static io.prometheus.wls.rest.StatusCodes.AUTHENTICATION_REQUIRED;
-import static io.prometheus.wls.rest.StatusCodes.NOT_AUTHORIZED;
+import static io.prometheus.wls.rest.ServletConstants.AUTHENTICATION_REQUIRED;
+import static io.prometheus.wls.rest.ServletConstants.NOT_AUTHORIZED;
 import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
 
 /**

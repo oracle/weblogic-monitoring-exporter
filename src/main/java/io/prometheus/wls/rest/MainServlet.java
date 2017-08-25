@@ -14,21 +14,15 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintStream;
 
+import static io.prometheus.wls.rest.ServletConstants.CONFIGURATION_ACTION;
+
 /**
  * This servlet represents the 'landing page' for the wls-exporter.
  *
  * @author Russell Gold
  */
-@WebServlet(value = "/")
+@WebServlet(value = "/" + ServletConstants.MAIN_PAGE)
 public class MainServlet extends HttpServlet {
-    private static final String PAGE_HEADER
-          = "<!DOCTYPE html>\n" +
-            "<html lang=\"en\">\n" +
-            "<head>\n" +
-            "    <meta charset=\"UTF-8\">\n" +
-            "    <title>Weblogic Prometheus Exporter</title>\n" +
-            "</head>\n" +
-            "<body>";
 
     private static final String RELATIVE_LINK = "metrics";
 
@@ -40,7 +34,7 @@ public class MainServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         LiveConfiguration.setServer(req.getServerName(), req.getServerPort());
-        resp.getOutputStream().println(PAGE_HEADER);
+        resp.getOutputStream().println(ServletConstants.PAGE_HEADER);
         displayMetricsLink(req, resp.getOutputStream());
         displayForm(req, resp.getOutputStream());
         displayConfiguration(resp.getOutputStream());
@@ -78,7 +72,7 @@ public class MainServlet extends HttpServlet {
     }
 
     private String getConfigurationLink(HttpServletRequest req) {
-        return getEffectivePath(req, "configure");
+        return getEffectivePath(req, CONFIGURATION_ACTION);
     }
 
     private void displayConfiguration(ServletOutputStream outputStream) throws IOException {

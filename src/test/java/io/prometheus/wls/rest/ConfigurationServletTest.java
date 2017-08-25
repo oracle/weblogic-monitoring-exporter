@@ -4,6 +4,7 @@ package io.prometheus.wls.rest;
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+import io.prometheus.wls.rest.domain.ConfigurationException;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -19,6 +20,7 @@ import java.nio.charset.Charset;
 
 import static io.prometheus.wls.rest.HttpServletRequestStub.createPostRequest;
 import static io.prometheus.wls.rest.HttpServletResponseStub.createServletResponse;
+import static io.prometheus.wls.rest.ServletConstants.CONFIGURATION_ACTION;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
 
@@ -49,7 +51,7 @@ public class ConfigurationServletTest {
     public void servletAnnotationIndicatesConfigurationPage() throws Exception {
         WebServlet annotation = ConfigurationServlet.class.getAnnotation(WebServlet.class);
 
-        assertThat(annotation.value(), arrayContaining("/configure"));
+        assertThat(annotation.value(), arrayContaining("/" + CONFIGURATION_ACTION));
     }
 
     private final static String BOUNDARY = "C3n5NKoslNBKj4wBHR8kCX6OtVYEqeFYNjorlBP";
@@ -134,21 +136,31 @@ public class ConfigurationServletTest {
         assertThat(LiveConfiguration.asString(), equalTo(COMBINED_CONFIGURATION));
     }
 
-    @Test (expected = ServletException.class)
+    @Test
     public void whenSelectedFileIsNotYaml_reportError() throws Exception {
         LiveConfiguration.loadFromString(CONFIGURATION);
-        servlet.doPost(createUploadRequest(createEncodedForm("append", NON_YAML)), createServletResponse());
+        servlet.doPost(createUploadRequest(createEncodedForm("append", NON_YAML)), response);
 
-        assertThat(LiveConfiguration.asString(), equalTo(CONFIGURATION));
+        assertThat(response.getHtml(), containsString(ConfigurationException.NOT_YAML_FORMAT));
     }
 
     private static final String NON_YAML = "---\n" +
             "this is not yaml\n";
 
-    @Test (expected = ServletException.class)
+    @Test
     public void whenSelectedFileHasBadBooleanValue_reportError() throws Exception {
         LiveConfiguration.loadFromString(CONFIGURATION);
-        servlet.doPost(createUploadRequest(createEncodedForm("append", ADDED_CONFIGURATION_WITH_BAD_BOOLEAN)), createServletResponse());
+        servlet.doPost(createUploadRequest(createEncodedForm("append", ADDED_CONFIGURATION_WITH_BAD_BOOLEAN)), response);
+
+        assertThat(response.getHtml(), containsString("blabla"));
+    }
+
+    @Test
+    public void afterSelectedFileHasBadBooleanValue_configurationIsUnchanged() throws Exception {
+        LiveConfiguration.loadFromString(CONFIGURATION);
+        servlet.doPost(createUploadRequest(createEncodedForm("append", ADDED_CONFIGURATION_WITH_BAD_BOOLEAN)), response);
+
+        assertThat(LiveConfiguration.asString(), equalTo(CONFIGURATION));
     }
 
     private static final String ADDED_CONFIGURATION_WITH_BAD_BOOLEAN = "---\n" +

@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
-import static io.prometheus.wls.rest.StatusCodes.SUCCESS;
+import static io.prometheus.wls.rest.ServletConstants.SUCCESS;
 
 /**
  * @author Russell Gold

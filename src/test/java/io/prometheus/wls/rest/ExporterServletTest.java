@@ -26,7 +26,7 @@ import java.util.Map;
 import static io.prometheus.wls.rest.HttpServletRequestStub.createGetRequest;
 import static io.prometheus.wls.rest.HttpServletResponseStub.createServletResponse;
 import static io.prometheus.wls.rest.InMemoryFileSystem.withNoParams;
-import static io.prometheus.wls.rest.StatusCodes.*;
+import static io.prometheus.wls.rest.ServletConstants.*;
 import static io.prometheus.wls.rest.domain.JsonPathMatcher.hasJsonPath;
 import static io.prometheus.wls.rest.matchers.CommentsOnlyMatcher.containsOnlyComments;
 import static io.prometheus.wls.rest.matchers.MetricsNamesSnakeCaseMatcher.usesSnakeCase;

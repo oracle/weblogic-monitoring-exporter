@@ -43,9 +43,17 @@ public class ExporterConfig {
      * @param inputStream a reader of a YAML configuration.
      * @return an ExporterConfig object that matches the parsed YAML
      */
-    @SuppressWarnings("unchecked")
     public static ExporterConfig loadConfig(InputStream inputStream) {
-        return loadConfig((Map<String, Object>) new Yaml().load(inputStream));
+        return loadConfig(asMap(new Yaml().load(inputStream)));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> asMap(Object yaml) {
+        try {
+            return (Map<String, Object>) yaml;
+        } catch (ClassCastException e) {
+            throw new ConfigurationException(ConfigurationException.NOT_YAML_FORMAT);
+        }
     }
 
     /**

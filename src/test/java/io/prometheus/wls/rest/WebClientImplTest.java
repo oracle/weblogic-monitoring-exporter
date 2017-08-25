@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static io.prometheus.wls.rest.StatusCodes.*;
+import static io.prometheus.wls.rest.ServletConstants.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.junit.MatcherAssert.assertThat;

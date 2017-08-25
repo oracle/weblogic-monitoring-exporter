@@ -26,7 +26,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static io.prometheus.wls.rest.StatusCodes.*;
+import static io.prometheus.wls.rest.ServletConstants.*;
 
 /**
  * @author Russell Gold

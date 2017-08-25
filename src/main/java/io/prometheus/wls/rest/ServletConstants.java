@@ -10,10 +10,23 @@ package io.prometheus.wls.rest;
  *
  * @author Russell Gold
  */
-public interface StatusCodes {
+public interface ServletConstants {
     int SUCCESS                 = 200;
 
     int BAD_REQUEST             = 400;
     int AUTHENTICATION_REQUIRED = 401;
     int NOT_AUTHORIZED          = 403;
+
+    String PAGE_HEADER
+          = "<!DOCTYPE html>\n" +
+            "<html lang=\"en\">\n" +
+            "<head>\n" +
+            "    <meta charset=\"UTF-8\">\n" +
+            "    <title>Weblogic Prometheus Exporter</title>\n" +
+            "</head>\n" +
+            "<body>";
+
+    String MAIN_PAGE = "";
+    String CONFIGURATION_ACTION = "configure";
+
 }

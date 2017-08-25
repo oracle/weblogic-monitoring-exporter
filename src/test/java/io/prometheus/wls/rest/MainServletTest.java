@@ -12,6 +12,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 
 import static io.prometheus.wls.rest.InMemoryFileSystem.withNoParams;
+import static io.prometheus.wls.rest.ServletConstants.CONFIGURATION_ACTION;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
 
@@ -74,7 +75,8 @@ public class MainServletTest {
         request.setServletPath("/");
         servlet.doGet(request, response);
 
-        assertThat(response.getHtml(), containsString("form action=\"configure\" method=\"post\" enctype=\"multipart/form-data\""));
+        assertThat(response.getHtml(),
+                containsString("form action=\"" + CONFIGURATION_ACTION + "\" method=\"post\" enctype=\"multipart/form-data\""));
     }
 
     @Test
@@ -82,7 +84,7 @@ public class MainServletTest {
         request.setServletPath("");
         servlet.doGet(request, response);
 
-        assertThat(response.getHtml(), containsString("action=\"/exporter/configure\""));
+        assertThat(response.getHtml(), containsString("action=\"/exporter/" + CONFIGURATION_ACTION + "\""));
     }
 
     @Test
@@ -113,7 +115,7 @@ public class MainServletTest {
             "    key: name\n" +
             "    values: [sample1, sample2]\n";
 
-// assertThat(getPage(), containsForm().withAction("configure").withMethod("post").withEncType("multipart/form-data")
+// assertThat(getPage(), containsForm().withAction(CONFIGURATION_ACTION).withMethod("post").withEncType("multipart/form-data")
     // assertThat(getPage(), containsForm().withRadioButton("effect").withValues("append","replace").withDefault("append")
     //
 }
