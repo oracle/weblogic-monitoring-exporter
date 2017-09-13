@@ -17,7 +17,7 @@ import static org.hamcrest.Matchers.is;
  * @author Russell Gold
  */
 public class LiveConfigurationTest {
-    private static final String CONFIGURATION = "---\n" +
+    private static final String CONFIGURATION =
             "host: localhost\n" +
             "port: 7001\n" +
             "queries:\n" + "" +
@@ -26,7 +26,7 @@ public class LiveConfigurationTest {
             "    key: name\n" +
             "    values: [sample1, sample2]\n";
 
-    private static final String ADDED_CONFIGURATION = "---\n" +
+    private static final String ADDED_CONFIGURATION = 
             "host: localhost\n" +
             "port: 7001\n" +
             "queries:\n" + "" +
@@ -37,6 +37,7 @@ public class LiveConfigurationTest {
     @Before
     public void setUp() throws Exception {
         InMemoryFileSystem.install();
+        LiveConfiguration.setServer("localhost", 7001);
     }
 
     @After

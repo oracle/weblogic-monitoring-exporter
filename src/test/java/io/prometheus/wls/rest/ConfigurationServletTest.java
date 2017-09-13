@@ -56,7 +56,7 @@ public class ConfigurationServletTest {
     }
 
     private final static String BOUNDARY = "C3n5NKoslNBKj4wBHR8kCX6OtVYEqeFYNjorlBP";
-    private static final String CONFIGURATION = "---\n" +
+    private static final String CONFIGURATION = 
             "host: localhost\n" +
             "port: 7001\n" +
             "queries:\n" + "" +
@@ -65,7 +65,7 @@ public class ConfigurationServletTest {
             "    key: name\n" +
             "    values: [sample1, sample2]\n";
 
-    private static final String ADDED_CONFIGURATION = "---\n" +
+    private static final String ADDED_CONFIGURATION =
             "host: localhost\n" +
             "port: 7001\n" +
             "queries:\n" + "" +
@@ -73,7 +73,7 @@ public class ConfigurationServletTest {
             "    key: name\n" +
             "    values: [age, sex]\n";
 
-    private static final String COMBINED_CONFIGURATION = "---\n" +
+    private static final String COMBINED_CONFIGURATION =
             "host: localhost\n" +
             "port: 7001\n" +
             "queries:\n" + "" +
@@ -145,7 +145,7 @@ public class ConfigurationServletTest {
         assertThat(response.getHtml(), containsString(ConfigurationException.NOT_YAML_FORMAT));
     }
 
-    private static final String NON_YAML = "---\n" +
+    private static final String NON_YAML =
             "this is not yaml\n";
 
     @Test
@@ -164,7 +164,7 @@ public class ConfigurationServletTest {
         assertThat(LiveConfiguration.asString(), equalTo(CONFIGURATION));
     }
 
-    private static final String ADDED_CONFIGURATION_WITH_BAD_BOOLEAN = "---\n" +
+    private static final String ADDED_CONFIGURATION_WITH_BAD_BOOLEAN =
             "host: localhost\n" +
             "port: 7001\n" +
             "metricsNameSnakeCase: blabla\n" +

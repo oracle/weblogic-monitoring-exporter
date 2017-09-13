@@ -195,16 +195,9 @@ public class ExporterConfig {
 
     @Override
     public String toString() {
-        return toString(host, port);
-    }
+        StringBuilder sb = new StringBuilder();
 
-    public String toString(String serverName, int serverPort) {
-        StringBuilder sb = new StringBuilder("---\n")
-                .append("host: ").append(serverName).append('\n')
-                .append("port: ").append(serverPort).append('\n');
-
-        if (metricsNameSnakeCase)
-            sb.append("metricsNameSnakeCase: true\n");
+        if (metricsNameSnakeCase) sb.append("metricsNameSnakeCase: true\n");
         sb.append("queries:\n");
 
         for (MBeanSelector query : getQueries())

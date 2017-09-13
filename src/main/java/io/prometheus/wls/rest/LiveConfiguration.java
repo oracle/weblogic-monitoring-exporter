@@ -81,7 +81,10 @@ class LiveConfiguration {
     }
 
     static String asString() {
-        return getConfig().toString(serverName, serverPort);
+        StringBuilder sb = new StringBuilder()
+                .append("host: ").append(serverName).append('\n')
+                .append("port: ").append(serverPort).append('\n').append(getConfig());
+        return sb.toString();
     }
 
     static Map<String, Object> scrapeMetrics(MBeanSelector selector, String jsonResponse) {

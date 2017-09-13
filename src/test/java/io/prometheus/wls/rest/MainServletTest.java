@@ -97,7 +97,7 @@ public class MainServletTest {
         assertThat(response.getHtml(), containsString(EFFECTIVE_CONFIGURATION));
     }
 
-    private static final String PARSED_CONFIGURATION = "---\n" +
+    private static final String PARSED_CONFIGURATION =
             "host: localhost\n" +
             "port: 7001\n" +
             "queries:\n" + "" +
@@ -106,7 +106,7 @@ public class MainServletTest {
             "    key: name\n" +
             "    values: [sample1, sample2]\n";
 
-    private static final String EFFECTIVE_CONFIGURATION = "---\n" +
+    private static final String EFFECTIVE_CONFIGURATION =
             "host: " + HttpServletRequestStub.HOST + "\n" +
             "port: " + HttpServletRequestStub.PORT + "\n" +
             "queries:\n" + "" +

@@ -4,6 +4,7 @@ package io.prometheus.wls.rest.domain;
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.Test;
@@ -22,8 +23,6 @@ import static org.hamcrest.Matchers.*;
 public class ExporterConfigTest {
     private static final String EXPECTED_HOST = "somehost";
     private static final int EXPECTED_PORT = 3456;
-    private static final String EXPECTED_USERNAME = "testuser";
-    private static final String EXPECTED_PASSWORD = "letmein";
     private static final String SERVLET_CONFIG = "---\n" +
             "host: " + EXPECTED_HOST + "\n" +
             "port: " + EXPECTED_PORT + "\n" +
@@ -113,17 +112,27 @@ public class ExporterConfigTest {
 
     @Test
     public void afterLoad_convertToString() throws Exception {
-        ExporterConfig config = loadFromString(SERVLET_CONFIG);
+        ExporterConfig config = loadFromString(SNAKE_CASE_CONFIG);
 
-        assertThat(config.toString(), equalToIgnoringWhiteSpace(SERVLET_CONFIG));
+        assertThat(config.toString(), equalToIgnoringWhiteSpace(SNAKE_CASE_CONFIG));
     }
 
     @Test
     public void includeSnakeCaseTrueSettingInToString() throws Exception {
-        ExporterConfig config = loadFromString(WORK_MANAGER_CONFIG);
+        ExporterConfig config = loadFromString(SNAKE_CASE_CONFIG);
 
-        assertThat(config.toString(), equalToIgnoringWhiteSpace(WORK_MANAGER_CONFIG));
+        assertThat(config.toString(), equalToIgnoringWhiteSpace(SNAKE_CASE_CONFIG));
     }
+
+    private static final String SNAKE_CASE_CONFIG =
+            "metricsNameSnakeCase: true\n" +
+            "queries:\n" +
+            "- applicationRuntimes:\n" +
+            "    key: name\n" +
+            "    workManagerRuntimes:\n" +
+            "      prefix: workmanager_\n" +
+            "      key: applicationName\n" +
+            "      values: [pendingRequests, completedRequests, stuckThreadCount]\n";
 
     @Test
     public void afterAppend_configHasOriginalDestination() throws Exception {
@@ -236,7 +245,7 @@ public class ExporterConfigTest {
         assertThat(config.toString(), equalTo(MERGED_CONFIG));
     }
 
-    private static final String MERGEABLE_CONFIG = "---\n" +
+    private static final String MERGEABLE_CONFIG =
             "host: otherhost\n" +
             "port: 9876\n" +
             "metricsNameSnakeCase: true\n" +
@@ -259,9 +268,7 @@ public class ExporterConfigTest {
             "        key: servletName\n" +
             "        values: [invocationTotalCount, executionTimeTotal]\n";
 
-    private static final String MERGED_CONFIG = "---\n" +
-            "host: otherhost\n" +
-            "port: 9876\n" +
+    private static final String MERGED_CONFIG =
             "metricsNameSnakeCase: true\n" +
             "queries:\n" +
             "- applicationRuntimes:\n" +
@@ -315,9 +322,7 @@ public class ExporterConfigTest {
     }
 
 
-    private static final String CONFIG_WITH_SINGLE_VALUE = "---\n" +
-            "host: localhost\n" +
-            "port: 7001\n" +
+    private static final String CONFIG_WITH_SINGLE_VALUE =
             "queries:\n" +
             "- JVMRuntime:\n" +
             "    key: name\n" +
@@ -328,9 +333,7 @@ public class ExporterConfigTest {
         loadFromString(CONFIG_WITH_DUPLICATE_VALUE);
     }
 
-    private static final String CONFIG_WITH_DUPLICATE_VALUE = "---\n" +
-            "host: localhost\n" +
-            "port: 7001\n" +
+    private static final String CONFIG_WITH_DUPLICATE_VALUE =
             "queries:\n" +
             "- applicationRuntimes:\n" +
             "    key: name\n" +
@@ -344,9 +347,7 @@ public class ExporterConfigTest {
         loadFromString(CONFIG_WITH_NO_VALUES);
     }
 
-    private static final String CONFIG_WITH_NO_VALUES = "---\n" +
-            "host: localhost\n" +
-            "port: 7001\n" +
+    private static final String CONFIG_WITH_NO_VALUES =
             "queries:\n" +
             "- JVMRuntime:\n" +
             "    key: name\n" +
@@ -385,7 +386,6 @@ public class ExporterConfigTest {
 
         private void reportMismatch(ExporterConfig config, Description description) {
             description.appendText("configuration has queries:\n ").appendText(config.toQueryString());
-
         }
 
         @Override
@@ -393,4 +393,6 @@ public class ExporterConfigTest {
             description.appendValueList("query for [", ", ", "]", selectorKeys);
         }
     }
+
+
 }
