@@ -91,15 +91,6 @@ public class ExporterConfigTest {
     }
 
     @Test
-    public void setHostAndPort() throws Exception {
-        ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
-        config.setServer(EXPECTED_HOST, EXPECTED_PORT);
-
-        assertThat(config.getHost(), equalTo(EXPECTED_HOST));
-        assertThat(config.getPort(), equalTo(EXPECTED_PORT));
-    }
-
-    @Test
     public void whenSpecified_readQueriesFromYaml() throws Exception {
         ExporterConfig config = loadFromString(SERVLET_CONFIG);
 

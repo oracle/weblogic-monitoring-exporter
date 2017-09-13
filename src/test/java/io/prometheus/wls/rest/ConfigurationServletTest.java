@@ -35,6 +35,7 @@ public class ConfigurationServletTest {
     @Before
     public void setUp() throws Exception {
         LiveConfiguration.loadFromString("");
+        LiveConfiguration.setServer("localhost", 7001);
     }
 
     @Test

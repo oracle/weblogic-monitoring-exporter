@@ -39,8 +39,6 @@ import static org.hamcrest.junit.MatcherAssert.assertThat;
  * @author Russell Gold
  */
 public class ExporterServletTest {
-    private static final String USER = "system";
-    private static final String PASSWORD = "gumby1234";
     private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
     private WebClientFactoryStub factory = new WebClientFactoryStub();
     private ExporterServlet servlet = new ExporterServlet(factory);
@@ -51,6 +49,7 @@ public class ExporterServletTest {
     public void setUp() throws Exception {
         InMemoryFileSystem.install();
         LiveConfiguration.loadFromString("");
+        LiveConfiguration.setServer("localhost", 7001);
     }
 
     @After
@@ -309,14 +308,6 @@ public class ExporterServletTest {
 
         private String getSentHeader(String key) {
             return webClient.getHeader(key);
-        }
-
-        private String getUsername() {
-            return webClient.username;
-        }
-
-        private String getPassword() {
-            return webClient.password;
         }
 
         private String getClientUrl() {

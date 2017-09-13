@@ -157,11 +157,11 @@ public class ExporterConfig {
         return list.isEmpty() || Map.class.isInstance(list.get(0));
     }
 
-    public String getHost() {
+    String getHost() {
         return host;
     }
 
-    public int getPort() {
+    int getPort() {
         return port;
     }
 
@@ -171,16 +171,6 @@ public class ExporterConfig {
      */
     boolean getMetricsNameSnakeCase() {
         return metricsNameSnakeCase;
-    }
-
-    /**
-     * Sets the host and port explicitly.
-     * @param host the host to contact for data
-     * @param port the port to contact for data
-     */
-    public void setServer(String host, int port) {
-        this.host = host;
-        this.port = port;
     }
 
     /**
@@ -205,9 +195,13 @@ public class ExporterConfig {
 
     @Override
     public String toString() {
+        return toString(host, port);
+    }
+
+    public String toString(String serverName, int serverPort) {
         StringBuilder sb = new StringBuilder("---\n")
-                .append("host: ").append(host).append('\n')
-                .append("port: ").append(port).append('\n');
+                .append("host: ").append(serverName).append('\n')
+                .append("port: ").append(serverPort).append('\n');
 
         if (metricsNameSnakeCase)
             sb.append("metricsNameSnakeCase: true\n");

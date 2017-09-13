@@ -23,6 +23,8 @@ class LiveConfiguration {
     private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
     private static ExporterConfig config;
     private static boolean initCalled;
+    private static String serverName;
+    private static int serverPort;
 
     static {
         loadFromString("");
@@ -41,19 +43,16 @@ class LiveConfiguration {
     }
 
     static void setServer(String serverName, int serverPort) {
-        config.setServer(serverName, serverPort);
+        LiveConfiguration.serverName = serverName;
+        LiveConfiguration.serverPort = serverPort;
     }
 
     static String getQueryUrl() {
-        return createQueryUrl(getConfig());
-    }
-
-    private static String createQueryUrl(ExporterConfig config) {
-        return String.format(URL_PATTERN, config.getHost(), config.getPort() );
+        return String.format(URL_PATTERN, serverName, serverPort);
     }
 
     static String getPerformanceQualifier() {
-        return String.format("{instance=\"%s:%d\"}", config.getHost(), config.getPort());
+        return String.format("{instance=\"%s:%d\"}", serverName, serverPort);
     }
 
     static boolean hasQueries() {
@@ -82,7 +81,7 @@ class LiveConfiguration {
     }
 
     static String asString() {
-        return getConfig().toString();
+        return getConfig().toString(serverName, serverPort);
     }
 
     static Map<String, Object> scrapeMetrics(MBeanSelector selector, String jsonResponse) {
