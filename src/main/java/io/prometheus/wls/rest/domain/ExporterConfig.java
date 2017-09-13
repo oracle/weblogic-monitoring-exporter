@@ -25,14 +25,10 @@ public class ExporterConfig {
     static final String SNAKE_CASE = "metricsNameSnakeCase";
     static final String HOST = "host";
     static final String PORT = "port";
-    static final String USERNAME = "username";
-    static final String PASSWORD = "password";
 
     private static final String QUERIES = "queries";
     private static final MBeanSelector[] NO_QUERIES = {};
 
-    private String userName = "";
-    private String password = "";
     private MBeanSelector[] queries = {};
     private String host = DEFAULT_HOST;
     private int port = DEFAULT_PORT;
@@ -86,8 +82,6 @@ public class ExporterConfig {
 
     private ExporterConfig(Map<String, Object> yaml) {
         if (yaml.containsKey(SNAKE_CASE)) setMetricsNameSnakeCase(yaml);
-        if (yaml.containsKey(USERNAME)) userName = MapUtils.getStringValue(yaml, USERNAME);
-        if (yaml.containsKey(PASSWORD)) password = MapUtils.getStringValue(yaml, PASSWORD);
         if (yaml.containsKey(HOST)) host = MapUtils.getStringValue(yaml, HOST);
         if (yaml.containsKey(PORT)) port = MapUtils.getIntegerValue(yaml, PORT);
         if (yaml.containsKey(QUERIES)) appendQueries(yaml.get(QUERIES));
@@ -161,14 +155,6 @@ public class ExporterConfig {
 
     private boolean emptyOrContainsMaps(List list) {
         return list.isEmpty() || Map.class.isInstance(list.get(0));
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public String getPassword() {
-        return password;
     }
 
     public String getHost() {

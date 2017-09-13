@@ -53,8 +53,6 @@ public class ExporterConfigTest {
         ExporterConfig config = ExporterConfig.loadConfig(NULL_MAP);
 
         assertThat(config.getMetricsNameSnakeCase(), equalTo(false));
-        assertThat(config.getUserName(), emptyString());
-        assertThat(config.getPassword(), emptyString());
     }
 
     @Test
@@ -72,17 +70,6 @@ public class ExporterConfigTest {
 
         assertThat(config.getMetricsNameSnakeCase(), is(true));
      }
-
-    @Test
-    public void whenSpecified_readUserNameAndPasswordFromYaml() throws Exception {
-        yamlConfig.put(ExporterConfig.USERNAME, EXPECTED_USERNAME);
-        yamlConfig.put(ExporterConfig.PASSWORD, EXPECTED_PASSWORD);
-
-        ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
-
-        assertThat(config.getUserName(), equalTo(EXPECTED_USERNAME));
-        assertThat(config.getPassword(), equalTo(EXPECTED_PASSWORD));
-    }
 
     @Test
     public void whenSpecified_readHostAndPortFromYaml() throws Exception {

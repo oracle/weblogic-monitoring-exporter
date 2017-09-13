@@ -6,14 +6,10 @@ package io.prometheus.wls.rest;
  */
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
@@ -35,22 +31,16 @@ public class WebClientImpl implements WebClient {
     private static final char QUOTE = '"';
 
     private String url;
-    private String username;
-    private String password;
     private List<BasicHeader> addedHeaders = new ArrayList<>();
-    private boolean authorizationHeaderDefined;
     private String setCookieHeader = null;
 
-    WebClientImpl(String url, String username, String password) {
+    WebClientImpl(String url) {
         this.url = url;
-        this.username = username;
-        this.password = password;
     }
 
     @Override
     public void putHeader(String key, String value) {
         addedHeaders.add(new BasicHeader(key, value));
-        if (key.equals("Authorization")) authorizationHeaderDefined = true;
     }
 
     @Override
@@ -119,32 +109,8 @@ public class WebClientImpl implements WebClient {
 
     private CloseableHttpClient createHttpClient() {
         return HttpClientBuilder.create()
-                .setDefaultCredentialsProvider(getCredentialsProvider())
                 .setDefaultHeaders(getDefaultHeaders())
                 .build();
-    }
-
-    private CredentialsProvider getCredentialsProvider() {
-        if (useUsernamePassword()) {
-            return createCredentialsProvider(username, password);
-        } else {
-            return null;
-        }
-    }
-
-    private boolean useUsernamePassword() {
-        return !isAuthorizationHeaderDefined() && username != null && password != null;
-    }
-
-    private boolean isAuthorizationHeaderDefined() {
-        return authorizationHeaderDefined;
-    }
-
-    private static CredentialsProvider createCredentialsProvider(String username, String password) {
-        CredentialsProvider provider = new BasicCredentialsProvider();
-        UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, password);
-        provider.setCredentials(AuthScope.ANY, credentials);
-        return provider;
     }
 
     private Collection<? extends Header> getDefaultHeaders() {

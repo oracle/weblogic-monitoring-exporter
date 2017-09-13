@@ -4,7 +4,6 @@ package io.prometheus.wls.rest;
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
-import com.meterware.httpunit.Base64;
 import com.meterware.pseudoserver.HttpUserAgentTest;
 import com.meterware.pseudoserver.PseudoServlet;
 import com.meterware.pseudoserver.WebResource;
@@ -66,28 +65,6 @@ public class WebClientImplTest extends HttpUserAgentTest {
         });
 
         factory.createClient(getHostPath() + "/checkXRequested").doQuery("abced");
-    }
-
-    @Test
-    public void sendCredentialsWhenChallenged() throws Exception {
-        defineResource("challenge", new PseudoServlet() {
-            public WebResource getPostResponse() {
-                String header = getHeader("Authorization");
-                if (header == null) {
-                    WebResource webResource = new WebResource("unauthorized", "text/plain", AUTHENTICATION_REQUIRED);
-                    webResource.addHeader("WWW-Authenticate: Basic realm=\"testrealm\"");
-                    return webResource;
-                } else {
-                    sentHeaders.put("Authorization", header);
-                    return new WebResource("", "text/plain");
-                }
-            }
-        });
-
-        factory.setCredentials("user", "password");
-        factory.createClient(getHostPath() + "/challenge").doQuery("abced");
-
-        assertThat(sentHeaders, hasEntry("Authorization", "Basic " + Base64.encode("user:password")));
     }
 
     @Test

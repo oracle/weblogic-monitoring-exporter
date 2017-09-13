@@ -42,7 +42,6 @@ public class ExporterServlet extends HttpServlet {
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
         LiveConfiguration.init(servletConfig);
-        webClientFactory.setCredentials(LiveConfiguration.getUserName(), LiveConfiguration.getPassword());
     }
 
     @Override

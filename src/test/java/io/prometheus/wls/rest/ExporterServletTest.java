@@ -103,14 +103,6 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void afterInit_servletHasAuthenticationCredentials() throws Exception {
-        initServlet(String.format("---\nusername: %s\npassword: %s\n", USER, PASSWORD));
-
-        assertThat(factory.getUsername(), equalTo(USER));
-        assertThat(factory.getPassword(), equalTo(PASSWORD));
-    }
-
-    @Test
     public void onGet_defineConnectionUrlFromContext() throws Exception {
         initServlet("");
 
@@ -294,12 +286,6 @@ public class ExporterServletTest {
 
     static class WebClientFactoryStub implements WebClientFactory {
         private WebClientStub webClient = new WebClientStub();
-
-        @Override
-        public void setCredentials(String username, String password) {
-            webClient.username = username;
-            webClient.password = password;
-        }
 
         @Override
         public WebClient createClient(String url) {

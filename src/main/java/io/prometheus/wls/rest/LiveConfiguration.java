@@ -93,14 +93,6 @@ class LiveConfiguration {
         return new JsonParser().parse(response).getAsJsonObject();
     }
 
-    static String getUserName() {
-        return getConfig().getUserName();
-    }
-
-    static String getPassword() {
-        return getConfig().getPassword();
-    }
-
     static void appendConfiguration(ExporterConfig uploadedConfig) throws ServletException {
         if (uploadedConfig == null) throw new ServletException("No configuration specified");
         getConfig().append(uploadedConfig);
