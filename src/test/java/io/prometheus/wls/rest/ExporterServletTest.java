@@ -40,6 +40,14 @@ import static org.hamcrest.junit.MatcherAssert.assertThat;
  */
 public class ExporterServletTest {
     private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
+    private static final String ONE_VALUE_CONFIG = "queries:\n- groups:\n    key: name\n    values: testSample1";
+    private static final String TWO_VALUE_CONFIG = "queries:" +
+            "\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]";
+    private static final String CONFIG_WITH_CATEGORY_VALUE = "queries:" +
+            "\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1, testSample2, bogus]";
+    private static final String MULTI_QUERY_CONFIG = "queries:" +
+            "\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]" +
+            "\n- colors:                         \n    key: hue \n    values: wavelength";
     private WebClientFactoryStub factory = new WebClientFactoryStub();
     private ExporterServlet servlet = new ExporterServlet(factory);
     private HttpServletRequestStub request = createGetRequest();
@@ -48,6 +56,7 @@ public class ExporterServletTest {
     @Before
     public void setUp() throws Exception {
         InMemoryFileSystem.install();
+        ConfigurationUpdaterStub.install();
         LiveConfiguration.loadFromString("");
         LiveConfiguration.setServer("localhost", 7001);
     }
@@ -55,6 +64,7 @@ public class ExporterServletTest {
     @After
     public void tearDown() throws Exception {
         InMemoryFileSystem.uninstall();
+        ConfigurationUpdaterStub.uninstall();
     }
 
     @Test
@@ -111,7 +121,7 @@ public class ExporterServletTest {
 
     @Test
     public void whenServerSends403StatusOnGet_returnToClient() throws Exception {
-        initServlet("---\nqueries:\n- groups:\n    key: name\n    values: testSample1");
+        initServlet(ONE_VALUE_CONFIG);
 
         factory.reportNotAuthorized();
         servlet.doGet(request, response);
@@ -121,7 +131,7 @@ public class ExporterServletTest {
 
     @Test
     public void whenServerSends401StatusOnGet_returnToClient() throws Exception {
-        initServlet("---\nqueries:\n- groups:\n    key: name\n    values: testSample1");
+        initServlet(ONE_VALUE_CONFIG);
 
         factory.reportAuthenticationRequired("Test-Realm");
         servlet.doGet(request, response);
@@ -136,7 +146,7 @@ public class ExporterServletTest {
 
         factory.setCookieResponseHeader(SET_COOKIE_HEADER);
         factory.addJsonResponse(getGroupResponseMap());
-        initServlet("---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]");
+        initServlet(TWO_VALUE_CONFIG);
 
         servlet.doGet(request, response);
 
@@ -145,7 +155,7 @@ public class ExporterServletTest {
 
     @Test
     public void whenClientSendsAuthenticationHeaderOnGet_passToServer() throws Exception {
-        initServlet("---\nqueries:\n- groups:\n    key: name\n    values: testSample1");
+        initServlet(ONE_VALUE_CONFIG);
 
         request.setHeader("Authorization", "auth-credentials");
         servlet.doGet(request, response);
@@ -155,7 +165,7 @@ public class ExporterServletTest {
 
     @Test
     public void whenClientSendsCookieHeaderOnGet_passToServer() throws Exception {
-        initServlet("---\nqueries:\n- groups:\n    key: name\n    values: testSample1");
+        initServlet(ONE_VALUE_CONFIG);
 
         request.setHeader("Cookie", "with-chocolate-chips");
         servlet.doGet(request, response);
@@ -165,7 +175,7 @@ public class ExporterServletTest {
 
     @Test
     public void onGet_sendJsonQuery() throws Exception {
-        initServlet("---\nqueries:\n- groups:\n    key: name\n    values: testSample1");
+        initServlet(ONE_VALUE_CONFIG);
 
         servlet.doGet(request, response);
 
@@ -181,7 +191,7 @@ public class ExporterServletTest {
     @Test
     public void onGet_displayMetrics() throws Exception {
         factory.addJsonResponse(getGroupResponseMap());
-        initServlet("---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]");
+        initServlet(TWO_VALUE_CONFIG);
 
         servlet.doGet(request, response);
 
@@ -203,9 +213,20 @@ public class ExporterServletTest {
     }
 
     @Test
+    public void whenNewConfigAvailable_loadBeforeGeneratingMetrics() throws Exception {
+        factory.addJsonResponse(getGroupResponseMap());
+        initServlet(ONE_VALUE_CONFIG);
+        ConfigurationUpdaterStub.newConfiguration(1, TWO_VALUE_CONFIG);
+
+        servlet.doGet(request, response);
+
+        assertThat(toHtml(response), containsString("groupValue_testSample2{name=\"second\"} 71.0"));
+    }
+
+    @Test
     public void onGet_displayMetricsInSnakeCase() throws Exception {
         factory.addJsonResponse(getGroupResponseMap());
-        initServlet("---\nmetricsNameSnakeCase: true\nqueries:\n- groups:\n" +
+        initServlet("metricsNameSnakeCase: true\nqueries:\n- groups:\n" +
                 "    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]");
 
         servlet.doGet(request, this.response);
@@ -216,7 +237,7 @@ public class ExporterServletTest {
     @Test
     public void onGet_metricsArePrometheusCompliant() throws Exception {
         factory.addJsonResponse(getGroupResponseMap());
-        initServlet("---\nqueries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2,bogus]");
+        initServlet(CONFIG_WITH_CATEGORY_VALUE);
 
         servlet.doGet(request, response);
 
@@ -226,7 +247,7 @@ public class ExporterServletTest {
     @Test
     public void onGet_producePerformanceMetrics() throws Exception {
         factory.addJsonResponse(getGroupResponseMap());
-        initServlet("queries:\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2,bogus]");
+        initServlet(CONFIG_WITH_CATEGORY_VALUE);
 
         servlet.doGet(request, response);
 
@@ -237,9 +258,7 @@ public class ExporterServletTest {
     public void onGetWithMultipleQueries_displayMetrics() throws Exception {
         factory.addJsonResponse(getGroupResponseMap());
         factory.addJsonResponse(getColorResponseMap());
-        initServlet("---\nqueries:" +
-                "\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]" +
-                "\n- colors:                         \n    key: hue \n    values: wavelength");
+        initServlet(MULTI_QUERY_CONFIG);
 
         servlet.doGet(request, this.response);
 
@@ -275,7 +294,7 @@ public class ExporterServletTest {
     @Test
     public void whenKeyAlsoListedAsValue_dontDisplayIt() throws Exception {
         factory.addJsonResponse(getGroupResponseMap());
-        initServlet("---\nqueries:" +
+        initServlet("queries:" +
                 "\n- groups:\n    prefix: groupValue_\n    key: testSample1\n    values: [testSample1]");
 
         servlet.doGet(request, response);

@@ -4,6 +4,7 @@ package io.prometheus.wls.rest;
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -22,6 +23,11 @@ public class MetricsStreamTest {
     private ByteArrayOutputStream baos = new ByteArrayOutputStream();
     private PrintStream ps = new PrintStream(baos);
     private MetricsStream metrics = new MetricsStream(ps, performanceProbe);
+
+    @Before
+    public void setUp() throws Exception {
+        LiveConfiguration.setServer("localhost", 7001);
+    }
 
     @Test
     public void whenNoMetricsScraped_reportNoneScraped() throws Exception {

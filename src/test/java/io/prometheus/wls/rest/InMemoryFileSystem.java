@@ -29,7 +29,7 @@ class InMemoryFileSystem {
     static void install() throws NoSuchFieldException {
         resources = new HashMap<>();
         mementos.add(StaticStubSupport.install(LiveConfiguration.class, "config", null));
-        mementos.add(StaticStubSupport.install(LiveConfiguration.class, "initCalled", false));
+        mementos.add(StaticStubSupport.install(LiveConfiguration.class, "timestamp", null));
     }
 
     static void uninstall() {

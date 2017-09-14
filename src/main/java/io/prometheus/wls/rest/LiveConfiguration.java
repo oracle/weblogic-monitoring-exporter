@@ -12,6 +12,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -22,13 +23,15 @@ class LiveConfiguration {
     static final String CONFIG_YML = "/config.yml";
     private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
     private static ExporterConfig config;
-    private static boolean initCalled;
     private static String serverName;
     private static int serverPort;
+    private static ConfigurationUpdater updater = new NullConfigurationUpdater();
 
     static {
         loadFromString("");
     }
+
+    private static Long timestamp;
 
     private static ExporterConfig getConfig() {
         return config;
@@ -64,7 +67,7 @@ class LiveConfiguration {
     }
 
     static void init(ServletConfig servletConfig) {
-        if (initCalled) return;
+        if (timestamp != null) return;
         
         InputStream configurationFile = getConfigurationFile(servletConfig);
         if (configurationFile != null)
@@ -73,7 +76,7 @@ class LiveConfiguration {
 
     private static void initialize(InputStream configurationFile) {
         config = ExporterConfig.loadConfig(configurationFile);
-        initCalled = true;
+        timestamp = 0L;
     }
 
     private static InputStream getConfigurationFile(ServletConfig config) {
@@ -81,10 +84,8 @@ class LiveConfiguration {
     }
 
     static String asString() {
-        StringBuilder sb = new StringBuilder()
-                .append("host: ").append(serverName).append('\n')
-                .append("port: ").append(serverPort).append('\n').append(getConfig());
-        return sb.toString();
+        return "host: " + serverName + '\n' +
+               "port: " + serverPort + '\n' + getConfig();
     }
 
     static Map<String, Object> scrapeMetrics(MBeanSelector selector, String jsonResponse) {
@@ -98,10 +99,58 @@ class LiveConfiguration {
     static void appendConfiguration(ExporterConfig uploadedConfig) throws ServletException {
         if (uploadedConfig == null) throw new ServletException("No configuration specified");
         getConfig().append(uploadedConfig);
+        shareConfiguration();
+    }
+
+    private static void shareConfiguration() {
+        updater.shareConfiguration(asString());
+        timestamp = updater.getLatestConfigurationTimestamp();
     }
 
     static void replaceConfiguration(ExporterConfig uploadedConfig) throws ServletException {
         if (uploadedConfig == null) throw new ServletException("No configuration specified");
         getConfig().replace(uploadedConfig);
+        shareConfiguration();
+    }
+
+    static long getTimestamp() {
+        return timestamp;
+    }
+
+    /**
+     * If a newer shared configuration is available, update it now.
+     */
+    static void updateConfiguration() {
+        if (timestamp == null) timestamp = 0L;
+        if (updater.getLatestConfigurationTimestamp() > timestamp)
+            installNewConfiguration(updater.getUpdate());
+    }
+
+    private synchronized static void installNewConfiguration(ConfigurationUpdate update) {
+        if (update.getTimestamp() > timestamp) {
+            getConfig().replace(toConfiguration(update.getConfiguration()));
+            timestamp = update.getTimestamp();
+        }
+    }
+
+    private static ExporterConfig toConfiguration(String configuration) {
+        return ExporterConfig.loadConfig(new ByteArrayInputStream(configuration.getBytes()));
+    }
+
+    static class NullConfigurationUpdater implements ConfigurationUpdater {
+        @Override
+        public long getLatestConfigurationTimestamp() {
+            return 0;
+        }
+
+        @Override
+        public void shareConfiguration(String configuration) {
+
+        }
+
+        @Override
+        public ConfigurationUpdate getUpdate() {
+            return null;
+        }
     }
 }

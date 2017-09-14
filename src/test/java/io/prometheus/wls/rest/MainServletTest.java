@@ -28,6 +28,7 @@ public class MainServletTest {
     @Before
     public void setUp() throws Exception {
         InMemoryFileSystem.install();
+        ConfigurationUpdaterStub.install();
         LiveConfiguration.loadFromString("");
         request.setContextPath("/exporter");
     }
@@ -35,6 +36,7 @@ public class MainServletTest {
     @After
     public void tearDown() throws Exception {
         InMemoryFileSystem.uninstall();
+        ConfigurationUpdaterStub.uninstall();
     }
 
     @Test
@@ -96,6 +98,35 @@ public class MainServletTest {
 
         assertThat(response.getHtml(), containsString(EFFECTIVE_CONFIGURATION));
     }
+
+    @Test
+    public void whenNewConfigAvailable_getRequestShowsNewConfiguration() throws Exception {
+        InMemoryFileSystem.defineResource(LiveConfiguration.CONFIG_YML, EMPTY_CONFIGURATION);
+        servlet.init(withNoParams());
+
+        ConfigurationUpdaterStub.newConfiguration(1, PARSED_CONFIGURATION);
+        servlet.doGet(request, response);
+
+        assertThat(response.getHtml(), containsString(EFFECTIVE_CONFIGURATION));
+    }
+
+    /*
+
+    @Test
+    public void whenNewConfigAvailable_loadBeforeGeneratingMetrics() throws Exception {
+        factory.addJsonResponse(getGroupResponseMap());
+        initServlet(ONE_VALUE_CONFIG);
+        ConfigurationUpdaterStub.newConfiguration(1, TWO_VALUE_CONFIG);
+
+        servlet.doGet(request, response);
+
+        assertThat(toHtml(response), containsString("groupValue_testSample2{name=\"second\"} 71.0"));
+    }
+
+     */
+    private static final String EMPTY_CONFIGURATION =
+            "host: localhost\n" +
+            "port: 7001\n";
 
     private static final String PARSED_CONFIGURATION =
             "host: localhost\n" +
