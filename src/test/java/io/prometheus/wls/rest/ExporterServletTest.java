@@ -4,6 +4,7 @@ package io.prometheus.wls.rest;
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import org.junit.After;
@@ -18,7 +19,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +59,7 @@ public class ExporterServletTest {
         ConfigurationUpdaterStub.install();
         LiveConfiguration.loadFromString("");
         LiveConfiguration.setServer("localhost", 7001);
+        ExporterSession.cacheSession(null, null);
     }
 
     @After
@@ -144,7 +145,7 @@ public class ExporterServletTest {
     public void whenServerSendsSetCookieHeader_returnToClient() throws Exception {
         final String SET_COOKIE_HEADER = "ACookie=AValue; Secure";
 
-        factory.setCookieResponseHeader(SET_COOKIE_HEADER);
+        factory.setSetCookieResponseHeader(SET_COOKIE_HEADER);
         factory.addJsonResponse(getGroupResponseMap());
         initServlet(TWO_VALUE_CONFIG);
 
@@ -154,23 +155,57 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void whenClientSendsAuthenticationHeaderOnGet_passToServer() throws Exception {
+    public void whenClientSendsAuthenticationHeader_passToServer() throws Exception {
         initServlet(ONE_VALUE_CONFIG);
 
-        request.setHeader("Authorization", "auth-credentials");
+        request.setHeader(AUTHENTICATION_HEADER, "auth-credentials");
+        request.setHeader(COOKIE_HEADER, "a=2; JSESSIONID=abc#$");
         servlet.doGet(request, response);
 
-        assertThat(factory.getSentHeader("Authorization"), equalTo("auth-credentials"));
+        assertThat(factory.getSentAuthentication(), equalTo("auth-credentials"));
     }
 
     @Test
-    public void whenClientSendsCookieHeaderOnGet_passToServer() throws Exception {
+    public void whenClientSendsAuthenticationMatchingSession_passSessionToServer() throws Exception {
+        final String SESSION_COOKIE = ExporterSession.SESSION_COOKIE_PREFIX + "abcdef";
+        ExporterSession.cacheSession("auth-credentials", SESSION_COOKIE);
         initServlet(ONE_VALUE_CONFIG);
 
-        request.setHeader("Cookie", "with-chocolate-chips");
+        request.setHeader(AUTHENTICATION_HEADER, "auth-credentials");
+        request.setHeader(COOKIE_HEADER, "a=2; b=abc#$");
         servlet.doGet(request, response);
 
-        assertThat(factory.getSentHeader("Cookie"), equalTo("with-chocolate-chips"));
+        assertThat(factory.getSentSessionCookie(), equalTo(SESSION_COOKIE));
+    }
+
+    @Test
+    public void whenServerSendsSetCookieHeader_establishExporterSession() throws Exception {
+        final String SESSION_COOKIE = ExporterSession.SESSION_COOKIE_PREFIX + "abc@345";
+        final String CREDENTIALS = "auth-credentials";
+
+        request.setHeader(AUTHENTICATION_HEADER, CREDENTIALS);
+        factory.setSetCookieResponseHeader(SESSION_COOKIE);
+        factory.addJsonResponse(getGroupResponseMap());
+        initServlet(TWO_VALUE_CONFIG);
+
+        servlet.doGet(request, response);
+
+        assertThat(ExporterSession.getSessionCookie(), equalTo(SESSION_COOKIE));
+        assertThat(ExporterSession.getAuthentication(), equalTo(CREDENTIALS));
+    }
+
+    // todo whenAuthorization header and already have matching session cookie, pass to web client
+    // todo consecutive requests for same auth header use same session cookie
+
+    @Test
+    public void whenClientSendsCookieHeaderOnGet_passToServer() throws Exception {
+        final String SESSION_COOKIE = ExporterSession.SESSION_COOKIE_PREFIX + "with-chocolate-chips";
+        initServlet(ONE_VALUE_CONFIG);
+
+        request.setHeader("Cookie", SESSION_COOKIE);
+        servlet.doGet(request, response);
+
+        assertThat(factory.getSentSessionCookie(), equalTo(SESSION_COOKIE));
     }
 
     @Test
@@ -316,7 +351,7 @@ public class ExporterServletTest {
         }
 
 
-        private void setCookieResponseHeader(String setCookieHeader) {
+        private void setSetCookieResponseHeader(String setCookieHeader) {
             webClient.setCookieHeader = setCookieHeader;
         }
 
@@ -325,8 +360,12 @@ public class ExporterServletTest {
             return webClient.jsonQuery;
         }
 
-        private String getSentHeader(String key) {
-            return webClient.getHeader(key);
+        private String getSentAuthentication() {
+            return webClient.getAuthentication();
+        }
+
+        private String getSentSessionCookie() {
+            return webClient.getSessionCookie();
         }
 
         private String getClientUrl() {
@@ -343,18 +382,15 @@ public class ExporterServletTest {
         }
     }
 
-    static class WebClientStub implements WebClient {
+    static class WebClientStub extends WebClient {
 
         private String url;
-        private String username;
-        private String password;
         private String jsonQuery;
         private int status = SUCCESS;
         private String basicRealmName;
         private String setCookieHeader;
         private List<String> responseList = new ArrayList<>();
         private Iterator<String> responses;
-        private Map<String,String> headers = new HashMap<>();
 
         private void addJsonResponse(Map responseMap) {
             responseList.add(new Gson().toJson(responseMap));
@@ -369,21 +405,14 @@ public class ExporterServletTest {
             this.basicRealmName = basicRealmName;
         }
 
-        String getHeader(String key) {
-            return headers.get(key);
-        }
-
-        @Override
-        public void putHeader(String key, String value) {
-            headers.put(key, value);
-        }
-
         @Override
         public String doQuery(String jsonQuery) throws IOException {
             if (status == NOT_AUTHORIZED) throw new NotAuthorizedException();
             if (basicRealmName != null) throw new BasicAuthenticationChallengeException(basicRealmName);
             
             this.jsonQuery = jsonQuery;
+            if (setCookieHeader != null)
+                setSessionCookie(ExporterSession.getSessionCookie(setCookieHeader));
             return nextJsonResponse();
         }
 

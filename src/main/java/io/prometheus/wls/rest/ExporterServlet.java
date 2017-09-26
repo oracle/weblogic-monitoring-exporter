@@ -4,6 +4,7 @@ package io.prometheus.wls.rest;
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+
 import io.prometheus.wls.rest.domain.MBeanSelector;
 
 import javax.servlet.ServletConfig;
@@ -13,6 +14,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -25,8 +27,6 @@ import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
  */
 @WebServlet(value = "/metrics")
 public class ExporterServlet extends HttpServlet {
-
-    private static final String[] FORWARDED_REQUEST_HEADERS = {"Authorization", "Cookie"};
 
     private WebClientFactory webClientFactory;
 
@@ -49,7 +49,7 @@ public class ExporterServlet extends HttpServlet {
         LiveConfiguration.setServer(req.getServerName(), req.getServerPort());
         LiveConfiguration.updateConfiguration();
         WebClient webClient = webClientFactory.createClient(LiveConfiguration.getQueryUrl());
-        forwardRequestHeaders(webClient, req);
+        forwardRequestHeaders(req, webClient);
 
         try (MetricsStream metricsStream = new MetricsStream(resp.getOutputStream())) {
             if (!LiveConfiguration.hasQueries())
@@ -66,13 +66,23 @@ public class ExporterServlet extends HttpServlet {
         }
     }
 
-    private void forwardRequestHeaders(WebClient webClient, HttpServletRequest req) {
-        for (String headerKey : FORWARDED_REQUEST_HEADERS)
-            webClient.putHeader(headerKey, req.getHeader(headerKey));
+    private void forwardRequestHeaders(HttpServletRequest req, WebClient webClient) {
+        webClient.establishSession(req.getHeader(ServletConstants.AUTHENTICATION_HEADER), getSessionCookie(req));
+     }
+
+    private String getSessionCookie(HttpServletRequest req) {
+        for (Enumeration<String> each = req.getHeaders(ServletConstants.COOKIE_HEADER); each.hasMoreElements();) {
+            String sessionCookie = ExporterSession.getSessionCookie(each.nextElement());
+            if (sessionCookie != null) return sessionCookie;
+        }
+        return null;
     }
 
     private void forwardResponseHeaders(WebClient webClient, HttpServletResponse resp) {
-        if (webClient.getSetCookieHeader() != null) resp.setHeader("Set-Cookie", webClient.getSetCookieHeader());
+        if (webClient.getSetCookieHeader() != null) {
+            resp.setHeader("Set-Cookie", webClient.getSetCookieHeader());
+            webClient.cacheSessionCookie();
+        }
     }
 
     private void printMetrics(WebClient webClient, MetricsStream metricsStream) throws IOException {

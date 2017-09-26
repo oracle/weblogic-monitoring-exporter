@@ -4,6 +4,7 @@ package io.prometheus.wls.rest;
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -27,24 +28,20 @@ import static io.prometheus.wls.rest.ServletConstants.*;
 /**
  * @author Russell Gold
  */
-public class WebClientImpl implements WebClient {
+public class WebClientImpl extends WebClient {
     private static final char QUOTE = '"';
 
     private String url;
     private List<BasicHeader> addedHeaders = new ArrayList<>();
-    private String setCookieHeader = null;
+    private String setCookieHeader;
 
     WebClientImpl(String url) {
         this.url = url;
     }
 
     @Override
-    public void putHeader(String key, String value) {
-        addedHeaders.add(new BasicHeader(key, value));
-    }
-
-    @Override
     public String doQuery(String jsonQuery) throws IOException {
+        addSessionHeaders();
         try (CloseableHttpClient httpClient = createHttpClient()) {
             HttpPost query = new HttpPost(url);
             query.setEntity(new StringEntity(jsonQuery, ContentType.APPLICATION_JSON));
@@ -67,6 +64,16 @@ public class WebClientImpl implements WebClient {
         return null;
     }
 
+    private void addSessionHeaders() {
+        addedHeaders.clear();
+        if (getAuthentication() != null) putHeader(AUTHENTICATION_HEADER, getAuthentication());
+        if (getSessionCookie() != null) putHeader(COOKIE_HEADER, getSessionCookie());
+    }
+
+    private void putHeader(String key, String value) {
+        addedHeaders.add(new BasicHeader(key, value));
+    }
+
     @Override
     public String getSetCookieHeader() {
         return setCookieHeader;
@@ -81,7 +88,11 @@ public class WebClientImpl implements WebClient {
             case NOT_AUTHORIZED:
                 throw new NotAuthorizedException();
             case SUCCESS:
-                setCookieHeader = extractSetCookieHeader(response);
+                String setCookieHeader = extractSessionSetCookieHeader(response);
+                if (setCookieHeader != null) {
+                    this.setCookieHeader = setCookieHeader;
+                    setSessionCookie(extractSessionCookie(setCookieHeader));
+                }
         }
     }
 
@@ -101,10 +112,16 @@ public class WebClientImpl implements WebClient {
         return start > 0 ? authenticationHeaderValue.substring(start+1, end) : "none";
     }
 
-    private String extractSetCookieHeader(CloseableHttpResponse response) {
-        Header header = response.getFirstHeader("Set-Cookie");
-        return header == null ? null : header.getValue();
+    private String extractSessionSetCookieHeader(CloseableHttpResponse response) {
+        for (Header header : response.getHeaders("Set-Cookie")) {
+            String sessionCookie = ExporterSession.getSessionCookie(header.getValue());
+            if (sessionCookie != null) return header.getValue();
+        }
+        return null;
+    }
 
+    private String extractSessionCookie(String setCookieHeaderValue) {
+        return ExporterSession.getSessionCookie(setCookieHeaderValue);
     }
 
     private CloseableHttpClient createHttpClient() {

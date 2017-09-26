@@ -4,6 +4,7 @@ package io.prometheus.wls.rest;
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+import com.google.common.base.Strings;
 import com.meterware.pseudoserver.HttpUserAgentTest;
 import com.meterware.pseudoserver.PseudoServlet;
 import com.meterware.pseudoserver.WebResource;
@@ -15,8 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static io.prometheus.wls.rest.ServletConstants.*;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
 
 /**
@@ -28,6 +28,8 @@ public class WebClientImplTest extends HttpUserAgentTest {
 
     private static String sentInfo;
     private static Map<String,String> sentHeaders = new HashMap<>();
+    private static final String COOKIE = "JSESSIONID=12345";
+    private static final String SET_COOKIE_VALUE = COOKIE + "; path=localhost";
 
     @Before
     public void setUp() throws Exception {
@@ -68,27 +70,24 @@ public class WebClientImplTest extends HttpUserAgentTest {
     }
 
     @Test
-    public void whenHeadersDefined_sendThem() throws Exception {
+    public void whenAuthorizationHeaderDefined_sendIt() throws Exception {
         defineResource("headers", new PseudoServlet() {
             public WebResource getPostResponse() {
-                sentHeaders.put("header1", getHeader("header1"));
-                sentHeaders.put("header2", getHeader("header2"));
+                sentHeaders.put(AUTHENTICATION_HEADER, getHeader(AUTHENTICATION_HEADER));
                 return new WebResource("", "text/plain");
             }
         });
 
         WebClient webClient = factory.createClient(getHostPath() + "/headers");
-        webClient.putHeader("header1", "value1");
-        webClient.putHeader("header2", "value2");
+        webClient.setAuthentication("auth-value");
         webClient.doQuery("abced");
 
-        assertThat(sentHeaders, hasEntry("header1", "value1"));
-        assertThat(sentHeaders, hasEntry("header2", "value2"));
+        assertThat(sentHeaders, hasEntry(AUTHENTICATION_HEADER, "auth-value"));
     }
 
     @Test
     public void whenSetCookieHeaderReceived_hasValue() throws Exception {
-        final String SET_COOKIE_VALUE = "jsession=12345; Domain=localhost";
+        final String SET_COOKIE_VALUE = ExporterSession.SESSION_COOKIE_PREFIX + "12345; Domain=localhost";
         defineResource("cookies", new PseudoServlet() {
             public WebResource getPostResponse() {
                 WebResource webResource = new WebResource("", "text/plain");
@@ -173,5 +172,112 @@ public class WebClientImplTest extends HttpUserAgentTest {
         });
 
         factory.createClient(getHostPath() + "/forbidden").doQuery("abced");
+    }
+
+    @Test
+    public void afterSetCookie_haveSessionCookie() throws Exception {
+        final String COOKIE = ExporterSession.SESSION_COOKIE_PREFIX + "12345";
+        final String SET_COOKIE_VALUE = COOKIE + "; path=localhost";
+        defineResource("session", new PseudoServlet() {
+            public WebResource getPostResponse() {
+                WebResource webResource = new WebResource("", "text/plain");
+                webResource.addHeader("Set-Cookie: " + SET_COOKIE_VALUE);
+                return webResource;
+            }
+        });
+
+        WebClient webClient = factory.createClient(getHostPath() + "/session");
+        webClient.doQuery("abced");
+
+        assertThat(webClient.getSessionCookie(), equalTo(COOKIE));
+    }
+
+    @Test
+    public void afterSetCookieReceived_sendCookieOnNextRequest() throws Exception {
+        defineSessionResource();
+
+        WebClient webClient = factory.createClient(getHostPath() + "/session");
+        webClient.doQuery("abced");
+        webClient.doQuery("abced");
+
+        assertThat(sentHeaders, hasEntry(COOKIE_HEADER, COOKIE));
+    }
+
+    private void defineSessionResource() {
+        defineResource("session", new PseudoServlet() {
+            public WebResource getPostResponse() {
+                WebResource webResource = new WebResource("", "text/plain");
+                if (Strings.isNullOrEmpty(getHeader(COOKIE_HEADER)))
+                    webResource.addHeader("Set-Cookie: " + SET_COOKIE_VALUE);
+                else
+                    recordHeaders();
+                return webResource;
+            }
+
+            private void recordHeaders() {
+                recordHeader(AUTHENTICATION_HEADER, getHeader(AUTHENTICATION_HEADER));
+                recordHeader(COOKIE_HEADER, getHeader(COOKIE_HEADER));
+            }
+        });
+    }
+
+    private void recordHeader(String key, String value) {
+        if (value != null) sentHeaders.put(key, value);
+    }
+
+    @Test
+    public void afterSetCookieReceived_clientRetainsSetCookieOnNextRequest() throws Exception {
+        defineSessionResource();
+
+        WebClient webClient = factory.createClient(getHostPath() + "/session");
+        webClient.doQuery("abced");
+        webClient.doQuery("abced");
+
+        assertThat(webClient.getSetCookieHeader(), equalTo(SET_COOKIE_VALUE));
+    }
+
+    @Test
+    public void afterSetCookieReceived_alsoSendAuthenticationOnNextRequest() throws Exception {
+        defineSessionResource();
+
+        WebClient webClient = factory.createClient(getHostPath() + "/session");
+        webClient.setAuthentication("authentication");
+        webClient.doQuery("abced");
+        sentHeaders.clear();
+        webClient.doQuery("abced");
+
+        assertThat(sentHeaders, hasEntry(AUTHENTICATION_HEADER, "authentication"));
+    }
+
+    @Test
+    public void whenStartWithSessionCookie_sendOnMultipleRequests() throws Exception {
+        defineSessionResource();
+
+        WebClient webClient = factory.createClient(getHostPath() + "/session");
+        webClient.setAuthentication("authentication");
+        webClient.setSessionCookie(COOKIE);
+        webClient.doQuery("abced");
+        sentHeaders.clear();
+        webClient.doQuery("abced");
+
+        assertThat(sentHeaders, hasEntry(COOKIE_HEADER, COOKIE));
+    }
+
+    @Test
+    public void afterSessionCookieSet_sendCookieOnNextRequest() throws Exception {
+        final String COOKIE = "JSESSIONID=12345";
+        defineResource("session", new PseudoServlet() {
+            public WebResource getPostResponse() {
+                WebResource webResource = new WebResource("", "text/plain");
+                sentHeaders.put(COOKIE_HEADER, getHeader(COOKIE_HEADER));
+                return webResource;
+            }
+        });
+
+        WebClient webClient = factory.createClient(getHostPath() + "/session");
+        webClient.setSessionCookie(COOKIE);
+        webClient.doQuery("abced");
+
+        assertThat(sentHeaders, hasEntry(COOKIE_HEADER, COOKIE));
     }
 }

@@ -29,4 +29,9 @@ public interface ServletConstants {
     String MAIN_PAGE = "";
     String CONFIGURATION_ACTION = "configure";
 
+    /** The header used by a web client to send its authentication credentials. **/
+    String AUTHENTICATION_HEADER = "Authorization";
+
+    /** The header used by a web client to send cookies as part of a request. */
+    String COOKIE_HEADER = "Cookie";
 }
