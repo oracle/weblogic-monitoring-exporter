@@ -337,6 +337,15 @@ public class ExporterServletTest {
         assertThat(toHtml(this.response), not(containsString("groupValue_testSample1{testSample1")));
     }
 
+    @Test
+    public void whenSessionActiveDuringGet_invalidateOnExit() throws Exception {
+        request.getSession(true);
+
+        servlet.doGet(request, response);
+
+        assertThat(request.hasInvalidatedSession(), is(true));
+    }
+
     static class WebClientFactoryStub implements WebClientFactory {
         private WebClientStub webClient = new WebClientStub();
 

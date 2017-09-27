@@ -13,6 +13,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Map;
@@ -63,6 +64,9 @@ public class ExporterServlet extends HttpServlet {
         } catch (BasicAuthenticationChallengeException e) {
             resp.setHeader("WWW-Authenticate", String.format("Basic realm=\"%s\"", e.getRealm()));
             resp.sendError(AUTHENTICATION_REQUIRED, "Authentication required");
+        } finally {
+            final HttpSession session = req.getSession(false);
+            if (session != null) session.invalidate();
         }
     }
 

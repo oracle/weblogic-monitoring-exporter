@@ -7,6 +7,7 @@ package io.prometheus.wls.rest;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Collections;
@@ -33,6 +34,7 @@ abstract class HttpServletRequestStub implements HttpServletRequest {
     private ServletInputStream inputStream;
     private String contextPath;
     private String servletPath = "";
+    private HttpSessionStub session;
 
     static HttpServletRequestStub createGetRequest() {
         return createStrictStub(HttpServletRequestStub.class, "GET");
@@ -125,5 +127,25 @@ abstract class HttpServletRequestStub implements HttpServletRequest {
         if (inputStream == null)
             inputStream = createStrictStub(ExporterServletTest.ServletInputStreamStub.class, contents);
         return inputStream;
+    }
+
+    @Override
+    public HttpSession getSession(boolean create) {
+        if (create && session == null)
+            session = createStrictStub(HttpSessionStub.class);
+        return session;
+    }
+
+    boolean hasInvalidatedSession() {
+        return session != null && !session.valid;
+    }
+
+    static abstract class HttpSessionStub implements HttpSession {
+        private boolean valid = true;
+
+        @Override
+        public void invalidate() {
+            valid = false;
+        }
     }
 }
