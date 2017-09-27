@@ -6,6 +6,7 @@ package io.prometheus.wls.rest.domain;
  */
 import com.google.gson.JsonObject;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.scanner.ScannerException;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -40,7 +41,11 @@ public class ExporterConfig {
      * @return an ExporterConfig object that matches the parsed YAML
      */
     public static ExporterConfig loadConfig(InputStream inputStream) {
-        return loadConfig(asMap(new Yaml().load(inputStream)));
+        try {
+            return loadConfig(asMap(new Yaml().load(inputStream)));
+        } catch (ScannerException e) {
+            throw new YamlParserException(e);
+        }
     }
 
     @SuppressWarnings("unchecked")

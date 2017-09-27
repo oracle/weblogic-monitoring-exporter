@@ -149,6 +149,17 @@ public class ConfigurationServletTest {
             "this is not yaml\n";
 
     @Test
+    public void whenSelectedFileHasPartialYaml_reportError() throws Exception {
+        LiveConfiguration.loadFromString(CONFIGURATION);
+        servlet.doPost(createUploadRequest(createEncodedForm("append", PARTIAL_YAML)), response);
+
+        assertThat(response.getHtml(), containsString(ConfigurationException.BAD_YAML_FORMAT));
+    }
+
+    private static final String PARTIAL_YAML =
+            "queries:\nkey name\n";
+
+    @Test
     public void whenSelectedFileHasBadBooleanValue_reportError() throws Exception {
         LiveConfiguration.loadFromString(CONFIGURATION);
         servlet.doPost(createUploadRequest(createEncodedForm("append", ADDED_CONFIGURATION_WITH_BAD_BOOLEAN)), response);
