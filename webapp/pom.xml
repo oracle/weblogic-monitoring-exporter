@@ -7,6 +7,7 @@
     <version>1.0-SNAPSHOT</version>
     <name>exporter-webapp Maven Webapp</name>
     <url>http://maven.apache.org</url>
+    
     <dependencies>
         <dependency>
             <groupId>io.prometheus.wls</groupId>
@@ -14,9 +15,29 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
+    
     <properties>
         <configuration.directory>${project.build.directory}/configuration</configuration.directory>
     </properties>
+
+    <licenses>
+        <license>
+            <name>The Universal Permissive License (UPL), Version 1.0</name>
+            <url>https://oss.oracle.com/licenses/upl/</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>russgold</id>
+            <name>Russell Gold</name>
+            <roles>
+                <role>developer</role>
+            </roles>
+        </developer>
+    </developers>
+
     <build>
         <finalName>wls-exporter</finalName>
         <pluginManagement>
@@ -27,6 +48,11 @@
                     <configuration>
                         <failOnMissingWebXml>false</failOnMissingWebXml>
                         <warSourceDirectory>${configuration.directory}</warSourceDirectory>
+                        <webResources>
+                            <resource>
+                                <directory>${project.basedir}/src/main/notices</directory>
+                            </resource>
+                        </webResources>
                     </configuration>
                 </plugin>
             </plugins>
