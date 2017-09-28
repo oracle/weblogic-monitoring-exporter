@@ -4,7 +4,7 @@ WLS Prometheus Exporter (experimental)
 WLS REST to Prometheus exporter.
 
 A Collector that uses the [WLS proprietary REST API](https://docs.oracle.com/middleware/1221/wls/WLRUR/overview.htm#WLRUR111) to scrape runtime information. It is intended to be deployed as a
-web application in a WLS instance. Typically, this is deployed to the instance you want to scrape.
+web application in a WLS instance, version 12.2.1 or higher. Typically, this is deployed to the instance you want to scrape.
 
 ## Building
 
