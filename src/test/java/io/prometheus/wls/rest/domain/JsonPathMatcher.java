@@ -83,11 +83,67 @@ public class JsonPathMatcher {
         }
     }
 
+    static class JsonPathStringMatcher extends TypeSafeDiagnosingMatcher<String> {
+        private String jsonPath;
+        private String expectedValue;
+
+        JsonPathStringMatcher(String jsonPath, String expectedValue) {
+            this.jsonPath = jsonPath;
+            this.expectedValue = expectedValue;
+        }
+
+        @Override
+        protected boolean matchesSafely(String jsonString, Description description) {
+            String actualValue = JsonPath.read(jsonString, jsonPath);
+            if (actualValue.equals(expectedValue)) return true;
+
+            description.appendValue(actualValue);
+            return false;
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendValue(expectedValue).appendText(" at path ").appendValue(jsonPath);
+        }
+    }
+
+    static class JsonPathNumberMatcher extends TypeSafeDiagnosingMatcher<String> {
+        private String jsonPath;
+        private Number expectedValue;
+
+        JsonPathNumberMatcher(String jsonPath, Number expectedValue) {
+            this.jsonPath = jsonPath;
+            this.expectedValue = expectedValue;
+        }
+
+        @Override
+        protected boolean matchesSafely(String jsonString, Description description) {
+            Number actualValue = JsonPath.read(jsonString, jsonPath);
+            if (actualValue.equals(expectedValue)) return true;
+
+            description.appendValue(actualValue);
+            return false;
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendValue(expectedValue).appendText(" at path ").appendValue(jsonPath);
+        }
+    }
+
     public static class CombinablePathMatcher {
         private String jsonPath;
 
         CombinablePathMatcher(String jsonPath) {
             this.jsonPath = jsonPath;
+        }
+
+        public JsonPathNumberMatcher withValue(Number expectedValue) {
+            return new JsonPathNumberMatcher(jsonPath, expectedValue);
+        }
+
+        public JsonPathStringMatcher withValue(String expectedValue) {
+            return new JsonPathStringMatcher(jsonPath, expectedValue);
         }
 
         public JsonPathArrayMatcher withValues(String... expectedValue) {

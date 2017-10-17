@@ -15,13 +15,12 @@ import java.util.List;
 import java.util.Map;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
-import static io.prometheus.wls.rest.ServletConstants.SUCCESS;
 
 /**
  * @author Russell Gold
  */
 abstract class HttpServletResponseStub implements HttpServletResponse {
-    private int status = SUCCESS;
+    private int status = SC_OK;
     private ServletOutputStreamStub out = createStrictStub(ServletOutputStreamStub.class);
     private Map<String,List<String>> headers = new HashMap<>();
     private boolean responseSent = false;

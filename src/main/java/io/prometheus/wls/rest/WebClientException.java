@@ -5,10 +5,5 @@ package io.prometheus.wls.rest;
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
 
-/**
- * An exception thrown when a 403 request is received from the server.
- *
- * @author Russell Gold
- */
-class NotAuthorizedException extends RuntimeException {
+class WebClientException extends RuntimeException {
 }

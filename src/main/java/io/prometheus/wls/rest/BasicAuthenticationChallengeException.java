@@ -10,7 +10,7 @@ package io.prometheus.wls.rest;
  *
  * @author Russell Gold
  */
-class BasicAuthenticationChallengeException extends RuntimeException {
+class BasicAuthenticationChallengeException extends WebClientException {
     private String realm;
 
     BasicAuthenticationChallengeException(String realm) {

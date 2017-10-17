@@ -6,17 +6,9 @@ package io.prometheus.wls.rest;
  */
 
 /**
- * These are the HTTP status codes returned by a web server.
- *
  * @author Russell Gold
  */
 public interface ServletConstants {
-    int SUCCESS                 = 200;
-
-    int BAD_REQUEST             = 400;
-    int AUTHENTICATION_REQUIRED = 401;
-    int NOT_AUTHORIZED          = 403;
-
     String PAGE_HEADER
           = "<!DOCTYPE html>\n" +
             "<html lang=\"en\">\n" +

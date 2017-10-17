@@ -8,7 +8,9 @@ package io.prometheus.wls.rest;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -18,12 +20,15 @@ import org.apache.http.message.BasicHeader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
-import static io.prometheus.wls.rest.ServletConstants.*;
+import static io.prometheus.wls.rest.ServletConstants.AUTHENTICATION_HEADER;
+import static io.prometheus.wls.rest.ServletConstants.COOKIE_HEADER;
+import static javax.servlet.http.HttpServletResponse.*;
 
 /**
  * @author Russell Gold
@@ -33,6 +38,7 @@ public class WebClientImpl extends WebClient {
 
     private String url;
     private List<BasicHeader> addedHeaders = new ArrayList<>();
+    private List<BasicHeader> sessionHeaders = new ArrayList<>();
     private String setCookieHeader;
 
     WebClientImpl(String url) {
@@ -40,38 +46,62 @@ public class WebClientImpl extends WebClient {
     }
 
     @Override
-    public String doQuery(String jsonQuery) throws IOException {
-        addSessionHeaders();
+    void addHeader(String name, String value) {
+        addedHeaders.add(new BasicHeader(name, value));
+    }
+
+    @Override
+    String doGetRequest() throws IOException {
+        return sendRequest(new HttpGet(url));
+    }
+
+    private String sendRequest(HttpRequestBase request) throws IOException {
         try (CloseableHttpClient httpClient = createHttpClient()) {
-            HttpPost query = new HttpPost(url);
-            query.setEntity(new StringEntity(jsonQuery, ContentType.APPLICATION_JSON));
-            CloseableHttpResponse response = httpClient.execute(query);
-            processStatusCode(response);
-            HttpEntity responseEntity = response.getEntity();
-            if (responseEntity != null) {
-                try (InputStream inputStream = responseEntity.getContent()) {
-                    byte[] buffer = new byte[4096];
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    int numBytes = 0;
-                    while (numBytes >= 0) {
-                        baos.write(buffer, 0, numBytes);
-                        numBytes = inputStream.read(buffer);
-                    }
-                    return baos.toString("UTF-8");
-                }
-            }
+            return getReply(httpClient, request);
+        } catch (UnknownHostException | ConnectException e) {
+            throw new WebClientException();
         }
-        return null;
+    }
+
+    private String getReply(CloseableHttpClient httpClient, HttpRequestBase request) throws IOException {
+        CloseableHttpResponse response = httpClient.execute(request);
+        processStatusCode(response);
+        return response.getEntity() == null ? null : getContentAsString(response.getEntity());
+    }
+
+    private String getContentAsString(HttpEntity responseEntity) throws IOException {
+        try (InputStream inputStream = responseEntity.getContent()) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int numBytes = 0;
+            while (numBytes >= 0) {
+                baos.write(buffer, 0, numBytes);
+                numBytes = inputStream.read(buffer);
+            }
+            return baos.toString("UTF-8");
+        }
+    }
+
+    @Override
+    public String doPostRequest(String postBody) throws IOException {
+        addSessionHeaders();
+        return sendRequest(createPostRequest(postBody));
+    }
+
+    private HttpPost createPostRequest(String postBody) {
+        HttpPost query = new HttpPost(url);
+        query.setEntity(new StringEntity(postBody, ContentType.APPLICATION_JSON));
+        return query;
     }
 
     private void addSessionHeaders() {
-        addedHeaders.clear();
-        if (getAuthentication() != null) putHeader(AUTHENTICATION_HEADER, getAuthentication());
-        if (getSessionCookie() != null) putHeader(COOKIE_HEADER, getSessionCookie());
+        sessionHeaders.clear();
+        if (getAuthentication() != null) putSessionHeader(AUTHENTICATION_HEADER, getAuthentication());
+        if (getSessionCookie() != null) putSessionHeader(COOKIE_HEADER, getSessionCookie());
     }
 
-    private void putHeader(String key, String value) {
-        addedHeaders.add(new BasicHeader(key, value));
+    private void putSessionHeader(String key, String value) {
+        sessionHeaders.add(new BasicHeader(key, value));
     }
 
     @Override
@@ -81,13 +111,13 @@ public class WebClientImpl extends WebClient {
 
     private void processStatusCode(CloseableHttpResponse response) throws RestQueryException {
         switch (response.getStatusLine().getStatusCode()) {
-            case BAD_REQUEST:
+            case SC_BAD_REQUEST:
                 throw new RestQueryException();
-            case AUTHENTICATION_REQUIRED:
+            case SC_UNAUTHORIZED:
                 throw createAuthenticationChallengeException(response);
-            case NOT_AUTHORIZED:
-                throw new NotAuthorizedException();
-            case SUCCESS:
+            case SC_FORBIDDEN:
+                throw new ForbiddenException();
+            case SC_OK:
                 String setCookieHeader = extractSessionSetCookieHeader(response);
                 if (setCookieHeader != null) {
                     this.setCookieHeader = setCookieHeader;
@@ -131,8 +161,8 @@ public class WebClientImpl extends WebClient {
     }
 
     private Collection<? extends Header> getDefaultHeaders() {
-        List<Header> headers = new ArrayList<>(Collections.singleton(new BasicHeader("X-Requested-By", "rest-exporter")));
-        headers.addAll(addedHeaders);
+        List<Header> headers = new ArrayList<>(addedHeaders);
+        headers.addAll(sessionHeaders);
         return headers;
     }
 }

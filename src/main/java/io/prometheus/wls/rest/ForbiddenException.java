@@ -4,10 +4,11 @@ package io.prometheus.wls.rest;
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+
 /**
- * Thrown when the REST API is unable to handle the query.
+ * An exception thrown when a 403 request is received from the server.
  *
  * @author Russell Gold
  */
-class RestQueryException extends WebClientException {
+class ForbiddenException extends WebClientException {
 }

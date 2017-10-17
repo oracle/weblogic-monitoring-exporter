@@ -19,10 +19,13 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static com.meterware.simplestub.Stub.createStrictStub;
 import static io.prometheus.wls.rest.HttpServletRequestStub.createGetRequest;
 import static io.prometheus.wls.rest.HttpServletResponseStub.createServletResponse;
 import static io.prometheus.wls.rest.InMemoryFileSystem.withNoParams;
@@ -32,6 +35,9 @@ import static io.prometheus.wls.rest.matchers.CommentsOnlyMatcher.containsOnlyCo
 import static io.prometheus.wls.rest.matchers.MetricsNamesSnakeCaseMatcher.usesSnakeCase;
 import static io.prometheus.wls.rest.matchers.PrometheusMetricsMatcher.followsPrometheusRules;
 import static io.prometheus.wls.rest.matchers.ResponseHeaderMatcher.containsHeader;
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
 
@@ -127,7 +133,7 @@ public class ExporterServletTest {
         factory.reportNotAuthorized();
         servlet.doGet(request, response);
 
-        assertThat(response.getStatus(), equalTo(NOT_AUTHORIZED));
+        assertThat(response.getStatus(), equalTo(SC_FORBIDDEN));
     }
 
     @Test
@@ -137,7 +143,7 @@ public class ExporterServletTest {
         factory.reportAuthenticationRequired("Test-Realm");
         servlet.doGet(request, response);
 
-        assertThat(response.getStatus(), equalTo(AUTHENTICATION_REQUIRED));
+        assertThat(response.getStatus(), equalTo(SC_UNAUTHORIZED));
         assertThat(response, containsHeader("WWW-Authenticate", "Basic realm=\"Test-Realm\""));
     }
 
@@ -221,6 +227,15 @@ public class ExporterServletTest {
     private void initServlet(String configuration) throws ServletException {
         InMemoryFileSystem.defineResource(LiveConfiguration.CONFIG_YML, configuration);
         servlet.init(withNoParams());
+    }
+
+    @Test
+    public void onGet_sendXRequestedHeader() throws Exception {
+        initServlet(ONE_VALUE_CONFIG);
+
+        servlet.doGet(request, response);
+
+        assertThat(factory.getSentHeaders(), hasKey("X-Requested-By"));
     }
 
     @Test
@@ -347,7 +362,7 @@ public class ExporterServletTest {
     }
 
     static class WebClientFactoryStub implements WebClientFactory {
-        private WebClientStub webClient = new WebClientStub();
+        private WebClientStub webClient = createStrictStub(WebClientStub.class);
 
         @Override
         public WebClient createClient(String url) {
@@ -369,6 +384,11 @@ public class ExporterServletTest {
             return webClient.jsonQuery;
         }
 
+
+        Map<String,String> getSentHeaders() {
+            return webClient.sentHeaders;
+        }
+
         private String getSentAuthentication() {
             return webClient.getAuthentication();
         }
@@ -382,7 +402,7 @@ public class ExporterServletTest {
         }
 
         private void reportNotAuthorized() {
-            webClient.reportNotAuthorized();
+            webClient.reportForbidden();
         }
 
         @SuppressWarnings("SameParameterValue")
@@ -391,22 +411,24 @@ public class ExporterServletTest {
         }
     }
 
-    static class WebClientStub extends WebClient {
+    static abstract class WebClientStub extends WebClient {
 
         private String url;
         private String jsonQuery;
-        private int status = SUCCESS;
+        private int status = SC_OK;
         private String basicRealmName;
         private String setCookieHeader;
         private List<String> responseList = new ArrayList<>();
         private Iterator<String> responses;
+        private Map<String, String> addedHeaders = new HashMap<>();
+        private Map<String, String> sentHeaders;
 
         private void addJsonResponse(Map responseMap) {
             responseList.add(new Gson().toJson(responseMap));
         }
 
-        void reportNotAuthorized() {
-            status = NOT_AUTHORIZED;
+        void reportForbidden() {
+            status = SC_FORBIDDEN;
         }
 
         @SuppressWarnings("SameParameterValue")
@@ -415,11 +437,16 @@ public class ExporterServletTest {
         }
 
         @Override
-        public String doQuery(String jsonQuery) throws IOException {
-            if (status == NOT_AUTHORIZED) throw new NotAuthorizedException();
+        void addHeader(String name, String value) {
+            addedHeaders.put(name, value);
+        }
+        @Override
+        public String doPostRequest(String postBody) throws IOException {
+            if (status == SC_FORBIDDEN) throw new ForbiddenException();
             if (basicRealmName != null) throw new BasicAuthenticationChallengeException(basicRealmName);
-            
-            this.jsonQuery = jsonQuery;
+
+            sentHeaders = Collections.unmodifiableMap(addedHeaders);
+            this.jsonQuery = postBody;
             if (setCookieHeader != null)
                 setSessionCookie(ExporterSession.getSessionCookie(setCookieHeader));
             return nextJsonResponse();

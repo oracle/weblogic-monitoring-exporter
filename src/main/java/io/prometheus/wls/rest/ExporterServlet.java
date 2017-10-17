@@ -19,9 +19,9 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static io.prometheus.wls.rest.ServletConstants.AUTHENTICATION_REQUIRED;
-import static io.prometheus.wls.rest.ServletConstants.NOT_AUTHORIZED;
 import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 /**
  * @author Russell Gold
@@ -50,6 +50,8 @@ public class ExporterServlet extends HttpServlet {
         LiveConfiguration.setServer(req.getServerName(), req.getServerPort());
         LiveConfiguration.updateConfiguration();
         WebClient webClient = webClientFactory.createClient(LiveConfiguration.getQueryUrl());
+        webClient.addHeader("X-Requested-By", "rest-exporter");
+
         forwardRequestHeaders(req, webClient);
 
         try (MetricsStream metricsStream = new MetricsStream(resp.getOutputStream())) {
@@ -59,11 +61,11 @@ public class ExporterServlet extends HttpServlet {
                 printMetrics(webClient, metricsStream);
 
             forwardResponseHeaders(webClient, resp);
-        } catch (NotAuthorizedException e) {
-            resp.sendError(NOT_AUTHORIZED, "Not authorized");
+        } catch (ForbiddenException e) {
+            resp.sendError(SC_FORBIDDEN, "Not authorized");
         } catch (BasicAuthenticationChallengeException e) {
             resp.setHeader("WWW-Authenticate", String.format("Basic realm=\"%s\"", e.getRealm()));
-            resp.sendError(AUTHENTICATION_REQUIRED, "Authentication required");
+            resp.sendError(SC_UNAUTHORIZED, "Authentication required");
         } finally {
             final HttpSession session = req.getSession(false);
             if (session != null) session.invalidate();
@@ -110,7 +112,7 @@ public class ExporterServlet extends HttpServlet {
     }
 
     private Map<String, Object> getMetrics(WebClient webClient, MBeanSelector selector) throws IOException {
-        String jsonResponse = webClient.doQuery(selector.getRequest());
+        String jsonResponse = webClient.doPostRequest(selector.getRequest());
         if (isNullOrEmptyString(jsonResponse)) return null;
 
         return LiveConfiguration.scrapeMetrics(selector, jsonResponse);

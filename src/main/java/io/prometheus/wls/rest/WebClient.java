@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 /**
- * An abstraction of queries to the REST API.
+ * A client for sending http requests.
  *
  * @author Russell Gold
  */
@@ -66,19 +66,28 @@ abstract class WebClient {
      * Records the session information for future REST requests
      */
     void cacheSessionCookie() {
-        /**/
         ExporterSession.cacheSession(authentication, getSessionCookie());
-        /*/
-        ExporterSession.cacheSession(authentication, getSetCookieHeader());
-        /**/
     }
 
     /**
-     * Sends a query to the REST service and returns the reply.
-     * @param jsonQuery a query for runtime data
-     * @return a string in json format
+     * Adds a header to be sent on every query.
+     * @param name the header name
+     * @param value the header value
      */
-    abstract String doQuery(String jsonQuery) throws IOException;
+    abstract void addHeader(String name, String value);
+
+    /**
+     * Sends a plain GET request to the defined URL without parameters
+     * @return the body of the response
+     */
+    abstract String doGetRequest() throws IOException;
+
+    /**
+     * Sends a query to the REST service and returns the reply.
+     * @param postBody a query for runtime data
+     * @return the body of the response
+     */
+    abstract String doPostRequest(String postBody) throws IOException;
 
     /**
      * Returns the set-cookie header received from the server, if any
