@@ -4,6 +4,8 @@ package io.prometheus.wls.rest;
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+import com.meterware.simplestub.Memento;
+import com.meterware.simplestub.StaticStubSupport;
 import io.prometheus.wls.rest.domain.ExporterConfig;
 import org.junit.After;
 import org.junit.Before;
@@ -13,9 +15,7 @@ import java.io.ByteArrayInputStream;
 
 import static io.prometheus.wls.rest.InMemoryFileSystem.withNoParams;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 
 /**
  * @author Russell Gold
@@ -49,6 +49,18 @@ public class LiveConfigurationTest {
             "- people:\n" +
             "    key: name\n" +
             "    values: [age, sex]\n";
+
+    private static final String SYNC_URL = "http://coordinator:8999/";
+    private static final long REFRESH_INTERVAL = 20L;
+    private static final String CONFIGURATION_WITH_SYNC =
+            "query_sync:\n" +
+            "  url: " + SYNC_URL + "\n" +
+            "  interval: " + REFRESH_INTERVAL + "\n" +
+            "queries:\n" + "" +
+            "- groups:\n" +
+            "    prefix: new_\n" +
+            "    key: name\n" +
+            "    values: [sample1, sample2]\n";
 
     @Before
     public void setUp() throws Exception {
@@ -187,4 +199,24 @@ public class LiveConfigurationTest {
         assertThat(LiveConfiguration.asString(), equalTo(CONFIGURATION));
     }
 
+    @Test
+    public void whenConfigurationSpecifiesSynchronization_installHttpBasedUpdater() throws Exception {
+        init(CONFIGURATION_WITH_SYNC);
+
+        assertThat(getConfigurationUpdater(), instanceOf(ConfigurationUpdaterImpl.class));
+    }
+
+    private ConfigurationUpdater getConfigurationUpdater() throws NoSuchFieldException {
+        Memento memento = StaticStubSupport.preserve(LiveConfiguration.class, "updater");
+        return memento.getOriginalValue();
+    }
+
+    @Test
+    public void whenConfigurationSpecifiesSynchronization_configureUpdater() throws Exception {
+        init(CONFIGURATION_WITH_SYNC);
+
+        ConfigurationUpdaterImpl configurationUpdater = (ConfigurationUpdaterImpl) getConfigurationUpdater();
+        assertThat(configurationUpdater.getRepeaterUrl(), equalTo(SYNC_URL));
+        assertThat(configurationUpdater.getRefreshInterval(), equalTo(REFRESH_INTERVAL));
+    }
 }

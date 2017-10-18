@@ -13,6 +13,7 @@ import java.util.List;
 public class ConfigurationException extends RuntimeException {
     public static final String BAD_YAML_FORMAT = "Configuration YAML format has errors";
     public static final String NOT_YAML_FORMAT = "Configuration is not in YAML format";
+    protected static final String NO_QUERY_SYNC_URL = "query_sync defined without url";
     private List<String> context = new ArrayList<>();
 
     ConfigurationException(String description) {

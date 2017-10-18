@@ -1,4 +1,4 @@
-WLS Prometheus Exporter (experimental)
+WLS Prometheus Exporter
 =====
 
 WLS REST to Prometheus exporter.
@@ -17,6 +17,9 @@ Adding `-Dconfiguration=<some-config-file>` will create a webapp with the specif
 ## Configuration
 Here is an example `yaml` configuration:
 ```
+query_sync:
+  url: http://coordinator:8999/
+  interval: 5
 metricsNameSnakeCase: true
 queries:
 - applicationRuntimes:
@@ -36,6 +39,9 @@ Note that there are two parts to the configuration. The optional top portion def
 
 | Name | Description |
 | --- | --- |
+| query_sync | Configuration for a service which coordinates updates to the query configuration. Optional. |
+| query_sync.url | The url of the service. Required if this section is present. |
+| query_sync.interval | The interval in seconds at which the service will be queries. Defaults to 10. |
 | metricsNameSnakeCase | If true, metrics names will be converted to snake case. Defaults to false |
 
 The `query` field is more complex. Each query consists of a hierarchy of the mbeans, starting relative to `ServerRuntimes`.

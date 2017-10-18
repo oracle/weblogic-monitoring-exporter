@@ -8,6 +8,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.prometheus.wls.rest.domain.ExporterConfig;
 import io.prometheus.wls.rest.domain.MBeanSelector;
+import io.prometheus.wls.rest.domain.QuerySyncConfiguration;
 import org.yaml.snakeyaml.Yaml;
 
 import javax.servlet.ServletConfig;
@@ -76,7 +77,14 @@ class LiveConfiguration {
 
     private static void initialize(InputStream configurationFile) {
         config = ExporterConfig.loadConfig(configurationFile);
+        installUpdater(config.getQuerySyncConfiguration());
         timestamp = 0L;
+    }
+
+    private static void installUpdater(QuerySyncConfiguration syncConfiguration) {
+        if (syncConfiguration == null) return;
+
+        updater = new ConfigurationUpdaterImpl(syncConfiguration);
     }
 
     private static InputStream getConfigurationFile(ServletConfig config) {

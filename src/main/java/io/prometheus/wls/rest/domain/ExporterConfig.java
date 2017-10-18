@@ -27,6 +27,8 @@ public class ExporterConfig {
     static final String HOST = "host";
     static final String PORT = "port";
 
+    private static final String QUERY_SYNC = "query_sync";
+
     private static final String QUERIES = "queries";
     private static final MBeanSelector[] NO_QUERIES = {};
 
@@ -34,6 +36,7 @@ public class ExporterConfig {
     private String host = DEFAULT_HOST;
     private int port = DEFAULT_PORT;
     private boolean metricsNameSnakeCase;
+    private QuerySyncConfiguration querySyncConfiguration;
 
     /**
      * Loads a YAML configuration to create a new configuration object.
@@ -85,10 +88,15 @@ public class ExporterConfig {
         return new ExporterConfig(yamlConfig);
     }
 
+    public QuerySyncConfiguration getQuerySyncConfiguration() {
+        return querySyncConfiguration;
+    }
+
     private ExporterConfig(Map<String, Object> yaml) {
         if (yaml.containsKey(SNAKE_CASE)) setMetricsNameSnakeCase(yaml);
         if (yaml.containsKey(HOST)) host = MapUtils.getStringValue(yaml, HOST);
         if (yaml.containsKey(PORT)) port = MapUtils.getIntegerValue(yaml, PORT);
+        if (yaml.containsKey(QUERY_SYNC)) querySyncConfiguration = loadQuerySync(yaml.get(QUERY_SYNC));
         if (yaml.containsKey(QUERIES)) appendQueries(yaml.get(QUERIES));
     }
 
@@ -99,6 +107,11 @@ public class ExporterConfig {
             e.addContext(SNAKE_CASE);
             throw e;
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private QuerySyncConfiguration loadQuerySync(Object o) {
+        return new QuerySyncConfiguration((Map<String, Object>) o);
     }
 
     private void appendQueries(Object queriesYaml) {

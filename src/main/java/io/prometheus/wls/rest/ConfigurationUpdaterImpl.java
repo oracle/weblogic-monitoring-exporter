@@ -6,6 +6,7 @@ package io.prometheus.wls.rest;
  */
 
 import com.google.gson.Gson;
+import io.prometheus.wls.rest.domain.QuerySyncConfiguration;
 
 import java.io.IOException;
 import java.time.Clock;
@@ -24,9 +25,11 @@ class ConfigurationUpdaterImpl implements ConfigurationUpdater {
 
     /**
      * Creates the updater.
+     * @param syncConfiguration the configuration to apply to the updater
      */
-    ConfigurationUpdaterImpl() {
+    ConfigurationUpdaterImpl(QuerySyncConfiguration syncConfiguration) {
         this(Clock.systemUTC(), new WebClientFactoryImpl());
+        configure(syncConfiguration.getUrl(), syncConfiguration.getRefreshInterval());
     }
 
     /**
@@ -86,11 +89,11 @@ class ConfigurationUpdaterImpl implements ConfigurationUpdater {
         return latest;
     }
 
-    public String getRepeaterUrl() {
+    String getRepeaterUrl() {
         return repeaterUrl;
     }
 
-    public long getRefreshInterval() {
+    long getRefreshInterval() {
         return refreshInterval;
     }
 }

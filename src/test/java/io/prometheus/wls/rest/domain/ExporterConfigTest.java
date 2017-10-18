@@ -90,6 +90,56 @@ public class ExporterConfigTest {
     }
 
     @Test
+    public void whenNotSpecified_querySyncConfigurationIsNull() throws Exception {
+        ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
+
+        assertThat(config.getQuerySyncConfiguration(), nullValue());
+    }
+
+    @Test(expected = ConfigurationException.class)
+    public void whenQuerySyncDefinedWithoutProperties_throwException() throws Exception {
+        loadFromString(CONFIG_WITH_MISSING_SYNC_PROPERTIES);
+    }
+
+    private static final String CONFIG_WITH_MISSING_SYNC_PROPERTIES =
+            "query_sync:";
+
+
+    @Test(expected = ConfigurationException.class)
+    public void whenQuerySyncDefinedWithoutUrl_throwException() throws Exception {
+        loadFromString(CONFIG_WITH_MISSING_SYNC_URL);
+    }
+
+    private static final String CONFIG_WITH_MISSING_SYNC_URL =
+            "query_sync:\n  interval: 3";
+
+
+    @Test
+    public void whenQuerySyncDefined_returnIt() throws Exception {
+        ExporterConfig config = loadFromString(CONFIG_WITH_SYNC_SPEC);
+        final QuerySyncConfiguration syncConfiguration = config.getQuerySyncConfiguration();
+
+        assertThat(syncConfiguration.getUrl(), equalTo("http://sync:8999/"));
+        assertThat(syncConfiguration.getRefreshInterval(), equalTo(3L));
+    }
+
+    private static final String CONFIG_WITH_SYNC_SPEC =
+            "query_sync:\n  url: http://sync:8999/\n  interval: 3";
+
+
+    @Test
+    public void whenQuerySyncDefinedWithoutInterval_useDefault() throws Exception {
+        ExporterConfig config = loadFromString(CONFIG_WITH_SYNC_URL);
+        final QuerySyncConfiguration syncConfiguration = config.getQuerySyncConfiguration();
+
+        assertThat(syncConfiguration.getUrl(), equalTo("http://sync:8999/"));
+        assertThat(syncConfiguration.getRefreshInterval(), equalTo(10L));
+    }
+
+    private static final String CONFIG_WITH_SYNC_URL =
+            "query_sync:\n  url: http://sync:8999/\n";
+
+    @Test
     public void whenSpecified_readQueriesFromYaml() throws Exception {
         ExporterConfig config = loadFromString(SERVLET_CONFIG);
 
