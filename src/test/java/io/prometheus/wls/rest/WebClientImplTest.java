@@ -29,7 +29,7 @@ import static org.hamcrest.junit.MatcherAssert.assertThat;
 public class WebClientImplTest extends HttpUserAgentTest {
 
     /** A URL with a host guaranteed not to exist. */
-    private static final String UNDEFINED_HOST_URL = "http://nothere.russgold.net/";
+    private static final String UNDEFINED_HOST_URL = "http://mxyptlk/";
 
     /** A URL on a known host with a port on which no server is listening. */
     private static final String UNDEFINED_PORT_URL = "http://localhost:9999";
@@ -84,6 +84,22 @@ public class WebClientImplTest extends HttpUserAgentTest {
         });
 
         factory.createClient(getHostPath() + "/unprotected").doPostRequest(QUERY);
+
+        assertThat(sentInfo, equalTo(QUERY));
+    }
+
+    @Test
+    public void whenUnprotected_sendPutToServer() throws Exception {
+        final String QUERY = "sent this";
+
+        defineResource("unprotected_put", new PseudoServlet() {
+            public WebResource getPutResponse() {
+                sentInfo = new String(getBody());
+                return new WebResource("", "text/plain");
+            }
+        });
+
+        factory.createClient(getHostPath() + "/unprotected_put").doPutRequest(QUERY);
 
         assertThat(sentInfo, equalTo(QUERY));
     }

@@ -140,8 +140,8 @@ public class ConfigurationUpdaterImplTest {
         }
 
         @Override
-        String doPostRequest(String postBody) throws IOException {
-            postedValue = postBody;
+        String doPutRequest(String putBody) throws IOException {
+            postedValue = putBody;
             return null;
         }
     }

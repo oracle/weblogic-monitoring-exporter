@@ -83,11 +83,18 @@ abstract class WebClient {
     abstract String doGetRequest() throws IOException;
 
     /**
-     * Sends a query to the REST service and returns the reply.
-     * @param postBody a query for runtime data
+     * Sends a POST query to the server and returns the reply.
+     * @param postBody query data
      * @return the body of the response
      */
     abstract String doPostRequest(String postBody) throws IOException;
+
+    /**
+     * Sends a PUT query to the server and returns the reply.
+     * @param putBody query data
+     * @return the body of the response
+     */
+    abstract String doPutRequest(String putBody) throws IOException;
 
     /**
      * Returns the set-cookie header received from the server, if any

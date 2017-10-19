@@ -74,7 +74,7 @@ class ConfigurationUpdaterImpl implements ConfigurationUpdater {
         try {
             WebClient client = factory.createClient(repeaterUrl);
 
-            client.doPostRequest(new Gson().toJson(createUpdate(configuration)));
+            client.doPutRequest(new Gson().toJson(createUpdate(configuration)));
         } catch (IOException | WebClientException ignored) {
         }
     }
