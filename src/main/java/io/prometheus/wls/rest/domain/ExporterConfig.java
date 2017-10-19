@@ -215,6 +215,8 @@ public class ExporterConfig {
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
+        if (querySyncConfiguration != null)
+            sb.append(querySyncConfiguration);
         if (metricsNameSnakeCase) sb.append("metricsNameSnakeCase: true\n");
         sb.append("queries:\n");
 

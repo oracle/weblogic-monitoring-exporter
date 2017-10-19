@@ -5,7 +5,8 @@ package io.prometheus.wls.rest.domain;
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
 
-import java.util.Map; /**
+import java.util.Map;
+/**
  * Configuration for synchronization of queries
  */
 public class QuerySyncConfiguration {
@@ -16,7 +17,7 @@ public class QuerySyncConfiguration {
     private String url;
     private long refreshInterval;
 
-    public QuerySyncConfiguration(Map<String, Object> map) {
+    QuerySyncConfiguration(Map<String, Object> map) {
         if (map == null || !map.containsKey(URL))
             throw new ConfigurationException(ConfigurationException.NO_QUERY_SYNC_URL);
 
@@ -32,5 +33,12 @@ public class QuerySyncConfiguration {
 
     public long getRefreshInterval() {
         return refreshInterval;
+    }
+
+    @Override
+    public String toString() {
+        return "query_sync:\n" +
+                "  url: " + url + '\n' +
+                "  refreshInterval: " + refreshInterval + '\n';
     }
 }
