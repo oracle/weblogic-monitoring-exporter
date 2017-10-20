@@ -60,7 +60,7 @@ public class WebClientImpl extends WebClient {
         try (CloseableHttpClient httpClient = createHttpClient()) {
             return getReply(httpClient, request);
         } catch (UnknownHostException | ConnectException e) {
-            throw new WebClientException();
+            throw new WebClientException(e, "Unable to execute %s request to %s", request.getMethod(), request.getURI());
         }
     }
 
