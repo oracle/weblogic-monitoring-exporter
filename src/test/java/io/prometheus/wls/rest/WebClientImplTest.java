@@ -123,7 +123,23 @@ public class WebClientImplTest extends HttpUserAgentTest {
     }
 
     @Test
-    public void whenAuthorizationHeaderDefined_sendIt() throws Exception {
+    public void whenAuthorizationHeaderDefinedOnGet_sendIt() throws Exception {
+        defineResource("headers", new PseudoServlet() {
+            public WebResource getGetResponse() {
+                sentHeaders.put(AUTHENTICATION_HEADER, getHeader(AUTHENTICATION_HEADER));
+                return new WebResource("", "text/plain");
+            }
+        });
+
+        WebClient webClient = factory.createClient(getHostPath() + "/headers");
+        webClient.setAuthentication("auth-value");
+        webClient.doGetRequest();
+
+        assertThat(sentHeaders, hasEntry(AUTHENTICATION_HEADER, "auth-value"));
+    }
+
+    @Test
+    public void whenAuthorizationHeaderDefinedOnPost_sendIt() throws Exception {
         defineResource("headers", new PseudoServlet() {
             public WebResource getPostResponse() {
                 sentHeaders.put(AUTHENTICATION_HEADER, getHeader(AUTHENTICATION_HEADER));

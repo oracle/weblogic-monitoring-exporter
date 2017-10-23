@@ -4,6 +4,7 @@ package io.prometheus.wls.rest;
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Objects;
 
@@ -63,9 +64,20 @@ abstract class WebClient {
     }
 
     /**
+     * Adds relevant headers to the response for the client
+     * @param resp the response returned to the client
+     */
+    void forwardResponseHeaders(HttpServletResponse resp) {
+        if (getSetCookieHeader() != null) {
+            resp.setHeader("Set-Cookie", getSetCookieHeader());
+            cacheSessionCookie();
+        }
+    }
+
+    /**
      * Records the session information for future REST requests
      */
-    void cacheSessionCookie() {
+    private void cacheSessionCookie() {
         ExporterSession.cacheSession(authentication, getSessionCookie());
     }
 

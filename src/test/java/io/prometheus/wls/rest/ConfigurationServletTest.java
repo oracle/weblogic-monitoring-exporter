@@ -18,9 +18,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
+import static com.meterware.simplestub.Stub.createStrictStub;
 import static io.prometheus.wls.rest.HttpServletRequestStub.createPostRequest;
 import static io.prometheus.wls.rest.HttpServletResponseStub.createServletResponse;
 import static io.prometheus.wls.rest.ServletConstants.CONFIGURATION_ACTION;
+import static io.prometheus.wls.rest.matchers.ResponseHeaderMatcher.containsHeader;
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
 
@@ -29,13 +33,16 @@ import static org.hamcrest.junit.MatcherAssert.assertThat;
  */
 public class ConfigurationServletTest {
 
-    private ConfigurationServlet servlet = new ConfigurationServlet();
+    private final WebClientFactoryStub factory = createStrictStub(WebClientFactoryStub.class);
+    private ConfigurationServlet servlet = new ConfigurationServlet(factory);
+    private HttpServletRequestStub request;
     private HttpServletResponseStub response = createServletResponse();
 
     @Before
     public void setUp() throws Exception {
         LiveConfiguration.loadFromString("");
-        LiveConfiguration.setServer("localhost", 7001);
+        LiveConfiguration.setServer(HttpServletRequestStub.HOST, HttpServletRequestStub.PORT);
+        request = createUploadRequest(createEncodedForm("replace", CONFIGURATION));
     }
 
     @Test
@@ -57,8 +64,8 @@ public class ConfigurationServletTest {
 
     private final static String BOUNDARY = "C3n5NKoslNBKj4wBHR8kCX6OtVYEqeFYNjorlBP";
     private static final String CONFIGURATION = 
-            "host: localhost\n" +
-            "port: 7001\n" +
+            "host: " + HttpServletRequestStub.HOST + "\n" +
+            "port: " + HttpServletRequestStub.PORT + "\n" +
             "queries:\n" + "" +
             "- groups:\n" +
             "    prefix: new_\n" +
@@ -74,8 +81,8 @@ public class ConfigurationServletTest {
             "    values: [age, sex]\n";
 
     private static final String COMBINED_CONFIGURATION =
-            "host: localhost\n" +
-            "port: 7001\n" +
+            "host: " + HttpServletRequestStub.HOST + "\n" +
+            "port: " + HttpServletRequestStub.PORT + "\n" +
             "queries:\n" + "" +
             "- groups:\n" +
             "    prefix: new_\n" +
@@ -183,4 +190,21 @@ public class ConfigurationServletTest {
             "- people:\n" +
             "    key: name\n" +
             "    values: [age, sex]\n";
+
+    @Test
+    public void whenServerSends403StatusOnGet_returnToClient() throws Exception {
+        factory.setException(new ForbiddenException());
+        servlet.doPost(request, response);
+
+        assertThat(response.getStatus(), equalTo(SC_FORBIDDEN));
+    }
+
+    @Test
+    public void whenServerSends401StatusOnGet_returnToClient() throws Exception {
+        factory.setException(new BasicAuthenticationChallengeException("Test-Realm"));
+        servlet.doPost(request, response);
+
+        assertThat(response.getStatus(), equalTo(SC_UNAUTHORIZED));
+        assertThat(response, containsHeader("WWW-Authenticate", "Basic realm=\"Test-Realm\""));
+    }
 }

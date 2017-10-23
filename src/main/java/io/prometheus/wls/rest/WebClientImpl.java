@@ -53,6 +53,7 @@ public class WebClientImpl extends WebClient {
 
     @Override
     String doGetRequest() throws IOException {
+        addSessionHeaders();
         return sendRequest(new HttpGet(url));
     }
 

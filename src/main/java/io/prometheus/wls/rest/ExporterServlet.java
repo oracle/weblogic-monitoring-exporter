@@ -10,26 +10,19 @@ import io.prometheus.wls.rest.domain.MBeanSelector;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.Enumeration;
 import java.util.Map;
 import java.util.TreeMap;
 
 import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 /**
  * @author Russell Gold
  */
 @WebServlet(value = "/metrics")
-public class ExporterServlet extends HttpServlet {
-
-    private WebClientFactory webClientFactory;
+public class ExporterServlet extends PassThroughAuthenticationServlet {
 
     @SuppressWarnings("unused")  // production constructor
     public ExporterServlet() {
@@ -37,7 +30,7 @@ public class ExporterServlet extends HttpServlet {
     }
 
     ExporterServlet(WebClientFactory webClientFactory) {
-        this.webClientFactory = webClientFactory;
+        super(webClientFactory);
     }
 
     @Override
@@ -47,47 +40,17 @@ public class ExporterServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        LiveConfiguration.setServer(req.getServerName(), req.getServerPort());
+        doWithAuthentication(req, resp, this::displayMetrics);
+    }
+
+    private void displayMetrics(WebClient webClient, HttpServletRequest req, HttpServletResponse resp) throws IOException {
         LiveConfiguration.updateConfiguration();
-        WebClient webClient = webClientFactory.createClient(LiveConfiguration.getQueryUrl());
-        webClient.addHeader("X-Requested-By", "rest-exporter");
-
-        forwardRequestHeaders(req, webClient);
-
         try (MetricsStream metricsStream = new MetricsStream(resp.getOutputStream())) {
             if (!LiveConfiguration.hasQueries())
                 metricsStream.println("# No configuration defined.");
             else
                 printMetrics(webClient, metricsStream);
 
-            forwardResponseHeaders(webClient, resp);
-        } catch (ForbiddenException e) {
-            resp.sendError(SC_FORBIDDEN, "Not authorized");
-        } catch (BasicAuthenticationChallengeException e) {
-            resp.setHeader("WWW-Authenticate", String.format("Basic realm=\"%s\"", e.getRealm()));
-            resp.sendError(SC_UNAUTHORIZED, "Authentication required");
-        } finally {
-            final HttpSession session = req.getSession(false);
-            if (session != null) session.invalidate();
-        }
-    }
-
-    private void forwardRequestHeaders(HttpServletRequest req, WebClient webClient) {
-        webClient.establishSession(req.getHeader(ServletConstants.AUTHENTICATION_HEADER), getSessionCookie(req));
-     }
-
-    private String getSessionCookie(HttpServletRequest req) {
-        for (Enumeration<String> each = req.getHeaders(ServletConstants.COOKIE_HEADER); each.hasMoreElements();) {
-            String sessionCookie = ExporterSession.getSessionCookie(each.nextElement());
-            if (sessionCookie != null) return sessionCookie;
-        }
-        return null;
-    }
-
-    private void forwardResponseHeaders(WebClient webClient, HttpServletResponse resp) {
-        if (webClient.getSetCookieHeader() != null) {
-            resp.setHeader("Set-Cookie", webClient.getSetCookieHeader());
-            webClient.cacheSessionCookie();
         }
     }
 

@@ -14,7 +14,6 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -27,18 +26,36 @@ import static io.prometheus.wls.rest.ServletConstants.MAIN_PAGE;
  * @author Russell Gold
  */
 @WebServlet(value = "/" + ServletConstants.CONFIGURATION_ACTION)
-public class ConfigurationServlet extends HttpServlet {
+public class ConfigurationServlet extends PassThroughAuthenticationServlet {
+
+    @SuppressWarnings("unused")  // production constructor
+    public ConfigurationServlet() {
+        this(new WebClientFactoryImpl());
+    }
+
+    ConfigurationServlet(WebClientFactory webClientFactory) {
+        super(webClientFactory);
+    }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        try {
-            if (!ServletFileUpload.isMultipartContent(request)) throw new ServletException("Must be a multi-part request");
+        doWithAuthentication(request, response, this::updateConfiguration);
+    }
 
-            createPostAction(request).perform();
-            reportUpdatedConfiguration(response);
+    private void updateConfiguration(WebClient webClient, HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        authenticate(webClient);
+        try {
+            if (!ServletFileUpload.isMultipartContent(req)) throw new ServletException("Must be a multi-part request");
+
+            createPostAction(req).perform();
+            reportUpdatedConfiguration(resp);
         } catch (ConfigurationException e) {
-            reportUnableToUpdateConfiguration(request, response.getOutputStream(), e);
+            reportUnableToUpdateConfiguration(req, resp.getOutputStream(), e);
         }
+    }
+
+    private void authenticate(WebClient webClient) throws IOException {
+        webClient.doGetRequest();
     }
 
     private void reportUpdatedConfiguration(HttpServletResponse response) throws IOException {
@@ -56,6 +73,7 @@ public class ConfigurationServlet extends HttpServlet {
         out.close();
     }
 
+    @SuppressWarnings("unchecked")
     private PostAction createPostAction(HttpServletRequest request) throws IOException, ServletException {
         PostAction postAction = new PostAction();
         try {

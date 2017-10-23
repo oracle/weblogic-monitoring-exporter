@@ -8,7 +8,6 @@ package io.prometheus.wls.rest;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
 
@@ -126,51 +125,6 @@ public class ConfigurationUpdaterImplTest {
         impl.shareConfiguration(CONFIGURATION_1);
 
         assertThat(factory.getPostedString(), hasJsonPath("$.timestamp").withValue(23));
-    }
-
-    static abstract class WebClientStub extends WebClient {
-        private WebClientException exception;
-        private String response;
-        private String postedValue;
-
-        @Override
-        String doGetRequest() {
-            if (exception != null) throw exception;
-            return response;
-        }
-
-        @Override
-        String doPutRequest(String putBody) throws IOException {
-            postedValue = putBody;
-            return null;
-        }
-    }
-
-    static abstract class WebClientFactoryStub implements WebClientFactory {
-        private WebClientStub client = createStrictStub(WebClientStub.class);
-        private String clientURL;
-
-        @Override
-        public WebClient createClient(String clientURL) {
-            this.clientURL = clientURL;
-            return client;
-        }
-
-        void setException(WebClientException exception) {
-            client.exception = exception;
-        }
-
-        void setResponse(String response) {
-            client.response = response;
-        }
-
-        String getPostedString() {
-            return client.postedValue;
-        }
-
-        String getClientURL() {
-            return clientURL;
-        }
     }
 
     static abstract class ClockStub extends Clock {
