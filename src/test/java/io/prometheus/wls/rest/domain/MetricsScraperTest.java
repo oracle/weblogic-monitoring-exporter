@@ -4,14 +4,18 @@ package io.prometheus.wls.rest.domain;
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.hamcrest.Description;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
+import static io.prometheus.wls.rest.domain.MetricsScraperTest.MetricMatcher.hasMetric;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
@@ -140,9 +144,9 @@ public class MetricsScraperTest {
         generateNestedMetrics(getServletsMap(), SERVLET_RESPONSE);
 
         assertThat(scraper.getMetrics(),
-                   allOf(hasEntry("servlet_invocationTotalCount{servletName=\"JspServlet\"}", 0),
-                         hasEntry("servlet_invocationTotalCount{servletName=\"FileServlet\"}", 1),
-                         hasEntry("servlet_invocationTotalCount{servletName=\"ready\"}", 2)));
+                   allOf(hasMetric("servlet_invocationTotalCount{servletName=\"JspServlet\"}", 0),
+                         hasMetric("servlet_invocationTotalCount{servletName=\"FileServlet\"}", 1),
+                         hasMetric("servlet_invocationTotalCount{servletName=\"ready\"}", 2)));
     }
 
     private ImmutableMap<String, Object> getServletsMap() {
@@ -166,14 +170,14 @@ public class MetricsScraperTest {
         generateNestedMetrics(getServletsMap(), SERVLET_RESPONSE, "webapp=\"wls\"");
 
         assertThat(scraper.getMetrics(),
-                   hasEntry("servlet_invocationTotalCount{webapp=\"wls\",servletName=\"JspServlet\"}", 0));
+                   hasMetric("servlet_invocationTotalCount{webapp=\"wls\",servletName=\"JspServlet\"}", 0));
     }
 
     @Test
     public void generateLeafMetricsWithNoQualifiers() throws Exception {
         generateNestedMetrics(getServletsMapWithoutQualifierKey(), SINGLE_SERVLET_RESPONSE);
 
-        assertThat(scraper.getMetrics(), hasEntry("servlet_invocationTotalCount", 0));
+        assertThat(scraper.getMetrics(), hasMetric("servlet_invocationTotalCount", 0));
     }
 
     private ImmutableMap<String, Object> getServletsMapWithoutQualifierKey() {
@@ -185,14 +189,14 @@ public class MetricsScraperTest {
     public void generateLeafMetricsWithParentQualifiersOnly() throws Exception {
         generateNestedMetrics(getServletsMapWithoutQualifierKey(), SINGLE_SERVLET_RESPONSE, "webapp=\"wls\"");
 
-        assertThat(scraper.getMetrics(), hasEntry("servlet_invocationTotalCount{webapp=\"wls\"}", 0));
+        assertThat(scraper.getMetrics(), hasMetric("servlet_invocationTotalCount{webapp=\"wls\"}", 0));
     }
 
     @Test
     public void whenKeyNameSpecified_useItRatherThanKey() throws Exception {
         generateNestedMetrics(getServletsMapWithKeyName("servlet"), SERVLET_RESPONSE);
 
-        assertThat(scraper.getMetrics(), hasEntry("servlet_invocationTotalCount{servlet=\"JspServlet\"}", 0));
+        assertThat(scraper.getMetrics(), hasMetric("servlet_invocationTotalCount{servlet=\"JspServlet\"}", 0));
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -205,7 +209,7 @@ public class MetricsScraperTest {
     public void whenValuesIncludesKey_ignoreIt() throws Exception {
         generateNestedMetrics(getServletsMapWithKey("invocationId"), SINGLE_SERVLET_RESPONSE);
 
-        assertThat(scraper.getMetrics(), not(hasEntry("servlet_invocationId{invocationId=\"23\"}", 23)));
+        assertThat(scraper.getMetrics(), not(hasMetric("servlet_invocationId{invocationId=\"23\"}", 23)));
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -218,29 +222,29 @@ public class MetricsScraperTest {
     public void whenGenerateHierarchicalMetrics_containsTopLevel() throws Exception {
         generateNestedMetrics(twoLevelMap, TWO_LEVEL_RESPONSE);
 
-        assertThat(scraper.getMetrics(), hasEntry("component_deploymentState{component=\"ejb30_weblogic\"}", 2));
+        assertThat(scraper.getMetrics(), hasMetric("component_deploymentState{component=\"ejb30_weblogic\"}", 2));
     }
 
     @Test
     public void whenNoPrefix_generateBareMetrics() throws Exception {
         generateNestedMetrics(noPrefixTwoLevelMap, TWO_LEVEL_RESPONSE);
 
-        assertThat(scraper.getMetrics(), hasEntry("deploymentState{component=\"ejb30_weblogic\"}", 2));
+        assertThat(scraper.getMetrics(), hasMetric("deploymentState{component=\"ejb30_weblogic\"}", 2));
     }
 
     @Test
     public void whenGenerateHierarchicalMetrics_ignoresNonNumericValues() throws Exception {
         generateNestedMetrics(twoLevelMap, TWO_LEVEL_RESPONSE);
 
-        assertThat(scraper.getMetrics(), not(hasEntry("component_sourceInfo{component=\"ejb30_weblogic\"}", "weblogic.war")));
-        assertThat(scraper.getMetrics(), not(hasEntry("component_internal{component=\"ejb30_weblogic\"}", "true")));
+        assertThat(scraper.getMetrics(), not(hasMetric("component_sourceInfo{component=\"ejb30_weblogic\"}", "weblogic.war")));
+        assertThat(scraper.getMetrics(), not(hasMetric("component_internal{component=\"ejb30_weblogic\"}", "true")));
     }
 
     @Test
     public void whenGenerateHierarchicalMetrics_containsBottomLevel() throws Exception {
         generateNestedMetrics(twoLevelMap, TWO_LEVEL_RESPONSE);
 
-        assertThat(scraper.getMetrics(), hasEntry("servlet_invocationTotalCount{component=\"ejb30_weblogic\",servletName=\"JspServlet\"}", 0));
+        assertThat(scraper.getMetrics(), hasMetric("servlet_invocationTotalCount{component=\"ejb30_weblogic\",servletName=\"JspServlet\"}", 0));
     }
 
     @Test
@@ -252,8 +256,8 @@ public class MetricsScraperTest {
     public void generateFromFullResponse() throws Exception {
         Map<String, Object> metrics = scraper.scrape(MBeanSelector.create(getFullMap()), getJsonResponse(RESPONSE));
         
-        assertThat(metrics, hasEntry("component_deploymentState{application=\"weblogic\",component=\"ejb30_weblogic\"}", 2));
-        assertThat(metrics, hasEntry("servlet_invocationTotalCount{application=\"weblogic\",component=\"ejb30_weblogic\",servletName=\"JspServlet\"}", 0));
+        assertThat(metrics, hasMetric("component_deploymentState{application=\"weblogic\",component=\"ejb30_weblogic\"}", 2));
+        assertThat(metrics, hasMetric("servlet_invocationTotalCount{application=\"weblogic\",component=\"ejb30_weblogic\",servletName=\"JspServlet\"}", 0));
     }
 
     private Map<String, Object> getFullMap() {
@@ -268,16 +272,16 @@ public class MetricsScraperTest {
         scraper.setMetricNameSnakeCase(true);
         Map<String, Object> metrics = scraper.scrape(MBeanSelector.create(getFullMap()), getJsonResponse(RESPONSE));
 
-        assertThat(metrics, hasEntry("component_deployment_state{application=\"weblogic\",component=\"ejb30_weblogic\"}", 2));
-        assertThat(metrics, hasEntry("servlet_invocation_total_count{application=\"weblogic\",component=\"ejb30_weblogic\",servletName=\"JspServlet\"}", 0));
+        assertThat(metrics, hasMetric("component_deployment_state{application=\"weblogic\",component=\"ejb30_weblogic\"}", 2));
+        assertThat(metrics, hasMetric("servlet_invocation_total_count{application=\"weblogic\",component=\"ejb30_weblogic\",servletName=\"JspServlet\"}", 0));
     }
 
     @Test
     public void whenTypeNotSpecified_includeAllComponents() throws Exception {
         Map<String, Object> metrics = scraper.scrape(MBeanSelector.create(getFullMap()), getJsonResponse(RESPONSE));
 
-        assertThat(metrics, hasEntry("component_deploymentState{application=\"weblogic\",component=\"ejb30_weblogic\"}", 2));
-        assertThat(metrics, hasEntry("component_deploymentState{application=\"mbeans\",component=\"EjbStatusBean\"}", 2));
+        assertThat(metrics, hasMetric("component_deploymentState{application=\"weblogic\",component=\"ejb30_weblogic\"}", 2));
+        assertThat(metrics, hasMetric("component_deploymentState{application=\"mbeans\",component=\"EjbStatusBean\"}", 2));
     }
 
     @Test
@@ -285,8 +289,8 @@ public class MetricsScraperTest {
         componentMap.put(MBeanSelector.TYPE, "WebAppComponentRuntime");
         Map<String, Object> metrics = scraper.scrape(MBeanSelector.create(getFullMap()), getJsonResponse(RESPONSE));
 
-        assertThat(metrics, hasEntry("component_deploymentState{application=\"weblogic\",component=\"ejb30_weblogic\"}", 2));
-        assertThat(metrics, not(hasEntry("component_deploymentState{application=\"mbeans\",component=\"EjbStatusBean\"}", 2)));
+        assertThat(metrics, hasMetric("component_deploymentState{application=\"weblogic\",component=\"ejb30_weblogic\"}", 2));
+        assertThat(metrics, not(hasMetric("component_deploymentState{application=\"mbeans\",component=\"EjbStatusBean\"}", 2)));
     }
 
     @Test
@@ -295,7 +299,7 @@ public class MetricsScraperTest {
         final JsonObject jsonResponse = getJsonResponse(METRICS_RESPONSE);
         Map<String, Object> metrics = scraper.scrape(selector, jsonResponse);
 
-        assertThat(metrics, hasEntry("heapSizeCurrent", 123456));
+        assertThat(metrics, hasMetric("heapSizeCurrent", 123456));
     }
 
 
@@ -314,4 +318,46 @@ public class MetricsScraperTest {
             "    \"heapFreePercent\": 69,\n" +
             "    \"processCpuLoad\": .0028\n" +
             "}}";
+
+    static class MetricMatcher extends org.hamcrest.TypeSafeDiagnosingMatcher<Map<String,Object>> {
+        private String expectedKey;
+        private Object expectedValue;
+
+        private MetricMatcher(String expectedKey, Object expectedValue) {
+            this.expectedKey = expectedKey;
+            this.expectedValue = expectedValue;
+        }
+
+        static MetricMatcher hasMetric(String expectedKey, Object expectedValue) {
+            return new MetricMatcher(expectedKey, expectedValue);
+        }
+
+        @Override
+        protected boolean matchesSafely(Map<String, Object> map, Description description) {
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                if (expectedKey.equals(entry.getKey()) && matchesValue(entry.getValue())) {
+                    return true;
+                }
+            }
+            
+            description.appendText("map was ").appendValueList("[", ", ", "]", map.entrySet());
+            return false;
+        }
+
+        private boolean matchesValue(Object o) {
+            if (expectedValue instanceof String)
+                return Objects.equals(o, expectedValue);
+            else
+                return expectedValue instanceof Integer && ((Number) o).intValue() == ((Number) expectedValue).intValue();
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendText("map containing [")
+                       .appendValue(expectedKey)
+                       .appendText("->")
+                       .appendValue(expectedValue)
+                       .appendText("]");
+        }
+    }
 }
