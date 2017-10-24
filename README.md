@@ -39,7 +39,7 @@ Note that there are two parts to the configuration. The optional top portion def
 
 | Name | Description |
 | --- | --- |
-| query_sync | Configuration for a service which coordinates updates to the query configuration. Optional. |
+| query_sync | Configuration for a [service](config_coordinator/README.md) which coordinates updates to the query configuration. Optional. |
 | query_sync.url | The url of the service. Required if this section is present. |
 | query_sync.interval | The interval in seconds at which the service will be queries. Defaults to 10. |
 | metricsNameSnakeCase | If true, metrics names will be converted to snake case. Defaults to false |
