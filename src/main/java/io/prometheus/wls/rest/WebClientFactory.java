@@ -6,6 +6,8 @@ package io.prometheus.wls.rest;
  */
 
 /**
+ * An interface for creating web clients.
+ *
  * @author Russell Gold
  */
 public interface WebClientFactory {

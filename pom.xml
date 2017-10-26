@@ -8,15 +8,15 @@
     <artifactId>wls-exporter</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <name>WLS Exporter for Prometheus</name>
+    <description>A Prometheus Exporter that takes advantage of WLS-specific features.</description>
+
     <licenses>
         <license>
             <name>Oracle Universal Permissive License, Version 1.0</name>
             <url>http://oss.oracle.com/licenses/upl</url>
         </license>
     </licenses>
-
-    <name>WLS Exporter for Prometheus</name>
-    <description>A Prometheus Exporter that takes advantage of WLS-specific features.</description>
 
     <developers>
         <developer>

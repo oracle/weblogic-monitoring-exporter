@@ -7,6 +7,8 @@ package io.prometheus.wls.rest.domain;
 import java.util.regex.Pattern;
 
 /**
+ * A class which can convert strings from camel case to snake case.
+ *
  * @author Russell Gold
  */
 public class SnakeCaseUtil {

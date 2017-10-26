@@ -14,6 +14,8 @@ import java.time.Instant;
 
 /**
  * An object to manage interactions with the configuration repeater over HTTP.
+ *
+ * @author Russell Gold
  */
 class ConfigurationUpdaterImpl implements ConfigurationUpdater {
     private WebClientFactory factory;

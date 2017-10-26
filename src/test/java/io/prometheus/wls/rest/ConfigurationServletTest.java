@@ -21,7 +21,7 @@ import java.nio.charset.Charset;
 import static com.meterware.simplestub.Stub.createStrictStub;
 import static io.prometheus.wls.rest.HttpServletRequestStub.createPostRequest;
 import static io.prometheus.wls.rest.HttpServletResponseStub.createServletResponse;
-import static io.prometheus.wls.rest.ServletConstants.CONFIGURATION_ACTION;
+import static io.prometheus.wls.rest.ServletConstants.CONFIGURATION_PAGE;
 import static io.prometheus.wls.rest.matchers.ResponseHeaderMatcher.containsHeader;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
@@ -59,7 +59,7 @@ public class ConfigurationServletTest {
     public void servletAnnotationIndicatesConfigurationPage() throws Exception {
         WebServlet annotation = ConfigurationServlet.class.getAnnotation(WebServlet.class);
 
-        assertThat(annotation.value(), arrayContaining("/" + CONFIGURATION_ACTION));
+        assertThat(annotation.value(), arrayContaining("/" + CONFIGURATION_PAGE));
     }
 
     private final static String BOUNDARY = "C3n5NKoslNBKj4wBHR8kCX6OtVYEqeFYNjorlBP";

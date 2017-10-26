@@ -9,11 +9,13 @@ import org.yaml.snakeyaml.scanner.ScannerException;
 
 /**
  * An exception thrown when there is an error parsing the YAML.
+ *
+ * @author Russell Gold
  */
 public class YamlParserException extends ConfigurationException {
     private ScannerException scannerException;
 
-    public YamlParserException(ScannerException scannerException) {
+    YamlParserException(ScannerException scannerException) {
         super(BAD_YAML_FORMAT);
         this.scannerException = scannerException;
     }

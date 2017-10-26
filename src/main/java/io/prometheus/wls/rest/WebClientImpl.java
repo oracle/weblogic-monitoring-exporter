@@ -32,6 +32,8 @@ import static io.prometheus.wls.rest.ServletConstants.COOKIE_HEADER;
 import static javax.servlet.http.HttpServletResponse.*;
 
 /**
+ * A production implementation of the web client interface that uses Apache HttpClient code.
+ *
  * @author Russell Gold
  */
 public class WebClientImpl extends WebClient {

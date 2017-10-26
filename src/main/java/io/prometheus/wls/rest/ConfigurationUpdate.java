@@ -6,7 +6,7 @@ package io.prometheus.wls.rest;
  */
 
 /**
- * An update to the live configuration
+ * An update to the live configuration. This object is exchanged with the config coordinator server in JSON format
  *
  * @author Russell Gold
  */
@@ -19,11 +19,11 @@ class ConfigurationUpdate {
         this.configuration = configuration;
     }
 
-    public long getTimestamp() {
+    long getTimestamp() {
         return timestamp;
     }
 
-    public String getConfiguration() {
+    String getConfiguration() {
         return configuration;
     }
 }

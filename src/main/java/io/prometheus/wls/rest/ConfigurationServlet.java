@@ -20,12 +20,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import static io.prometheus.wls.rest.ServletConstants.MAIN_PAGE;
+import static io.prometheus.wls.rest.ServletConstants.*;
 
 /**
+ * A servlet which handles updates to the exporter configuration.
+ *
  * @author Russell Gold
  */
-@WebServlet(value = "/" + ServletConstants.CONFIGURATION_ACTION)
+@WebServlet(value = "/" + ServletConstants.CONFIGURATION_PAGE)
 public class ConfigurationServlet extends PassThroughAuthenticationServlet {
 
     @SuppressWarnings("unused")  // production constructor
@@ -54,6 +56,7 @@ public class ConfigurationServlet extends PassThroughAuthenticationServlet {
         }
     }
 
+    // Authenticates by attempting to send a request to the Management RESTful API.
     private void authenticate(WebClient webClient) throws IOException {
         webClient.doGetRequest();
     }
@@ -89,13 +92,14 @@ public class ConfigurationServlet extends PassThroughAuthenticationServlet {
         for (FileItem item : fileItems) {
             if (!item.isFormField()) {
                 postAction.defineUploadedFile(item.getInputStream());
-            } else if (item.getFieldName().equals("effect"))
+            } else if (item.getFieldName().equals(ServletConstants.EFFECT_OPTION))
                 postAction.setEffect(item.getString());
         }
     }
 
     private class PostAction {
-        private String effect = "replace";
+        // The action to take. May be either "replace" or "append"
+        private String effect = DEFAULT_ACTION;
         private ExporterConfig uploadedConfig;
 
         private void defineUploadedFile(InputStream inputStream) throws ServletException {
@@ -111,9 +115,9 @@ public class ConfigurationServlet extends PassThroughAuthenticationServlet {
         void perform() throws ServletException {
             ExporterConfig uploadedConfig = this.uploadedConfig;
 
-            if (effect.equalsIgnoreCase("replace"))
+            if (effect.equalsIgnoreCase(REPLACE_ACTION))
                 LiveConfiguration.replaceConfiguration(uploadedConfig);
-            else if (effect.equalsIgnoreCase("append"))
+            else if (effect.equalsIgnoreCase(APPEND_ACTION))
                 LiveConfiguration.appendConfiguration(uploadedConfig);
         }
 

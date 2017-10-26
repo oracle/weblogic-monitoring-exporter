@@ -13,6 +13,9 @@ import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 
 /**
+ * A PrintStream that computes metrics for the performance of the exporter itself. It does so by tracking the
+ * time from its creation until it is instructed to print those metrics.
+ *
  * @author Russell Gold
  */
 class MetricsStream extends PrintStream {
@@ -24,6 +27,20 @@ class MetricsStream extends PrintStream {
 
     private int scrapeCount;
 
+    /**
+     * Constructs a metrics stream object, installer a performance probe that access system data.
+     * @param outputStream the parent output stream
+     * @throws IOException if some error occurs while creating the performance probe
+     */
+    MetricsStream(OutputStream outputStream) throws IOException {
+        this(outputStream, new PlatformPeformanceProbe());
+    }
+
+    /**
+     * A constructor for unit testing, allowing the specification of a test version of the performance probe.
+     * @param outputStream the parent output stream
+     * @param performanceProbe an object which can return performance data
+     */
     MetricsStream(OutputStream outputStream, PerformanceProbe performanceProbe) {
         super(outputStream);
         this.performanceProbe = performanceProbe;
@@ -31,15 +48,19 @@ class MetricsStream extends PrintStream {
         startCpu = performanceProbe.getCurrentCpu();
     }
 
-    MetricsStream(OutputStream outputStream) throws IOException {
-        this(outputStream, new PlatformPeformanceProbe());
-    }
-
+    /**
+     * Prints a single metric, while adding to the count of metrics produced
+     * @param name the metric name
+     * @param value the metric value
+     */
     void printMetric(String name, Object value) {
         println(name + " " + value);
         scrapeCount++;
     }
 
+    /**
+     * Prints the summary performance metrics
+     */
     void printPerformanceMetrics() {
         printf( "%s %d%n", getCountName(), scrapeCount);
         printf("%s %.2f%n", getDurationName(), toSeconds(getElapsedTime()));

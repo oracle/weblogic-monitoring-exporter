@@ -12,7 +12,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 
 import static io.prometheus.wls.rest.InMemoryFileSystem.withNoParams;
-import static io.prometheus.wls.rest.ServletConstants.CONFIGURATION_ACTION;
+import static io.prometheus.wls.rest.ServletConstants.CONFIGURATION_PAGE;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
 
@@ -78,7 +78,7 @@ public class MainServletTest {
         servlet.doGet(request, response);
 
         assertThat(response.getHtml(),
-                containsString("form action=\"" + CONFIGURATION_ACTION + "\" method=\"post\" enctype=\"multipart/form-data\""));
+                containsString("form action=\"" + CONFIGURATION_PAGE + "\" method=\"post\" enctype=\"multipart/form-data\""));
     }
 
     @Test
@@ -86,7 +86,7 @@ public class MainServletTest {
         request.setServletPath("");
         servlet.doGet(request, response);
 
-        assertThat(response.getHtml(), containsString("action=\"/exporter/" + CONFIGURATION_ACTION + "\""));
+        assertThat(response.getHtml(), containsString("action=\"/exporter/" + CONFIGURATION_PAGE + "\""));
     }
 
     @Test

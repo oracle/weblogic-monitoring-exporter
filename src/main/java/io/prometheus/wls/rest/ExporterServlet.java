@@ -19,9 +19,11 @@ import java.util.TreeMap;
 import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
 
 /**
+ * The servlet which produces the exported metrics.
+ *
  * @author Russell Gold
  */
-@WebServlet(value = "/metrics")
+@WebServlet(value = "/" + ServletConstants.METRICS_PAGE)
 public class ExporterServlet extends PassThroughAuthenticationServlet {
 
     @SuppressWarnings("unused")  // production constructor
@@ -43,6 +45,7 @@ public class ExporterServlet extends PassThroughAuthenticationServlet {
         doWithAuthentication(req, resp, this::displayMetrics);
     }
 
+    @SuppressWarnings("unused") // The req parameter is not used, but is required by 'doWithAuthentication'
     private void displayMetrics(WebClient webClient, HttpServletRequest req, HttpServletResponse resp) throws IOException {
         LiveConfiguration.updateConfiguration();
         try (MetricsStream metricsStream = new MetricsStream(resp.getOutputStream())) {

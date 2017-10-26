@@ -16,6 +16,10 @@ import java.util.Enumeration;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
+/**
+ * An abstract servlet which performs authentication by forwarding all pertinent headers between the client
+ * and the WLS RESTful Management services, thus using that service's security.
+ */
 abstract public class PassThroughAuthenticationServlet extends HttpServlet {
     private WebClientFactory webClientFactory;
 
@@ -44,6 +48,20 @@ abstract public class PassThroughAuthenticationServlet extends HttpServlet {
         return null;
     }
 
+    /**
+     * Performs a servlet action, wrappering it with authentication handling.
+     *
+     * This involves creating an object which can make http calls to the RESTful services, configuring it to
+     * include the authentication header, if any, received from client. Any authentication errors from
+     * the services will be returned to the client.
+     *
+     * @param req the servlet request
+     * @param resp the servlet response
+     * @param authenticatedService an which actually performs calls to the RESTful services using the supplied client
+     *
+     * @throws IOException if an error occurs in the web client
+     * @throws ServletException if some other fatal error occurs
+     */
     void doWithAuthentication(HttpServletRequest req, HttpServletResponse resp, AuthenticatedService authenticatedService) throws IOException, ServletException {
         try {
             WebClient webClient = createWebClient(req);
@@ -60,6 +78,9 @@ abstract public class PassThroughAuthenticationServlet extends HttpServlet {
         }
     }
 
+    /**
+     * An interface describing the service wrapped by #doWithAuthentication
+     */
     interface AuthenticatedService {
         void execute(WebClient webClient, HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException;
     }

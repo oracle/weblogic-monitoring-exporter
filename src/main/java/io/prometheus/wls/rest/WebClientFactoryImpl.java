@@ -6,6 +6,8 @@ package io.prometheus.wls.rest;
  */
 
 /**
+ * The production implementation of the web client factory interface.
+ *
  * @author Russell Gold
  */
 public class WebClientFactoryImpl implements WebClientFactory {
