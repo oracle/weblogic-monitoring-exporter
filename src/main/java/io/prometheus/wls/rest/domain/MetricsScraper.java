@@ -10,6 +10,7 @@ import com.google.gson.JsonObject;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
 
@@ -55,13 +56,26 @@ class MetricsScraper {
         if (excludeByType(object.get("type"), beanSelector.getType())) return;
         String qualifiers = getItemQualifiers(object, beanSelector, parentQualifiers);
 
-        for (String valueName : beanSelector.getValues()) {
+        for (String valueName : getValueNames(beanSelector, object)) {
             if (valueName.equals(beanSelector.getKey())) continue;
             JsonElement value = object.get(valueName);
-            if (value != null && value.isJsonPrimitive() && value.getAsJsonPrimitive().isNumber())
-                metrics.put(getMetricName(valueName, beanSelector, qualifiers), value.getAsJsonPrimitive().getAsNumber());
+            addMetric(beanSelector, qualifiers, valueName, value);
         }
         scrapeSubObject(object, beanSelector, qualifiers);
+    }
+
+    private String[] getValueNames(MBeanSelector beanSelector, JsonObject object) {
+        final Set<String> set = object.keySet();
+        return beanSelector.useAllValues() ? asArray(set) : beanSelector.getValues();
+    }
+
+    private String[] asArray(Set<String> set) {
+        return set.toArray(new String[set.size()]);
+    }
+
+    private void addMetric(MBeanSelector beanSelector, String qualifiers, String valueName, JsonElement value) {
+        if (value != null && value.isJsonPrimitive() && value.getAsJsonPrimitive().isNumber())
+            metrics.put(getMetricName(valueName, beanSelector, qualifiers), value.getAsJsonPrimitive().getAsNumber());
     }
 
     private boolean excludeByType(JsonElement typeField, String typeFilter) {

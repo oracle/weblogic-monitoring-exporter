@@ -5,5 +5,4 @@ queries:
     workManagerRuntimes:
       prefix: workmanager_
       key: applicationName
-      values: [pendingRequests, completedRequests, stuckThreadCount]
 

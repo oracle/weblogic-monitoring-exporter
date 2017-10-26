@@ -97,14 +97,17 @@ public class MetricsScraperTest {
             "                \"servlets\": {\"items\": [\n" +
             "                    {\n" +
             "                        \"servletName\": \"JspServlet\",\n" +
+            "                        \"invocationHighCount\": 10,\n" +
             "                        \"invocationTotalCount\": 0\n" +
             "                    },\n" +
             "                    {\n" +
             "                        \"servletName\": \"FileServlet\",\n" +
+            "                        \"invocationHighCount\": 15,\n" +
             "                        \"invocationTotalCount\": 1\n" +
             "                    },\n" +
             "                    {\n" +
             "                        \"servletName\": \"ready\",\n" +
+            "                        \"invocationHighCount\": 30,\n" +
             "                        \"invocationTotalCount\": 2\n" +
             "                    }\n" +
             "                ]}\n" +
@@ -122,6 +125,9 @@ public class MetricsScraperTest {
 
     private final Map<String,Object> leafMap = new HashMap<>(ImmutableMap.of(MBeanSelector.KEY, "servletName",
             MBeanSelector.PREFIX, "servlet_", MBeanSelector.VALUES, new String[]{"invocationTotalCount","invocationId"}));
+
+    private final Map<String,Object> emptyLeafMap = new HashMap<>(ImmutableMap.of(MBeanSelector.KEY, "servletName",
+            MBeanSelector.PREFIX, "servlet_"));
 
     private final Map<String,Object> componentMap = new HashMap<>(
             ImmutableMap.of(MBeanSelector.KEY_NAME, "component", MBeanSelector.KEY, "name", MBeanSelector.PREFIX, "component_",
@@ -163,6 +169,20 @@ public class MetricsScraperTest {
 
     private JsonObject getJsonResponse(String jsonString) {
         return new JsonParser().parse(jsonString).getAsJsonObject();
+    }
+
+    @Test
+    public void whenNoValuesSpecified_generateAllMetrics() throws Exception {
+        generateNestedMetrics(getAllValuesServletsMap(), SERVLET_RESPONSE);
+
+        assertThat(scraper.getMetrics(),
+                   allOf(hasMetric("servlet_invocationHighCount{servletName=\"JspServlet\"}", 10),
+                         hasMetric("servlet_invocationHighCount{servletName=\"FileServlet\"}", 15),
+                         hasMetric("servlet_invocationTotalCount{servletName=\"ready\"}", 2)));
+    }
+
+    private ImmutableMap<String, Object> getAllValuesServletsMap() {
+        return ImmutableMap.of("servlets", emptyLeafMap);
     }
 
     @Test

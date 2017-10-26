@@ -9,8 +9,10 @@ import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -28,11 +30,12 @@ public class MBeanSelector {
     static final String VALUES = "values";
     static final String TYPE_FIELD_NAME = "type";
 
+    private static final String[] NO_VALUES = {};
     private String type;
     private String prefix;
     private String key;
     private String keyName;
-    private String[] values = {};
+    private String[] values = null;
     private Map<String, MBeanSelector> nestedSelectors = new HashMap<>();
 
     private MBeanSelector(Map<String, Object> map) {
@@ -169,7 +172,11 @@ public class MBeanSelector {
      * @return an array of field names.
      */
     String[] getValues() {
-        return values;
+        return values == null ? NO_VALUES : values;
+    }
+
+    private List<String> getValuesAsList() {
+        return values == null ? Collections.emptyList() : Arrays.asList(values);
     }
 
     /**
@@ -202,14 +209,23 @@ public class MBeanSelector {
 
     JsonQuerySpec toQuerySpec() {
         JsonQuerySpec spec = new JsonQuerySpec();
-        if (key != null) spec.addFields(key);
-        if (type != null) spec.addFields(TYPE_FIELD_NAME);
-        spec.addFields(values);
+        if (!useAllValues())
+            selectQueryFields(spec, getValues());
 
         for (String selectorName : nestedSelectors.keySet())
             spec.addChild(selectorName, nestedSelectors.get(selectorName).toQuerySpec());
 
         return spec;
+    }
+
+    boolean useAllValues() {
+        return prefix != null && values == null;
+    }
+
+    private void selectQueryFields(JsonQuerySpec spec, String[] fields) {
+        if (key != null) spec.addFields(key);
+        if (type != null) spec.addFields(TYPE_FIELD_NAME);
+        spec.addFields(fields);
     }
 
     /**
@@ -227,8 +243,8 @@ public class MBeanSelector {
         key = first.key;
         keyName = first.keyName;
 
-        Set<String> mergedValues = new HashSet<>(Arrays.asList(first.values));
-        mergedValues.addAll(Arrays.asList(second.values));
+        Set<String> mergedValues = new HashSet<>(first.getValuesAsList());
+        mergedValues.addAll(second.getValuesAsList());
         values = mergedValues.toArray(new String[mergedValues.size()]);
 
         nestedSelectors = new HashMap<>();

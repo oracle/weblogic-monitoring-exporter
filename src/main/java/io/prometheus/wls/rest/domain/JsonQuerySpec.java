@@ -19,7 +19,7 @@ import java.util.Map;
 @SuppressWarnings({"unused", "MismatchedQueryAndUpdateOfCollection"})
 class JsonQuerySpec {
     private String[] links = new String[0];
-    private ArrayList<String> fields = new ArrayList<>();
+    private ArrayList<String> fields = null;
     private Map<String,JsonQuerySpec> children = null;
 
     /**
@@ -27,6 +27,7 @@ class JsonQuerySpec {
      * @param newFields the field names to add to any previous defined
      */
     void addFields(String ... newFields) {
+        if (fields == null) fields = new ArrayList<>();
         fields.addAll(Arrays.asList(newFields));
     }
 

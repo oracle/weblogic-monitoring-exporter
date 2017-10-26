@@ -50,7 +50,7 @@ Within each section, there are a number of options:
 | key | the name of the attribute to use as a key for qualifiers in the output |
 | keyName | the name to use for the key in the qualifier; defaults to the name of the attribute |
 | prefix | a prefix to use for all metrics gathered from the current level |
-| values | the attributes for which metrics are to be output |
+| values | the attributes for which metrics are to be output. If not specified and prefix is defined, all values on the mbean will be selected |
 | type | a filter for subtypes. If specified, only those objects whose 'type' attribute matches will be collected |
 
 Note that all fields other than the above will be interpreted as collections of values.

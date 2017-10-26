@@ -337,6 +337,48 @@ public class MBeanSelectorTest {
             "  }\n" + // .children
             "}";
 
+    @Test
+    public void whenNoValuesListedForSerlvets_generateJsonRequest() throws Exception {
+        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of("applicationRuntimes", getNoServletValuesApplicationMap()));
+
+        assertThat(selector.getRequest(), equalTo(compressedJsonForm(EXPECTED_ALL_SERVLET_VALUES_JSON_REQUEST)));
+    }
+
+    private Map<String, Object> getNoServletValuesApplicationMap() {
+        return ImmutableMap.of(MBeanSelector.KEY, "name",
+                               "componentRuntimes", getNoServletValuesComponentMap());
+    }
+
+    private Map<String, Object> getNoServletValuesComponentMap() {
+        return ImmutableMap.of(MBeanSelector.KEY, "name", MBeanSelector.VALUES, EXPECTED_COMPONENT_VALUES,
+                               "servlets", getNoValuesServletMap());
+    }
+
+    private Map<String, Serializable> getNoValuesServletMap() {
+        return ImmutableMap.of(MBeanSelector.PREFIX, "servlet_", MBeanSelector.KEY, EXPECTED_KEY);
+    }
+
+    private static final String EXPECTED_ALL_SERVLET_VALUES_JSON_REQUEST =
+            "{\n" +
+            "  'links' : [], 'fields' : [],\n" +
+            "  'children': {\n" +
+            "     'applicationRuntimes': {\n" +
+            "        'links': [], 'fields': [ 'name' ],\n" +
+            "        'children': {\n" +
+            "           'componentRuntimes': {\n" +
+            "              'links': [],\n" +
+            "              'fields': ['name', 'age', 'beauty'],\n" +
+            "              'children': {\n" +
+            "                 'servlets': {\n" +
+            "                  'links': []\n" +
+            "                 }\n" +  // servlets
+            "              }\n" + // componentRuntimes.children
+            "           }\n" +  // componentRuntimes
+            "        }\n" + // applicationRuntimes.children
+            "     }\n" + // applicationRuntimes
+            "  }\n" + // .children
+            "}";
+
     // todo - should we allow multiple types in a single filter?
 
 }
