@@ -1,4 +1,5 @@
----
+query_sync:
+  url: http://coordinator:8999/
 metricsNameSnakeCase: true
 queries:
 - applicationRuntimes:
@@ -8,8 +9,7 @@ queries:
       type: WebAppComponentRuntime
       prefix: webapp_config_
       key: name
-      values: [deploymentState, contextRoot, sourceInfo, openSessionsHighCount, openSessionsCurrentCount, sessionsOpenedTotalCount]
+      values: [openSessionsCurrentCount, openSessionsHighCount]
       servlets:
         prefix: weblogic_servlet_
         key: servletName
-
