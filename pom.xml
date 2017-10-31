@@ -8,8 +8,8 @@
     <artifactId>wls-exporter</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <name>WLS Exporter for Prometheus</name>
-    <description>A Prometheus Exporter that takes advantage of WLS-specific features.</description>
+    <name>WebLogic Monitoring Exporter</name>
+    <description>A Prometheus exporter that takes advantage of WebLogic Server-specific features.</description>
 
     <licenses>
         <license>

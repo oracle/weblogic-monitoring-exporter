@@ -3,4 +3,4 @@ queries:
 - JVMRuntime:
     key: name
     prefix: jvm_
-    values: [heapFreeCurrent, heapFreePercent, heapSizeCurrent, heapSizeMax, uptime, processCpuLoad]
+    values: [heapFreeCurrent, heapFreePercent, heapSizeCurrent]

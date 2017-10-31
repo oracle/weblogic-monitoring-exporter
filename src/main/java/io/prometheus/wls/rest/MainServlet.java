@@ -17,7 +17,7 @@ import java.io.PrintStream;
 import static io.prometheus.wls.rest.ServletConstants.*;
 
 /**
- * This servlet represents the 'landing page' for the wls exporter.
+ * This servlet represents the 'landing page' for the exporter.
  *
  * @author Russell Gold
  */
@@ -42,7 +42,7 @@ public class MainServlet extends HttpServlet {
     }
 
     private void displayMetricsLink(HttpServletRequest req, ServletOutputStream outputStream) throws IOException {
-        outputStream.println("<h2>This is the Weblogic Prometheus Exporter.</h2>");
+        outputStream.println("<h2>This is the WebLogic Monitoring Exporter.</h2>");
         outputStream.println("<p>The metrics are found at <a href=\"" + getMetricsLink(req) + "\">");
         outputStream.println(ServletConstants.METRICS_PAGE + "</a> relative to this location.");
         outputStream.println("</p>");

@@ -8,7 +8,7 @@ queries:
       type: WebAppComponentRuntime
       prefix: webapp_config_
       key: name
-      values: [deploymentState, contextRoot, sourceInfo, openSessionsHighCount, openSessionsCurrentCount, sessionsOpenedTotalCount]
+      values: [openSessionsHighCount, openSessionsCurrentCount]
       servlets:
         prefix: weblogic_servlet_
         key: servletName
