@@ -19,6 +19,10 @@ import (
 )
 
 func main() {
+	log.Printf("Starting coordinator")
+	initialize()
+
+	log.Printf("Listening on %s", serverAddress)
 	http.HandleFunc("/", handler)
 	log.Fatal(http.ListenAndServe(serverAddress, nil))
 }
@@ -33,6 +37,9 @@ type config struct {
 const defaultServerAddress = 8999
 const empty_configuration = `{"timestamp":0, "configuration":""}`
 
+const port_flag = "port"
+const db_flag = "db"
+
 var (
 	rw                   sync.RWMutex
 	latest_timestamp     int
@@ -43,8 +50,8 @@ var (
 	args []string = os.Args[1:]
 )
 
-var portFlag = flag.Int("port", defaultServerAddress, "the port on which the coordinator should listen")
-var configFlag = flag.String("config", "", "a file in which to persist the latest state")
+var portFlag = flag.Int(port_flag, defaultServerAddress, "the port on which the coordinator should listen")
+var dbFlag = flag.String(db_flag, "", "a file in which to persist the latest state")
 
 var openFile = func(path string) (io.ReadCloser, error) {
 	return os.Open(path)
@@ -54,16 +61,21 @@ var createFile = func(path string) (io.WriteCloser, error) {
 	return os.Create(path)
 }
 
+var logMessage = func(format string, v ...interface{}) {
+	log.Printf(format, v...)
+}
+
 /*
   Initialization of the coordinator
  */
 func initialize() {
 	readCommandLine()
 
-	if *configFlag == "" {
+	if *dbFlag == "" {
 		installEmptyConfiguration()
 	} else {
-		file, err := openFile(*configFlag)
+		logMessage("Trying to load configuration from %s", *dbFlag)
+		file, err := openFile(*dbFlag)
 		if err != nil {
 			installEmptyConfiguration()
 		} else {
@@ -149,14 +161,25 @@ func putConfiguration(configuration []byte) error {
 func recordNewConfiguration(config config, configuration []byte) {
 	latest_timestamp = config.Timestamp
 	latest_configuration = configuration
-	file, _ := createFile(*configFlag)
-	file.Write(configuration)
+
+	file, err := createFile(*dbFlag)
+	reportWriteError(err)
+
+	_, err = file.Write(configuration)
+	reportWriteError(err)
+
 	file.Close()
 }
 
+func reportWriteError(err error) {
+	if err != nil {
+		logMessage("unable to perform write: %v", err)
+	}
+}
+
 func getConfiguration() []byte {
+	defer rw.RUnlock()
 	rw.RLock()
-	configuration := latest_configuration
-	rw.RUnlock()
-	return configuration
+
+	return latest_configuration
 }

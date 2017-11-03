@@ -11,43 +11,58 @@ import (
 	"net/http/httptest"
 	"io"
 	"os"
+	"fmt"
 )
 
 const timestamp_2 = 2000
 const configuration_1 = `{"timestamp":1, "configuration":"first yaml config"}`
 const configuration_2 = `{"timestamp":2000, "configuration":"second yaml config"}`
 const no_timestamp_configuration = `{"configuration":"bogus config"}`
-const no_configuration_json = `{"timestamp":3, "config":"bogus config"}`
-const bad_json = `{"timestamp":3, `
+const no_configuration_json = `{"timestamp":3000, "config":"bogus config"}`
+const bad_json = `{"timestamp":3000, `
 
 var savedOpenFunc func(path string) (io.ReadCloser, error)
 var savedCreateFunc func(path string) (io.WriteCloser, error)
+var savedLogMessage func(format string, v ...interface{})
+
+var messages []string
+
 var openedFileName string
 var wasClosed bool
 var createdFilePath string
 var createdFile *InMemoryFile
+
+const dbSwitch = "-" + db_flag
 
 func setUp() func() {
 	args = nil
 	wasClosed = false
 	createdFilePath = ""
 	createdFile = nil
-	initialize()
 
 	savedOpenFunc = openFile
 	savedCreateFunc = createFile
+	savedLogMessage = logMessage
+
+	messages = []string{}
+	logMessage = func(format string, v ...interface{}) {
+		messages = append(messages, fmt.Sprintf(format, v...))
+	}
+
+	initialize()
 
 	return func() {
 		openFile = savedOpenFunc
 		createFile = savedCreateFunc
+		logMessage = savedLogMessage
 	}
 }
 
-// todo write to config file, if defined
-
 // Tests that calling 'putConfiguration' with bad JSON returns an error
 func TestGetWithNoConfiguration_returnsEmptyConfig(t *testing.T) {
-	setUp()
+	tearDown := setUp()
+	defer tearDown()
+
 	if string(getConfiguration()) != empty_configuration {
 		t.Errorf("Expected %s but found <%s>", empty_configuration, getConfiguration())
 	}
@@ -55,7 +70,9 @@ func TestGetWithNoConfiguration_returnsEmptyConfig(t *testing.T) {
 
 // Tests that calling 'putConfiguration' with bad JSON returns an error
 func TestPutWithBadJSON_returnsErr(t *testing.T) {
-	setUp()
+	tearDown := setUp()
+	defer tearDown()
+
 	err := putConfiguration([]byte(bad_json))
 
 	if err == nil {
@@ -65,7 +82,9 @@ func TestPutWithBadJSON_returnsErr(t *testing.T) {
 
 // Tests that an http PUT request which fails to specify a configuration is flagged as an error
 func TestPutWithMissingConfiguration_returnsErr(t *testing.T) {
-	setUp()
+	tearDown := setUp()
+	defer tearDown()
+
 	err := putConfiguration([]byte(no_configuration_json))
 
 	if err == nil {
@@ -75,7 +94,9 @@ func TestPutWithMissingConfiguration_returnsErr(t *testing.T) {
 
 // Tests that calling 'putConfiguration' updates the global state that 'getConfiguration' retrieves
 func TestPutUpdatesConfiguration(t *testing.T) {
-	setUp()
+	tearDown := setUp()
+	defer tearDown()
+
 	putConfiguration([]byte(configuration_1))
 
 	if string(getConfiguration()) != configuration_1 {
@@ -85,7 +106,9 @@ func TestPutUpdatesConfiguration(t *testing.T) {
 
 // Tests that a 'putConfiguration' call which includes a timestamp earlier than the latest is ignored
 func TestDontUpdateWithEarlierConfiguration(t *testing.T) {
-	setUp()
+	tearDown := setUp()
+	defer tearDown()
+
 	putConfiguration([]byte(configuration_2))
 	putConfiguration([]byte(configuration_1))
 
@@ -96,7 +119,9 @@ func TestDontUpdateWithEarlierConfiguration(t *testing.T) {
 
 // Tests that an http PUT request updates the configuration returned by a GET request
 func TestHttpPutUpdatesConfiguration(t *testing.T) {
-	setUp()
+	tearDown := setUp()
+	defer tearDown()
+
 	doPutRequest(configuration_1)
 
 	latest := doGetRequest()
@@ -125,7 +150,9 @@ func doRequest(method, contents string) []byte {
 
 // Tests that an http PUT request which specifies an earlier timestamp is ignored
 func TestHttpDontOverrideLatest(t *testing.T) {
-	setUp()
+	tearDown := setUp()
+	defer tearDown()
+
 	doPutRequest(configuration_2)
 	doPutRequest(configuration_1)
 
@@ -138,7 +165,9 @@ func TestHttpDontOverrideLatest(t *testing.T) {
 
 // Tests that an http PUT request which fails to specify a configuration is ignored
 func TestHttpIgnoreMissingConfiguration(t *testing.T) {
-	setUp()
+	tearDown := setUp()
+	defer tearDown()
+
 	doPutRequest(configuration_2)
 	doPutRequest(no_configuration_json)
 
@@ -151,7 +180,9 @@ func TestHttpIgnoreMissingConfiguration(t *testing.T) {
 
 // Tests that an http PUT request which fails to specify a timestamp is ignored
 func TestHttpIgnoreMissingTimestamp(t *testing.T) {
-	setUp()
+	tearDown := setUp()
+	defer tearDown()
+
 	doPutRequest(configuration_2)
 	doPutRequest(no_timestamp_configuration)
 
@@ -164,7 +195,9 @@ func TestHttpIgnoreMissingTimestamp(t *testing.T) {
 
 // Tests that an http PUT request with bad JSON is ignored
 func TestHttpIgnoreBadJSON(t *testing.T) {
-	setUp()
+	tearDown := setUp()
+	defer tearDown()
+
 	doPutRequest(configuration_2)
 	doPutRequest(bad_json)
 
@@ -178,7 +211,8 @@ func TestHttpIgnoreBadJSON(t *testing.T) {
 // Tests that when no file is found, the initial configuration is set to the empty configuration
 
 func TestAfterInitializationWithNoFile_stateIsEmpty(t *testing.T) {
-	setUp()
+	tearDown := setUp()
+	defer tearDown()
 
 	if string(latest_configuration) != empty_configuration {
 		t.Errorf("Expected %s but found <%s>", empty_configuration, string(latest_configuration))
@@ -188,7 +222,8 @@ func TestAfterInitializationWithNoFile_stateIsEmpty(t *testing.T) {
 // Tests that when no file is found, the initial configuration is set to the empty configuration
 
 func TestAfterInitializationWithNoFile_timestampIsZero(t *testing.T) {
-	setUp()
+	tearDown := setUp()
+	defer tearDown()
 
 	if latest_timestamp != 0 {
 		t.Errorf("Expected 0 but found <%d>", latest_timestamp)
@@ -196,7 +231,8 @@ func TestAfterInitializationWithNoFile_timestampIsZero(t *testing.T) {
 }
 
 func TestSelectDefaultPort(t *testing.T) {
-	setUp()
+	tearDown := setUp()
+	defer tearDown()
 
 	args = []string{""}
 
@@ -208,7 +244,8 @@ func TestSelectDefaultPort(t *testing.T) {
 }
 
 func TestSelectNonDefaultPort(t *testing.T) {
-	setUp()
+	tearDown := setUp()
+	defer tearDown()
 
 	args = []string{"-port", "5000"}
 
@@ -225,21 +262,18 @@ func TestWhenPersistentFileSpecified_readIt(t *testing.T) {
 
 	const filePath = "/data/config.json"
 
-	args = []string{"-config", filePath}
+	args = []string{dbSwitch, filePath}
 	installInMemoryFile(configuration_2)
 
 	initialize()
 
 	if openedFileName != filePath {
 		t.Errorf("Expected to open config.json but opened <%s>", openedFileName)
-	}
-	if string(latest_configuration) != configuration_2 {
+	} else if string(latest_configuration) != configuration_2 {
 		t.Errorf("Expected configuration %s but found <%s>", configuration_2, latest_configuration)
-	}
-	if latest_timestamp != timestamp_2 {
+	} else if latest_timestamp != timestamp_2 {
 		t.Errorf("Expected timestamp %d but found %d", timestamp_2, latest_timestamp)
-	}
-	if !wasClosed {
+	} else if !wasClosed {
 		t.Errorf("File was not closed")
 	}
 }
@@ -255,7 +289,7 @@ func TestFileNotFound_logErrorAndUseDefaultConfiguration(t *testing.T) {
 	tearDown := setUp()
 	defer tearDown()
 
-	args = []string{"-config", "config.json"}
+	args = []string{dbSwitch, "config.json"}
 	installNoSuchFile()
 
 	initialize()
@@ -277,7 +311,7 @@ func TestWhenFileDefined_updateWritesConfiguration(t *testing.T) {
 
 	const filePath = "/data/config.json"
 
-	args = []string{"-config", filePath}
+	args = []string{dbSwitch, filePath}
 	initialize()
 
 	installReadyToWriteFile()
