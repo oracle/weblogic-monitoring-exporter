@@ -74,6 +74,14 @@
             <version>2.8.2</version>
         </dependency>
 
+        <!-- override transitive dependency to avoid a vulnerability reported in 2.4 -->
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
+        </dependency>
+
         <!-- unit test dependencies -->
         
         <dependency>
