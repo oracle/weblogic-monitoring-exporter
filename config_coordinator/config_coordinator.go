@@ -12,6 +12,10 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"flag"
+	"fmt"
+	"os"
+	"io"
 )
 
 func main() {
@@ -26,14 +30,73 @@ type config struct {
 	Configuration string
 }
 
-const serverAddress = ":8999"
+const defaultServerAddress = 8999
 const empty_configuration = `{"timestamp":0, "configuration":""}`
 
 var (
 	rw                   sync.RWMutex
 	latest_timestamp     int
-	latest_configuration []byte = []byte(empty_configuration)
+	latest_configuration []byte
+
+	serverAddress string
+
+	args []string = os.Args[1:]
 )
+
+var portFlag = flag.Int("port", defaultServerAddress, "the port on which the coordinator should listen")
+var configFlag = flag.String("config", "", "a file in which to persist the latest state")
+
+var openFile = func(path string) (io.ReadCloser, error) {
+	return os.Open(path)
+}
+
+var createFile = func(path string) (io.WriteCloser, error) {
+	return os.Create(path)
+}
+
+/*
+  Initialization of the coordinator
+ */
+func initialize() {
+	readCommandLine()
+
+	if *configFlag == "" {
+		installEmptyConfiguration()
+	} else {
+		file, err := openFile(*configFlag)
+		if err != nil {
+			installEmptyConfiguration()
+		} else {
+			putConfiguration(readFully(file))
+		}
+	}
+
+}
+func installEmptyConfiguration() {
+	latest_configuration = []byte(empty_configuration)
+	latest_timestamp = 0
+}
+
+// Returns the contents of the file as a byte array.
+// Any errors merely truncate the contents but are otherwise ignored
+func readFully(file io.ReadCloser) []byte {
+	defer file.Close()
+
+	var err error
+	var n int
+	result := make([]byte, 0)
+	buffer := make([]byte, 256)
+	for err == nil {
+		n, err = file.Read(buffer)
+		result = append(result, buffer[0:n]...)
+	}
+	return result
+}
+
+func readCommandLine() {
+	flag.CommandLine.Parse(args)
+	serverAddress = fmt.Sprintf(":%d", *portFlag)
+}
 
 /*
   A handler for HTTP requests.
@@ -72,15 +135,23 @@ func putConfiguration(configuration []byte) error {
 	err := json.Unmarshal(configuration, &config)
 	defer rw.Unlock()
 	rw.Lock()
+
 	if err != nil {
 		return err
 	} else if config.Configuration == "" {
 		return errors.New("no configuration element present")
 	} else if config.Timestamp > latest_timestamp {
-		latest_timestamp = config.Timestamp
-		latest_configuration = configuration
+		recordNewConfiguration(config, configuration)
 	}
 	return nil
+}
+
+func recordNewConfiguration(config config, configuration []byte) {
+	latest_timestamp = config.Timestamp
+	latest_configuration = configuration
+	file, _ := createFile(*configFlag)
+	file.Write(configuration)
+	file.Close()
 }
 
 func getConfiguration() []byte {

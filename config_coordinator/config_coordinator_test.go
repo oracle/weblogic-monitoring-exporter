@@ -9,17 +9,41 @@ import (
 	"testing"
 	"strings"
 	"net/http/httptest"
+	"io"
+	"os"
 )
 
+const timestamp_2 = 2000
 const configuration_1 = `{"timestamp":1, "configuration":"first yaml config"}`
-const configuration_2 = `{"timestamp":2, "configuration":"second yaml config"}`
+const configuration_2 = `{"timestamp":2000, "configuration":"second yaml config"}`
 const no_timestamp_configuration = `{"configuration":"bogus config"}`
 const no_configuration_json = `{"timestamp":3, "config":"bogus config"}`
 const bad_json = `{"timestamp":3, `
 
-func setUp() {
-	latest_timestamp = 0
+var savedOpenFunc func(path string) (io.ReadCloser, error)
+var savedCreateFunc func(path string) (io.WriteCloser, error)
+var openedFileName string
+var wasClosed bool
+var createdFilePath string
+var createdFile *InMemoryFile
+
+func setUp() func() {
+	args = nil
+	wasClosed = false
+	createdFilePath = ""
+	createdFile = nil
+	initialize()
+
+	savedOpenFunc = openFile
+	savedCreateFunc = createFile
+
+	return func() {
+		openFile = savedOpenFunc
+		createFile = savedCreateFunc
+	}
 }
+
+// todo write to config file, if defined
 
 // Tests that calling 'putConfiguration' with bad JSON returns an error
 func TestGetWithNoConfiguration_returnsEmptyConfig(t *testing.T) {
@@ -80,7 +104,6 @@ func TestHttpPutUpdatesConfiguration(t *testing.T) {
 	if string(latest) != configuration_1 {
 		t.Errorf("Expected %s but found <%s>", configuration_1, latest)
 	}
-
 }
 
 func doPutRequest(contents string) []byte {
@@ -151,3 +174,179 @@ func TestHttpIgnoreBadJSON(t *testing.T) {
 		t.Errorf("Expected %s but found <%s>", configuration_2, latest)
 	}
 }
+
+// Tests that when no file is found, the initial configuration is set to the empty configuration
+
+func TestAfterInitializationWithNoFile_stateIsEmpty(t *testing.T) {
+	setUp()
+
+	if string(latest_configuration) != empty_configuration {
+		t.Errorf("Expected %s but found <%s>", empty_configuration, string(latest_configuration))
+	}
+}
+
+// Tests that when no file is found, the initial configuration is set to the empty configuration
+
+func TestAfterInitializationWithNoFile_timestampIsZero(t *testing.T) {
+	setUp()
+
+	if latest_timestamp != 0 {
+		t.Errorf("Expected 0 but found <%d>", latest_timestamp)
+	}
+}
+
+func TestSelectDefaultPort(t *testing.T) {
+	setUp()
+
+	args = []string{""}
+
+	readCommandLine()
+
+	if serverAddress != ":8999" {
+		t.Errorf("Expected %s but found <%s>", ":8999", serverAddress)
+	}
+}
+
+func TestSelectNonDefaultPort(t *testing.T) {
+	setUp()
+
+	args = []string{"-port", "5000"}
+
+	readCommandLine()
+
+	if serverAddress != ":5000" {
+		t.Errorf("Expected %s but found <%s>", ":5000", serverAddress)
+	}
+}
+
+func TestWhenPersistentFileSpecified_readIt(t *testing.T) {
+	tearDown := setUp()
+	defer tearDown()
+
+	const filePath = "/data/config.json"
+
+	args = []string{"-config", filePath}
+	installInMemoryFile(configuration_2)
+
+	initialize()
+
+	if openedFileName != filePath {
+		t.Errorf("Expected to open config.json but opened <%s>", openedFileName)
+	}
+	if string(latest_configuration) != configuration_2 {
+		t.Errorf("Expected configuration %s but found <%s>", configuration_2, latest_configuration)
+	}
+	if latest_timestamp != timestamp_2 {
+		t.Errorf("Expected timestamp %d but found %d", timestamp_2, latest_timestamp)
+	}
+	if !wasClosed {
+		t.Errorf("File was not closed")
+	}
+}
+
+func installInMemoryFile(configurationString string) {
+	openFile = func(path string) (io.ReadCloser, error) {
+		openedFileName = path
+		return newExistingInMemoryFile(configurationString), nil
+	}
+}
+
+func TestFileNotFound_logErrorAndUseDefaultConfiguration(t *testing.T) {
+	tearDown := setUp()
+	defer tearDown()
+
+	args = []string{"-config", "config.json"}
+	installNoSuchFile()
+
+	initialize()
+
+	if string(latest_configuration) != empty_configuration {
+		t.Errorf("Expected configuration %s but found <%s>", empty_configuration, latest_configuration)
+	}
+}
+
+func installNoSuchFile() {
+	openFile = func(path string) (io.ReadCloser, error) {
+		return nil, os.ErrNotExist
+	}
+}
+
+func TestWhenFileDefined_updateWritesConfiguration(t *testing.T) {
+	tearDown := setUp()
+	defer tearDown()
+
+	const filePath = "/data/config.json"
+
+	args = []string{"-config", filePath}
+	initialize()
+
+	installReadyToWriteFile()
+	doPutRequest(configuration_1)
+
+	if createdFile == nil {
+		t.Errorf("Persistant file not created")
+	} else if createdFilePath != filePath {
+		t.Errorf("Expected file path %s but found <%s>", filePath, createdFilePath)
+	} else if string(createdFile.contents) != configuration_1 {
+		t.Errorf("Expected file contents to be %s but found <%s>", configuration_1, string(createdFile.contents))
+	} else if !wasClosed {
+		t.Errorf("Persistant file not closed")
+	}
+
+}
+
+func installReadyToWriteFile() {
+	createFile = func(path string) (io.WriteCloser, error) {
+		createdFilePath = path
+		createdFile = newCreatedInMemoryFile()
+		return createdFile, nil
+	}
+}
+
+//----------------
+
+type InMemoryFile struct {
+	index int
+	contents []byte
+}
+
+func (f *InMemoryFile) Read(p []byte) (n int, err error) {
+	size, err := results(len(f.contents) - f.index, len(p))
+	copy(p, f.contents[f.index:f.index + size])
+	f.index += size
+
+	return size, err
+}
+
+// computes the return values for the Read method, reporting an EOF if the number of bytes left to read
+// is less than the size of the buffer into which to read them
+func results(bytes_left, buffer_size int) (int, error) {
+	if bytes_left < buffer_size {
+		return bytes_left, io.EOF
+	} else {
+		return buffer_size, nil
+	}
+}
+
+func (f *InMemoryFile) Close() error {
+	wasClosed = true
+	return nil
+}
+
+func (f *InMemoryFile) Write(p []byte) (n int, err error) {
+	f.contents = p
+	return len(p), nil
+}
+
+
+func newExistingInMemoryFile(contents string) *InMemoryFile {
+	return &InMemoryFile{0, []byte(contents)}
+}
+
+func newCreatedInMemoryFile() *InMemoryFile {
+	return &InMemoryFile{0, nil}
+}
+
+
+
+

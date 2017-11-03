@@ -39,3 +39,8 @@ from the config_coordinator directory, and may be run with
 `docker run --publish 8999:8999 --name coordinator --rm config_coordinator`
 
 The `query_sync` section of the exporter configuration should point to this server
+
+## Persistence
+
+Passing the option "-config <file path>" will cause the coordinator to use the designated file path to persist changes
+to the configuration. This will preserve changes across container restarts.
