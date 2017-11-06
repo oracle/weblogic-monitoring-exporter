@@ -42,5 +42,19 @@ The `query_sync` section of the exporter configuration should point to this serv
 
 ## Persistence
 
-Passing the option "-config <file path>" will cause the coordinator to use the designated file path to persist changes
-to the configuration. This will preserve changes across container restarts.
+Passing the option "-db <file path>" will cause the coordinator to use the designated file path to persist changes
+to the configuration. This will preserve changes across container restarts. When running in a container, the file
+must be in a mounted volume.
+
+For example:
+
+```
+docker run --publish 8999:8999 --name coordinator --rm -v /my/storage:/var/lib/coordinator \
+            config_coordinator -db /var/lib/coordinator/configs.json
+```
+        
+ will cause Docker to mount the host machine directory `/my/storage` at the path `/var/lib/coordinator` on the host 
+ machine, and to use a file named `configs.json` in that directory to persist its state.
+
+
+
