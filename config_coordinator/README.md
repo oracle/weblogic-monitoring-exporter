@@ -53,8 +53,8 @@ docker run --publish 8999:8999 --name coordinator --rm -v /my/storage:/var/lib/c
             config_coordinator -db /var/lib/coordinator/configs.json
 ```
         
- will cause Docker to mount the host machine directory `/my/storage` at the path `/var/lib/coordinator` on the host 
- machine, and to use a file named `configs.json` in that directory to persist its state.
+ will cause Docker to mount the host machine directory `/my/storage` at the path `/var/lib/coordinator` 
+ in the container, and to use a file named `configs.json` in that directory to persist its state.
 
 
 
