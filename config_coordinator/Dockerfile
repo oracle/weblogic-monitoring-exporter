@@ -1,9 +1,9 @@
-# Start from a Debian image with the latest version of Go installed
+# Start from a Debian image with the desired version of Go installed
 # and a workspace (GOPATH) configured at /go.
-FROM golang
+FROM golang:1.9.2
 
 # Copy the local files to the container's workspace.
-ADD . /go/src/github.com/oracle/config_coordinator
+COPY . /go/src/github.com/oracle/config_coordinator
 
 # Build the config_coordinator command inside the container.
 RUN go install github.com/oracle/config_coordinator
