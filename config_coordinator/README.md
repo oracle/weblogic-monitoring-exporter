@@ -55,6 +55,14 @@ docker run --publish 8999:8999 --name coordinator --rm -v /my/storage:/var/lib/c
         
  will cause Docker to mount the host machine directory `/my/storage` at the path `/var/lib/coordinator` 
  in the container, and to use a file named `configs.json` in that directory to persist its state.
+ 
+ ## Copyright
+ 
+ Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved.
+  
+## License
+ 
+ The Universal Permissive License (UPL), Version 1.0
 
 
 

@@ -97,3 +97,13 @@ The exporter produces metrics for monitoring its own performance:
 - `wls_scrape_duration_seconds` reports the time required to do the scrape
 - `wls_scrape_cpu_seconds` reports the CPU time used during the scrape
 
+ 
+## Copyright
+ 
+ Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved.
+ 
+## License
+ 
+ The Universal Permissive License (UPL), Version 1.0
+
+
