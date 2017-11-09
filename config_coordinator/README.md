@@ -59,10 +59,5 @@ docker run --publish 8999:8999 --name coordinator --rm -v /my/storage:/var/lib/c
  ## Copyright
  
  Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved.
-  
-## License
- 
- The Universal Permissive License (UPL), Version 1.0
-
 
 
