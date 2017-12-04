@@ -1,6 +1,8 @@
 WebLogic Monitoring Exporter
 =====
 
+[![Build Status](https://travis-ci.org/oracle/weblogic-monitoring-exporter.svg?branch=master)](https://travis-ci.org/oracle/weblogic-monitoring-exporter)
+
 An exporter of [Prometheus](http://prometheus.io)-compatible metrics that uses the [WLS RESTful Management API](https://docs.oracle.com/middleware/1221/wls/WLRUR/overview.htm#WLRUR111) to scrape runtime information. 
 It is intended to be deployed as a web application in a WebLogic Server (WLS) instance, version 12.2.1 or higher. Typically, this is deployed to the instance you want to scrape.
 
