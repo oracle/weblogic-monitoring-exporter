@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017-2018 Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -16,7 +16,7 @@ public interface ServletConstants {
             "<html lang=\"en\">\n" +
             "<head>\n" +
             "    <meta charset=\"UTF-8\">\n" +
-            "    <title>Weblogic Prometheus Exporter</title>\n" +
+            "    <title>Weblogic Monitoring Exporter</title>\n" +
             "</head>\n" +
             "<body>";
 
