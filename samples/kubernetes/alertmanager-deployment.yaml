@@ -1,0 +1,103 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    name: alertmanager
+  name: alertmanager
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: alertmanager
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        name: alertmanager
+    spec:
+      hostname: alertmanager
+      containers:
+      - image: prom/alertmanager:v0.14.0
+        imagePullPolicy: IfNotPresent
+        name: alertmanager
+        ports:
+        - name: alertmanager
+          containerPort: 9093
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 2500Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        volumeMounts:
+#        - mountPath: /var/lib/alertmanager
+#          name: data
+        - mountPath: /etc/alertmanager/
+          name: config-volume
+      restartPolicy: Always
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: config-volume
+        configMap:
+          name: alertmanager-configuration
+#      - emptyDir: {}
+#        name: data
+      
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-configuration
+  namespace: monitoring
+data:
+  config.yml: |-
+    route:
+      group_by: ['alertname']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      receiver: 'web.hook.scaleup'
+    receivers:
+    - name: 'web.hook.scaleup'
+      webhook_configs:
+      - url: 'http://webhook:9000/hooks/scaleup'
+    inhibit_rules:
+      - source_match:
+          severity: 'critical'
+        target_match:
+          severity: 'warning'
+        equal: ['alertname', 'dev', 'instance']
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: monitoring
+spec:
+  type: ClusterIP
+  selector:
+    name: alertmanager
+  ports:
+    - port: 9093
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertweb
+  namespace: monitoring
+spec:
+  type: NodePort
+  selector:
+    name: alertmanager
+  ports:
+    - port: 9093
+      protocol: TCP
+      targetPort: 9093
+      nodePort: 32001
+  type: NodePort
