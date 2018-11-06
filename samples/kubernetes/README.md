@@ -1,7 +1,7 @@
 Monitoring with Prometheus and Kibana using WebLogic Monitoring Exporter
 =====
 
-Here is the suggested samples of deployments to start Prometheus, Kibana in the kubernetes cluster and the example of the rbac policy to setup all required permissions to access pods.
+Here is the suggested samples of deployments to start Prometheus, Kibana in the kubernetes cluster and the example of the RBAC policy to setup all required permissions to access pods.
 
 All suggested examples are configured to be deployed in the 'monitoring' namespace, Weblogic Kubernetes Operator is deployed in the 'weblogic-operator' namespace, weblogic domain runs in the 'weblogic-domain' namespace.
 
