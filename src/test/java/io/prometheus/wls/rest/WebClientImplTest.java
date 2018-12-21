@@ -32,7 +32,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
     private static final String UNDEFINED_HOST_URL = "http://mxyptlk/";
 
     /** A URL on a known host with a port on which no server is listening. */
-    private static final String UNDEFINED_PORT_URL = "http://localhost:9999";
+    private static final String UNDEFINED_PORT_URL = "http://localhost:59236";
 
     private WebClientFactory factory = new WebClientFactoryImpl();
 
