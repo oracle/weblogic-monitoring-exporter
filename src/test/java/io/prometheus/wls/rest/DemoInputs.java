@@ -58,7 +58,10 @@ class DemoInputs {
     @SuppressWarnings("unused")
     static final String YAML_STRING3 = "---\n" +
             "queries:\n" +
-            "- applicationRuntimes:\n" +
+            "- key: name\n" +
+            "  keyName: location\n" +
+            "  prefix: server_\n" +
+            "  applicationRuntimes:\n" +
             "    key: name\n" +
             "    keyName: app\n" +
             "    componentRuntimes:\n" +
@@ -69,10 +72,7 @@ class DemoInputs {
             "      servlets:\n" +
             "        prefix: weblogic_servlet_\n" +
             "        key: servletName\n" +
-            "        values: invocationTotalCount\n" +
-            "  bogusRuntimes:\n" +
-            "    key: areyoukidding\n" +
-            "    values: nothing";
+            "        values: invocationTotalCount";
 
     static final String YAML_EMPTY = "---\n";
 

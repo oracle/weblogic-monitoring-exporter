@@ -129,7 +129,7 @@
         <dependency>
             <groupId>com.meterware.simplestub</groupId>
             <artifactId>simplestub</artifactId>
-            <version>1.2.8</version>
+            <version>1.2.12</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

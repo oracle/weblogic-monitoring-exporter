@@ -84,7 +84,7 @@ public class MBeanSelector {
     private void reportDuplicateValues(String[] values, Set<String> uniqueValues) {
         ArrayList<String> duplicate = new ArrayList<>(Arrays.asList(values));
         for (String unique : uniqueValues)
-            duplicate.remove(duplicate.indexOf(unique));
+            duplicate.remove(unique);
 
         throw new ConfigurationException("Duplicate values for " + duplicate);
     }
@@ -245,7 +245,7 @@ public class MBeanSelector {
 
         Set<String> mergedValues = new HashSet<>(first.getValuesAsList());
         mergedValues.addAll(second.getValuesAsList());
-        values = mergedValues.toArray(new String[mergedValues.size()]);
+        values = mergedValues.toArray(new String[0]);
 
         nestedSelectors = new HashMap<>();
         nestedSelectors.putAll(first.nestedSelectors);
