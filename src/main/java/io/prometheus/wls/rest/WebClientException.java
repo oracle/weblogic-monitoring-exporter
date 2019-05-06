@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -10,6 +10,10 @@ package io.prometheus.wls.rest;
  */
 class WebClientException extends RuntimeException {
     WebClientException() {}
+
+    WebClientException(String message) {
+        super(message);
+    }
 
     WebClientException(Throwable cause, String message, Object... args) {
         super(formatMessage(message, args), cause);

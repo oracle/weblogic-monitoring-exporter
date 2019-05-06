@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017-2018 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -24,6 +24,7 @@ public interface ServletConstants {
     String MAIN_PAGE = "";
     String METRICS_PAGE = "metrics";
     String CONFIGURATION_PAGE = "configure";
+    String LOG_PAGE = "log";
 
     /** The header used by a web client to send its authentication credentials. **/
     String AUTHENTICATION_HEADER = "Authorization";

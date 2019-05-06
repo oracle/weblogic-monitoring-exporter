@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -24,13 +24,16 @@ class ConfigurationUpdaterImpl implements ConfigurationUpdater {
     private String repeaterUrl;
     private long refreshInterval;
     private Instant nextUpdateTime;
+    private ErrorLog errorLog = new ErrorLog();
 
     /**
      * Creates the updater.
      * @param syncConfiguration the configuration to apply to the updater
+     * @param errorLog a log to which errors should be reported
      */
-    ConfigurationUpdaterImpl(QuerySyncConfiguration syncConfiguration) {
+    ConfigurationUpdaterImpl(QuerySyncConfiguration syncConfiguration, ErrorLog errorLog) {
         this(Clock.systemUTC(), new WebClientFactoryImpl());
+        this.errorLog = errorLog;
         configure(syncConfiguration.getUrl(), syncConfiguration.getRefreshInterval());
     }
 
@@ -42,6 +45,14 @@ class ConfigurationUpdaterImpl implements ConfigurationUpdater {
     ConfigurationUpdaterImpl(Clock clock, WebClientFactory factory) {
         this.clock = clock;
         this.factory = factory;
+    }
+
+    /**
+     * Defines an error log to track problems with configuration updates.
+     * @param errorLog the new log
+     */
+    void setErrorLog(ErrorLog errorLog) {
+        this.errorLog = errorLog;
     }
 
     /**
@@ -67,6 +78,7 @@ class ConfigurationUpdaterImpl implements ConfigurationUpdater {
             latest = new Gson().fromJson(client.doGetRequest(), ConfigurationUpdate.class);
             nextUpdateTime = clock.instant().plusSeconds(refreshInterval);
         } catch (IOException | WebClientException e) {
+            errorLog.log(e);
             latest = null;
         }
     }
@@ -77,7 +89,8 @@ class ConfigurationUpdaterImpl implements ConfigurationUpdater {
             WebClient client = factory.createClient(repeaterUrl);
 
             client.doPutRequest(new Gson().toJson(createUpdate(configuration)));
-        } catch (IOException | WebClientException ignored) {
+        } catch (IOException | WebClientException e) {
+            errorLog.log(e);
         }
     }
 
