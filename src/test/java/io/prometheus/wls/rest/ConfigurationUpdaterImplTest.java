@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019 Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -14,6 +14,7 @@ import java.time.Instant;
 import static com.meterware.simplestub.Stub.createStrictStub;
 import static io.prometheus.wls.rest.domain.JsonPathMatcher.hasJsonPath;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 
 public class ConfigurationUpdaterImplTest {
@@ -38,6 +39,7 @@ public class ConfigurationUpdaterImplTest {
     private WebClientFactoryStub factory = createStrictStub(WebClientFactoryStub.class);
     private ClockStub clock = createStrictStub(ClockStub.class);
     private ConfigurationUpdaterImpl impl = new ConfigurationUpdaterImpl(clock, factory);
+    private ErrorLog errorLog = new ErrorLog();
 
     private static String quoted(String aString) {
         return '"' + aString + '"';
@@ -53,6 +55,16 @@ public class ConfigurationUpdaterImplTest {
         factory.setException(new WebClientException());
 
         assertThat(impl.getLatestConfigurationTimestamp(), equalTo(0L));
+    }
+
+    @Test
+    public void whenUnableToReachServer_addReasonToLog() {
+        factory.setException(new WebClientException("Unable to reach server"));
+        impl.setErrorLog(errorLog);
+
+        impl.getLatestConfigurationTimestamp();
+
+        assertThat(errorLog.getErrors(), containsString("Unable to reach server"));
     }
 
     @Test
@@ -125,6 +137,16 @@ public class ConfigurationUpdaterImplTest {
         impl.shareConfiguration(CONFIGURATION_1);
 
         assertThat(factory.getPostedString(), hasJsonPath("$.timestamp").withValue(23));
+    }
+
+    @Test
+    public void whenUnableToShareConfiguration_logProblem() {
+        factory.setException(new WebClientException("Unable to reach server"));
+        impl.setErrorLog(errorLog);
+
+        impl.shareConfiguration(CONFIGURATION_1);
+
+        assertThat(errorLog.getErrors(), containsString("Unable to reach server"));
     }
 
     static abstract class ClockStub extends Clock {

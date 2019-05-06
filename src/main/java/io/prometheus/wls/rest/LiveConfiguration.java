@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -30,6 +30,7 @@ class LiveConfiguration {
     private static String serverName;
     private static int serverPort;
     private static ConfigurationUpdater updater = new NullConfigurationUpdater();
+    private static ErrorLog errorLog = new ErrorLog();
 
     static {
         loadFromString("");
@@ -42,9 +43,8 @@ class LiveConfiguration {
     }
 
 
-    @SuppressWarnings("unchecked")
     static void loadFromString(String yamlString) {
-        Map<String, Object> yamlConfig = (Map<String, Object>) new Yaml().load(yamlString);
+        Map<String, Object> yamlConfig = new Yaml().load(yamlString);
 
         config = ExporterConfig.loadConfig(yamlConfig);
     }
@@ -93,6 +93,14 @@ class LiveConfiguration {
     }
 
     /**
+     * Returns the accumulatedLoggedErrors
+     * @return a string containing errors or the empty string;
+     */
+    static String getErrors() {
+        return errorLog.getErrors();
+    }
+
+    /**
      * Loads the initial configuration during servlet load. Will skip the initialization if the configuration
      * has already been loaded from the config coordinator.
      *
@@ -115,7 +123,8 @@ class LiveConfiguration {
     private static void installUpdater(QuerySyncConfiguration syncConfiguration) {
         if (syncConfiguration == null) return;
 
-        updater = new ConfigurationUpdaterImpl(syncConfiguration);
+        errorLog = new ErrorLog();
+        updater = new ConfigurationUpdaterImpl(syncConfiguration, errorLog);
     }
 
     private static InputStream getConfigurationFile(ServletConfig config) {
