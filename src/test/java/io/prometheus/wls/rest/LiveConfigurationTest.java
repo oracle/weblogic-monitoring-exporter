@@ -1,9 +1,10 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
 import io.prometheus.wls.rest.domain.ExporterConfig;
@@ -12,6 +13,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import static io.prometheus.wls.rest.InMemoryFileSystem.withNoParams;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -70,13 +73,13 @@ public class LiveConfigurationTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         InMemoryFileSystem.uninstall();
         ConfigurationUpdaterStub.uninstall();
     }
 
     @Test
-    public void afterInitCalled_haveQueries() throws Exception {
+    public void afterInitCalled_haveQueries() {
         init(CONFIGURATION);
 
         assertThat(LiveConfiguration.hasQueries(), is(true));
@@ -88,19 +91,19 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void whenInitNotCalled_haveNoQueries() throws Exception {
+    public void whenInitNotCalled_haveNoQueries() {
         assertThat(LiveConfiguration.hasQueries(), is(false));
     }
 
     @Test
-    public void afterInitCalled_haveExpectedConfiguration() throws Exception {
+    public void afterInitCalled_haveExpectedConfiguration() {
         init(CONFIGURATION);
 
         assertThat(LiveConfiguration.asString(), equalTo(CONFIGURATION));
     }
 
     @Test
-    public void afterInitCalledTwice_haveFirstConfiguration() throws Exception {
+    public void afterInitCalledTwice_haveFirstConfiguration() {
         init(CONFIGURATION);
         init(ADDED_CONFIGURATION);
 
@@ -108,7 +111,15 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void afterInitTimestampIsZero() throws Exception {
+    public void afterServerDefined_queryUrlUsesLocalHost() throws MalformedURLException {
+        init(CONFIGURATION);
+        LiveConfiguration.setServer("fakeHost", 800);
+
+        assertThat(new URL(LiveConfiguration.getQueryUrl()).getHost(), equalTo("localhost"));
+    }
+
+    @Test
+    public void afterInitTimestampIsZero() {
         init(CONFIGURATION);
         
         assertThat(LiveConfiguration.getTimestamp(), equalTo(0L));
@@ -123,6 +134,7 @@ public class LiveConfigurationTest {
         assertThat(LiveConfiguration.asString(), equalTo(ADDED_CONFIGURATION));
     }
 
+    @SuppressWarnings("SameParameterValue")
     private ExporterConfig toConfiguration(String configuration) {
         return ExporterConfig.loadConfig(new ByteArrayInputStream(configuration.getBytes()));
     }
@@ -175,7 +187,7 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void whenSharedTimestampIndicatesNewConfiguration_updateLiveConfiguration() throws Exception {
+    public void whenSharedTimestampIndicatesNewConfiguration_updateLiveConfiguration() {
         init(CONFIGURATION);
 
         long newTimestamp = LiveConfiguration.getTimestamp() + 1;
@@ -188,7 +200,7 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void whenSharedTimestampIndicatesHaveLatestConfiguration_dontUpdateLiveConfiguration() throws Exception {
+    public void whenSharedTimestampIndicatesHaveLatestConfiguration_dontUpdateLiveConfiguration() {
         init(CONFIGURATION);
 
         long newTimestamp = LiveConfiguration.getTimestamp();

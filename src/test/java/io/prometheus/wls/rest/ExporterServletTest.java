@@ -118,7 +118,8 @@ public class ExporterServletTest {
         initServlet("");
 
         servlet.doGet(request, response);
-        assertThat(factory.getClientUrl(), equalTo(String.format(URL_PATTERN, HttpServletRequestStub.HOST, HttpServletRequestStub.PORT)));
+        assertThat(factory.getClientUrl(),
+                   equalTo(String.format(URL_PATTERN, LiveConfiguration.WLS_HOST, HttpServletRequestStub.PORT)));
     }
 
     @Test

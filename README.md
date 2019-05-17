@@ -99,8 +99,12 @@ The exporter produces metrics for monitoring its own performance:
 - `wls_scrape_duration_seconds` reports the time required to do the scrape
 - `wls_scrape_cpu_seconds` reports the CPU time used during the scrape
 
+
+## Configuration
+
+The exporter uses `localhost` to access the REST API, so that needs not to be disabled.
  
 ## Copyright
  
- Copyright (c) 2017-2018 Oracle and/or its affiliates. All rights reserved.
+ Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
 
