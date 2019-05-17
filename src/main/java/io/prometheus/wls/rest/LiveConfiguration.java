@@ -24,7 +24,12 @@ import java.util.Map;
  * @author Russell Gold
  */
 class LiveConfiguration {
+    /** The path to the configuration file within the web application. */
     static final String CONFIG_YML = "/config.yml";
+
+    /** The address used to access WLS (cannot use the address found in the request due to potential server-side request forgery. */
+    static final String WLS_HOST = "localhost";
+    
     private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
     private static ExporterConfig config;
     private static String serverName;
@@ -65,7 +70,7 @@ class LiveConfiguration {
      * @return a url built for the configured server
      */
     static String getQueryUrl() {
-        return String.format(URL_PATTERN, serverName, serverPort);
+        return String.format(URL_PATTERN, WLS_HOST, serverPort);
     }
 
     /**

@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -123,7 +123,8 @@ public class ExporterServletTest {
         initServlet("");
 
         servlet.doGet(request, response);
-        assertThat(factory.getClientUrl(), equalTo(String.format(URL_PATTERN, HttpServletRequestStub.HOST, HttpServletRequestStub.PORT)));
+        assertThat(factory.getClientUrl(),
+                   equalTo(String.format(URL_PATTERN, LiveConfiguration.WLS_HOST, HttpServletRequestStub.PORT)));
     }
 
     @Test
