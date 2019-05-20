@@ -1,7 +1,9 @@
 ---
 metricsNameSnakeCase: true
 queries:
-- applicationRuntimes:
+- key: name
+  keyName: server
+  applicationRuntimes:
     key: name
     keyName: app
     componentRuntimes:

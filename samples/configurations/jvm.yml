@@ -1,6 +1,8 @@
 metricsNameSnakeCase: true
 queries:
-- JVMRuntime:
-    key: name
+- key: name
+  keyName: server
+  JVMRuntime:
     prefix: jvm_
+    key: name
     values: [heapFreeCurrent, heapFreePercent, heapSizeCurrent]

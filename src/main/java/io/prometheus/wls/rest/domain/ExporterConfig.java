@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest.domain;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017,2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -221,7 +221,7 @@ public class ExporterConfig {
         sb.append("queries:\n");
 
         for (MBeanSelector query : getQueries())
-            appendQueryToString(sb, query);
+            sb.append(formatQuery(query));
 
         return sb.toString();
     }
@@ -243,5 +243,12 @@ public class ExporterConfig {
             query.getNestedSelectors().get(selectorKey).appendNestedQuery(sb, "    ");
             indent = "  ";
         }
+    }
+
+    private String formatQuery(MBeanSelector query) {
+        StringBuilder sb = new StringBuilder();
+        query.appendNestedQuery(sb, "  ");
+        sb.replace(0, 1, "-");
+        return sb.toString();
     }
 }
