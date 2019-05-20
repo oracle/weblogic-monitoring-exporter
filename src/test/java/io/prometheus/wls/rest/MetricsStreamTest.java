@@ -1,36 +1,60 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+
+import com.meterware.simplestub.Memento;
+import com.meterware.simplestub.StaticStubSupport;
+import com.meterware.simplestub.SystemPropertySupport;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static io.prometheus.wls.rest.matchers.PrometheusMetricsMatcher.followsPrometheusRules;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.*;
 
 /**
  * @author Russell Gold
  */
 public class MetricsStreamTest {
     private static final long NANOSEC_PER_SECONDS = 1000000000;
+    private static final String LINE_SEPARATOR = "line.separator";
+    private static final String WINDOWS_LINE_SEPARATOR = "\r\n";
     private PerformanceProbeStub performanceProbe = new PerformanceProbeStub();
-    private ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    private PrintStream ps = new PrintStream(baos);
-    private MetricsStream metrics = new MetricsStream(ps, performanceProbe);
+    private ByteArrayOutputStream baos;
+    private MetricsStream metrics;
+    private List<Memento> mementos = new ArrayList<>();
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() throws NoSuchFieldException {
+        initMetricsStream();
         LiveConfiguration.setServer("localhost", 7001);
+        mementos.add(SystemPropertySupport.preserve(LINE_SEPARATOR));
+        mementos.add(StaticStubSupport.preserve(System.class, "lineSeparator"));
+    }
+
+    private void initMetricsStream() {
+        baos = new ByteArrayOutputStream();
+        metrics = new MetricsStream(new PrintStream(baos), performanceProbe);
+    }
+
+    @After
+    public void tearDown() {
+        mementos.forEach(Memento::revert);
     }
 
     @Test
-    public void whenNoMetricsScraped_reportNoneScraped() throws Exception {
+    public void whenNoMetricsScraped_reportNoneScraped() {
         assertThat(getPrintedMetrics(),
                 containsString("wls_scrape_mbeans_count_total{instance=\"localhost:7001\"} 0"));
     }
@@ -41,7 +65,37 @@ public class MetricsStreamTest {
     }
 
     @Test
-    public void afterMetricsScraped_reportScrapedCount() throws Exception {
+    public void whenMetricsPrinted_eachHasItsOwnLineSeparatedByCarriageReturns() {
+        metrics.printMetric("a", 12);
+        metrics.printMetric("b", 120);
+        metrics.printMetric("c", 0);
+
+        assertThat(getPrintedMetricValues(), hasItems("12", "120", "0", "3"));
+    }
+
+    @Test
+    public void whenMetricsPrintedOnWindows_eachHasItsOwnLineSeparatedByCarriageReturns() throws NoSuchFieldException {
+        simulateWindows();
+
+        metrics.printMetric("a", 12);
+        metrics.printMetric("b", 120);
+        metrics.printMetric("c", 0);
+
+        assertThat(getPrintedMetricValues(), hasItems("12", "120", "0", "3"));
+    }
+
+    private void simulateWindows() throws NoSuchFieldException {
+        StaticStubSupport.install(System.class, "lineSeparator", WINDOWS_LINE_SEPARATOR);
+        System.setProperty(LINE_SEPARATOR, WINDOWS_LINE_SEPARATOR);
+        initMetricsStream();
+    }
+
+    private List<String> getPrintedMetricValues() {
+        return Arrays.stream(getPrintedMetrics().split("\n")).map(l -> l.split(" ")[1]).collect(Collectors.toList());
+    }
+
+    @Test
+    public void afterMetricsScraped_reportScrapedCount() {
         metrics.printMetric("a", 12);
         metrics.printMetric("b", 120);
         metrics.printMetric("c", 0);
@@ -51,7 +105,7 @@ public class MetricsStreamTest {
     }
 
     @Test
-    public void afterTimePasses_reportScrapeDuration() throws Exception {
+    public void afterTimePasses_reportScrapeDuration() {
         performanceProbe.incrementElapsedTime(12.4);
 
         assertThat(getPrintedMetrics(),
@@ -59,7 +113,7 @@ public class MetricsStreamTest {
     }
 
     @Test
-    public void afterProcessing_reportCpuPercent() throws Exception {
+    public void afterProcessing_reportCpuPercent() {
         performanceProbe.incrementCpuTime(3.2);
 
         assertThat(getPrintedMetrics(),
@@ -67,7 +121,7 @@ public class MetricsStreamTest {
     }
 
     @Test
-    public void producedMetricsAreCompliant() throws Exception {
+    public void producedMetricsAreCompliant() {
         performanceProbe.incrementElapsedTime(20);
         performanceProbe.incrementCpuTime(3);
 

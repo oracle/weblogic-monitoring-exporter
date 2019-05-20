@@ -55,7 +55,7 @@ class MetricsStream extends PrintStream {
      * @param value the metric value
      */
     void printMetric(String name, Object value) {
-        println(name + " " + value);
+        print(name + " " + value + '\n');
         scrapeCount++;
     }
 
@@ -63,9 +63,9 @@ class MetricsStream extends PrintStream {
      * Prints the summary performance metrics
      */
     void printPerformanceMetrics() {
-        printf( "%s %d%n", getCountName(), scrapeCount);
-        printf(Locale.US, "%s %.2f%n", getDurationName(), toSeconds(getElapsedTime()));
-        printf(Locale.US, "%s %.2f%n", getCpuUsageName(), toSeconds(getCpuUsed()));
+        printf( "%s %d\n", getCountName(), scrapeCount);
+        printf(Locale.US, "%s %.2f\n", getDurationName(), toSeconds(getElapsedTime()));
+        printf(Locale.US, "%s %.2f\n", getCpuUsageName(), toSeconds(getCpuUsed()));
     }
 
     private String getDurationName() {
