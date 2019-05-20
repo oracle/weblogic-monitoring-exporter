@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest.domain;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -123,6 +123,10 @@ public class MetricsScraperTest {
             "                ]}\n" +
             "            }";
 
+    private static final String RESPONSE_WITH_NULL = "{\n" +
+            "                \"servlets\": null\n" +
+            "            }";
+
     private final Map<String,Object> leafMap = new HashMap<>(ImmutableMap.of(MBeanSelector.KEY, "servletName",
             MBeanSelector.PREFIX, "servlet_", MBeanSelector.VALUES, new String[]{"invocationTotalCount","invocationId"}));
 
@@ -146,7 +150,7 @@ public class MetricsScraperTest {
     private final MetricsScraper scraper = new MetricsScraper();
 
     @Test
-    public void generateLeafMetrics() throws Exception {
+    public void generateLeafMetrics() {
         generateNestedMetrics(getServletsMap(), SERVLET_RESPONSE);
 
         assertThat(scraper.getMetrics(),
@@ -172,7 +176,7 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void whenNoValuesSpecified_generateAllMetrics() throws Exception {
+    public void whenNoValuesSpecified_generateAllMetrics() {
         generateNestedMetrics(getAllValuesServletsMap(), SERVLET_RESPONSE);
 
         assertThat(scraper.getMetrics(),
@@ -186,7 +190,7 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void generateLeafMetricsWhileAccumulatingQualifiers() throws Exception {
+    public void generateLeafMetricsWhileAccumulatingQualifiers() {
         generateNestedMetrics(getServletsMap(), SERVLET_RESPONSE, "webapp=\"wls\"");
 
         assertThat(scraper.getMetrics(),
@@ -194,7 +198,7 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void generateLeafMetricsWithNoQualifiers() throws Exception {
+    public void generateLeafMetricsWithNoQualifiers() {
         generateNestedMetrics(getServletsMapWithoutQualifierKey(), SINGLE_SERVLET_RESPONSE);
 
         assertThat(scraper.getMetrics(), hasMetric("servlet_invocationTotalCount", 0));
@@ -206,14 +210,14 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void generateLeafMetricsWithParentQualifiersOnly() throws Exception {
+    public void generateLeafMetricsWithParentQualifiersOnly() {
         generateNestedMetrics(getServletsMapWithoutQualifierKey(), SINGLE_SERVLET_RESPONSE, "webapp=\"wls\"");
 
         assertThat(scraper.getMetrics(), hasMetric("servlet_invocationTotalCount{webapp=\"wls\"}", 0));
     }
 
     @Test
-    public void whenKeyNameSpecified_useItRatherThanKey() throws Exception {
+    public void whenKeyNameSpecified_useItRatherThanKey() {
         generateNestedMetrics(getServletsMapWithKeyName("servlet"), SERVLET_RESPONSE);
 
         assertThat(scraper.getMetrics(), hasMetric("servlet_invocationTotalCount{servlet=\"JspServlet\"}", 0));
@@ -226,7 +230,7 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void whenValuesIncludesKey_ignoreIt() throws Exception {
+    public void whenValuesIncludesKey_ignoreIt() {
         generateNestedMetrics(getServletsMapWithKey("invocationId"), SINGLE_SERVLET_RESPONSE);
 
         assertThat(scraper.getMetrics(), not(hasMetric("servlet_invocationId{invocationId=\"23\"}", 23)));
@@ -239,21 +243,29 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void whenGenerateHierarchicalMetrics_containsTopLevel() throws Exception {
+    public void whenNullObjectInResponse_dontFail() {
+        generateNestedMetrics(getServletsMapWithKey("invocationId"), RESPONSE_WITH_NULL);
+
+        // todo add as comment
+        assertThat(scraper.getMetrics(), not(hasMetric("servlet_invocationId{invocationId=\"23\"}", 23)));
+    }
+
+    @Test
+    public void whenGenerateHierarchicalMetrics_containsTopLevel() {
         generateNestedMetrics(twoLevelMap, TWO_LEVEL_RESPONSE);
 
         assertThat(scraper.getMetrics(), hasMetric("component_deploymentState{component=\"ejb30_weblogic\"}", 2));
     }
 
     @Test
-    public void whenNoPrefix_generateBareMetrics() throws Exception {
+    public void whenNoPrefix_generateBareMetrics() {
         generateNestedMetrics(noPrefixTwoLevelMap, TWO_LEVEL_RESPONSE);
 
         assertThat(scraper.getMetrics(), hasMetric("deploymentState{component=\"ejb30_weblogic\"}", 2));
     }
 
     @Test
-    public void whenGenerateHierarchicalMetrics_ignoresNonNumericValues() throws Exception {
+    public void whenGenerateHierarchicalMetrics_ignoresNonNumericValues() {
         generateNestedMetrics(twoLevelMap, TWO_LEVEL_RESPONSE);
 
         assertThat(scraper.getMetrics(), not(hasMetric("component_sourceInfo{component=\"ejb30_weblogic\"}", "weblogic.war")));
@@ -261,19 +273,19 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void whenGenerateHierarchicalMetrics_containsBottomLevel() throws Exception {
+    public void whenGenerateHierarchicalMetrics_containsBottomLevel() {
         generateNestedMetrics(twoLevelMap, TWO_LEVEL_RESPONSE);
 
         assertThat(scraper.getMetrics(), hasMetric("servlet_invocationTotalCount{component=\"ejb30_weblogic\",servletName=\"JspServlet\"}", 0));
     }
 
     @Test
-    public void whenResponseLacksServerRuntimes_generateEmptyMetrics() throws Exception {
+    public void whenResponseLacksServerRuntimes_generateEmptyMetrics() {
         assertThat(scraper.scrape(MBeanSelector.create(getFullMap()), getJsonResponse("{}")), anEmptyMap());
     }
 
     @Test
-    public void generateFromFullResponse() throws Exception {
+    public void generateFromFullResponse() {
         Map<String, Object> metrics = scraper.scrape(MBeanSelector.create(getFullMap()), getJsonResponse(RESPONSE));
         
         assertThat(metrics, hasMetric("component_deploymentState{application=\"weblogic\",component=\"ejb30_weblogic\"}", 2));
@@ -288,7 +300,7 @@ public class MetricsScraperTest {
 
 
     @Test
-    public void generateFromFullResponseUsingSnakeCase() throws Exception {
+    public void generateFromFullResponseUsingSnakeCase() {
         scraper.setMetricNameSnakeCase(true);
         Map<String, Object> metrics = scraper.scrape(MBeanSelector.create(getFullMap()), getJsonResponse(RESPONSE));
 
@@ -297,7 +309,7 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void whenTypeNotSpecified_includeAllComponents() throws Exception {
+    public void whenTypeNotSpecified_includeAllComponents() {
         Map<String, Object> metrics = scraper.scrape(MBeanSelector.create(getFullMap()), getJsonResponse(RESPONSE));
 
         assertThat(metrics, hasMetric("component_deploymentState{application=\"weblogic\",component=\"ejb30_weblogic\"}", 2));
@@ -305,7 +317,7 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void selectOnlyWebApps() throws Exception {
+    public void selectOnlyWebApps() {
         componentMap.put(MBeanSelector.TYPE, "WebAppComponentRuntime");
         Map<String, Object> metrics = scraper.scrape(MBeanSelector.create(getFullMap()), getJsonResponse(RESPONSE));
 
@@ -314,12 +326,13 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void whenValuesAtTopLevel_scrapeThem() throws Exception {
+    public void whenValuesAtTopLevel_scrapeThem() {
         final MBeanSelector selector = MBeanSelector.create(getMetricsMap());
         final JsonObject jsonResponse = getJsonResponse(METRICS_RESPONSE);
         Map<String, Object> metrics = scraper.scrape(selector, jsonResponse);
 
         assertThat(metrics, hasMetric("heapSizeCurrent", 123456));
+        assertThat(metrics, hasMetric("processCpuLoad", .0028));
     }
 
 
@@ -336,9 +349,10 @@ public class MetricsScraperTest {
             "    \"heapFreeCurrent\": 287379152,\n" +
             "    \"heapSizeMax\": 477626368,\n" +
             "    \"heapFreePercent\": 69,\n" +
-            "    \"processCpuLoad\": .0028\n" +
+            "    \"processCpuLoad\": 0.0028\n" +
             "}}";
 
+    @SuppressWarnings("unused")
     static class MetricMatcher extends org.hamcrest.TypeSafeDiagnosingMatcher<Map<String,Object>> {
         private String expectedKey;
         private Object expectedValue;
@@ -367,8 +381,12 @@ public class MetricsScraperTest {
         private boolean matchesValue(Object o) {
             if (expectedValue instanceof String)
                 return Objects.equals(o, expectedValue);
+            else if (expectedValue instanceof Integer)
+                return ((Number) o).intValue() == ((Number) expectedValue).intValue();
+            else if (expectedValue instanceof Double)
+                return ((Number) o).doubleValue() == ((Number) expectedValue).doubleValue();
             else
-                return expectedValue instanceof Integer && ((Number) o).intValue() == ((Number) expectedValue).intValue();
+                return false;
         }
 
         @Override

@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -15,29 +15,21 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
 import static io.prometheus.wls.rest.HttpServletRequestStub.createGetRequest;
 import static io.prometheus.wls.rest.HttpServletResponseStub.createServletResponse;
 import static io.prometheus.wls.rest.InMemoryFileSystem.withNoParams;
-import static io.prometheus.wls.rest.ServletConstants.*;
+import static io.prometheus.wls.rest.ServletConstants.AUTHENTICATION_HEADER;
+import static io.prometheus.wls.rest.ServletConstants.COOKIE_HEADER;
 import static io.prometheus.wls.rest.domain.JsonPathMatcher.hasJsonPath;
 import static io.prometheus.wls.rest.matchers.CommentsOnlyMatcher.containsOnlyComments;
 import static io.prometheus.wls.rest.matchers.MetricsNamesSnakeCaseMatcher.usesSnakeCase;
 import static io.prometheus.wls.rest.matchers.PrometheusMetricsMatcher.followsPrometheusRules;
 import static io.prometheus.wls.rest.matchers.ResponseHeaderMatcher.containsHeader;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
-import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
+import static javax.servlet.http.HttpServletResponse.*;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
 
@@ -58,9 +50,11 @@ public class ExporterServletTest {
     private ExporterServlet servlet = new ExporterServlet(factory);
     private HttpServletRequestStub request = createGetRequest();
     private HttpServletResponseStub response = createServletResponse();
+    private Locale locale;
 
     @Before
     public void setUp() throws Exception {
+        locale = Locale.getDefault();
         InMemoryFileSystem.install();
         ConfigurationUpdaterStub.install();
         LiveConfiguration.loadFromString("");
@@ -70,6 +64,7 @@ public class ExporterServletTest {
 
     @After
     public void tearDown() throws Exception {
+        Locale.setDefault(locale);
         InMemoryFileSystem.uninstall();
         ConfigurationUpdaterStub.uninstall();
     }
@@ -302,6 +297,28 @@ public class ExporterServletTest {
         servlet.doGet(request, response);
 
         assertThat(toHtml(response), containsString("wls_scrape_mbeans_count_total{instance=\"myhost:7654\"} 6"));
+    }
+
+    @Test
+    public void onGetInForeignLocale_performanceMetricsUsePeriodForFloatingPoint() throws Exception {
+        factory.addJsonResponse(getGroupResponseMap());
+        initServlet(CONFIG_WITH_CATEGORY_VALUE);
+
+        Locale.setDefault(Locale.FRANCE);
+        servlet.doGet(request, response);
+
+        assertThat(getMetricValue("wls_scrape_duration_seconds"), containsString("."));
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private String getMetricValue(String metricsName) throws IOException {
+        String line;
+        BufferedReader reader = new BufferedReader(new StringReader(toHtml(response)));
+        do {
+            line = reader.readLine();
+        } while (line != null && !line.contains(metricsName));
+
+        return (line == null) ? "" : line.split(" ")[1];
     }
 
     @Test

@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
+import java.util.Locale;
 
 /**
  * A PrintStream that computes metrics for the performance of the exporter itself. It does so by tracking the
@@ -63,8 +64,8 @@ class MetricsStream extends PrintStream {
      */
     void printPerformanceMetrics() {
         printf( "%s %d%n", getCountName(), scrapeCount);
-        printf("%s %.2f%n", getDurationName(), toSeconds(getElapsedTime()));
-        printf("%s %.2f%n", getCpuUsageName(), toSeconds(getCpuUsed()));
+        printf(Locale.US, "%s %.2f%n", getDurationName(), toSeconds(getElapsedTime()));
+        printf(Locale.US, "%s %.2f%n", getCpuUsageName(), toSeconds(getCpuUsed()));
     }
 
     private String getDurationName() {

@@ -1,0 +1,8 @@
+metricsNameSnakeCase: true
+queries:
+- key: name
+  keyName: server
+  threadPoolRuntime:
+    key: name
+    keyName: app
+    values: throughput

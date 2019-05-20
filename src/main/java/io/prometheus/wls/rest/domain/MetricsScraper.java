@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest.domain;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -84,8 +84,9 @@ class MetricsScraper {
 
     void scrapeSubObject(JsonObject subObject, MBeanSelector selector, String parentQualifiers) {
         for (String selectorKey : selector.getNestedSelectors().keySet()) {
-            if (subObject.has(selectorKey)) {
-                scrapeItemList(subObject.getAsJsonObject(selectorKey), selector.getNestedSelectors().get(selectorKey), parentQualifiers);
+            JsonElement value = subObject.get(selectorKey);
+            if (value instanceof JsonObject) {
+                scrapeItemList(((JsonObject) value), selector.getNestedSelectors().get(selectorKey), parentQualifiers);
             }
         }
     }
