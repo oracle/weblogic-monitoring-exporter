@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest.domain;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * A description of an mbean to be selected by the generated JSON query and captured from the result.
@@ -31,12 +32,22 @@ public class MBeanSelector {
     static final String TYPE_FIELD_NAME = "type";
 
     private static final String[] NO_VALUES = {};
+    static final MBeanSelector DOMAIN_NAME_SELECTOR = createDomainNameSelector();
     private String type;
     private String prefix;
     private String key;
     private String keyName;
     private String[] values = null;
     private Map<String, MBeanSelector> nestedSelectors = new HashMap<>();
+    private QueryType queryType = QueryType.RUNTIME;
+
+    private static MBeanSelector createDomainNameSelector() {
+        Map<String,Object> yaml = new HashMap<>();
+        yaml.put(MBeanSelector.VALUES, new String[] { "name" });
+        MBeanSelector selector = MBeanSelector.create(yaml);
+        selector.setQueryType(QueryType.CONFIGURATION);
+        return selector;
+    }
 
     private MBeanSelector(Map<String, Object> map) {
         for (String key : map.keySet()) {
@@ -128,7 +139,7 @@ public class MBeanSelector {
      * @param map the map of yaml data
      * @return a new mbean selector
      */
-    static MBeanSelector create(Map<String, Object> map) {
+    public static MBeanSelector create(Map<String, Object> map) {
         return new MBeanSelector(map);
     }
 
@@ -270,5 +281,22 @@ public class MBeanSelector {
 
     private boolean mayMergeCorrespondingChildren(String selectorKey, MBeanSelector other) {
         return nestedSelectors.get(selectorKey).mayMergeWith(other.nestedSelectors.get(selectorKey));
+    }
+
+    public String getUrl(String myhost, int port) {
+        return String.format(queryType.getUrlPattern(), myhost, port);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    void setQueryType(QueryType queryType) {
+        this.queryType = queryType;
+    }
+
+    boolean acceptsStrings() {
+        return queryType.acceptsStrings();
+    }
+
+    void processMetrics(Map<String, Object> metrics, Consumer<Map<String, String>> processMetrics) {
+        queryType.processMetrics(metrics, processMetrics);
     }
 }

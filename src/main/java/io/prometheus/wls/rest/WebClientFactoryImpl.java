@@ -13,7 +13,7 @@ package io.prometheus.wls.rest;
 public class WebClientFactoryImpl implements WebClientFactory {
 
     @Override
-    public WebClient createClient(String url) {
-        return new WebClientImpl(url);
+    public WebClient createClient() {
+        return new WebClientImpl();
     }
 }

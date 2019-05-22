@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -13,8 +13,7 @@ package io.prometheus.wls.rest;
 public interface WebClientFactory {
 
     /**
-     * Creates a client which will send queries to the specified URL
-     * @param url the URL of the WLS REST service
+     * Creates a client which will send queries to a specified URL
      */
-    WebClient createClient(String url);
+    WebClient createClient();
 }

@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -11,14 +11,12 @@ import com.meterware.pseudoserver.WebResource;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static io.prometheus.wls.rest.ServletConstants.*;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
+import static io.prometheus.wls.rest.ServletConstants.AUTHENTICATION_HEADER;
+import static io.prometheus.wls.rest.ServletConstants.COOKIE_HEADER;
+import static javax.servlet.http.HttpServletResponse.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
@@ -31,9 +29,6 @@ public class WebClientImplTest extends HttpUserAgentTest {
     /** A URL with a host guaranteed not to exist. */
     private static final String UNDEFINED_HOST_URL = "http://mxyptlk/";
 
-    /** A URL on a known host with a port on which no server is listening. */
-    private static final String UNDEFINED_PORT_URL = "http://localhost:59236";
-
     private WebClientFactory factory = new WebClientFactoryImpl();
 
     private static String sentInfo;
@@ -42,19 +37,19 @@ public class WebClientImplTest extends HttpUserAgentTest {
     private static final String SET_COOKIE_VALUE = COOKIE + "; path=localhost";
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         sentInfo = null;
         sentHeaders.clear();
     }
 
     @Test(expected = WebClientException.class)
     public void whenUnableToReachHost_throwException() throws Exception {
-        factory.createClient(UNDEFINED_HOST_URL).doGetRequest();
+        factory.createClient().withUrl(UNDEFINED_HOST_URL).doGetRequest();
     }
 
     @Test(expected = WebClientException.class)
     public void whenUnableToReachServer_throwException() throws Exception {
-        factory.createClient(UNDEFINED_PORT_URL).doGetRequest();
+        factory.createClient().withUrl(UNDEFINED_HOST_URL).doGetRequest();
     }
 
     @Test
@@ -67,7 +62,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        final String response = factory.createClient(getHostPath() + "/unprotected").doGetRequest();
+        final String response = factory.createClient().withUrl(getHostPath() + "/unprotected").doGetRequest();
 
         assertThat(response, equalTo(RESPONSE));
     }
@@ -83,7 +78,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        factory.createClient(getHostPath() + "/unprotected").doPostRequest(QUERY);
+        factory.createClient().withUrl(getHostPath() + "/unprotected").doPostRequest(QUERY);
 
         assertThat(sentInfo, equalTo(QUERY));
     }
@@ -99,7 +94,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        factory.createClient(getHostPath() + "/unprotected_put").doPutRequest(QUERY);
+        factory.createClient().withUrl(getHostPath() + "/unprotected_put").doPutRequest(QUERY);
 
         assertThat(sentInfo, equalTo(QUERY));
     }
@@ -117,7 +112,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        WebClient client = factory.createClient(getHostPath() + "/checkHeader");
+        WebClient client = factory.createClient().withUrl(getHostPath() + "/checkHeader");
         client.addHeader("Added-header", "header_value");
         client.doPostRequest("abced");
     }
@@ -131,7 +126,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        WebClient webClient = factory.createClient(getHostPath() + "/headers");
+        WebClient webClient = factory.createClient().withUrl(getHostPath() + "/headers");
         webClient.setAuthentication("auth-value");
         webClient.doGetRequest();
 
@@ -147,7 +142,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        WebClient webClient = factory.createClient(getHostPath() + "/headers");
+        WebClient webClient = factory.createClient().withUrl(getHostPath() + "/headers");
         webClient.setAuthentication("auth-value");
         webClient.doPostRequest("abced");
 
@@ -165,7 +160,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        WebClient webClient = factory.createClient(getHostPath() + "/cookies");
+        WebClient webClient = factory.createClient().withUrl(getHostPath() + "/cookies");
         webClient.doPostRequest("abced");
 
         assertThat(webClient.getSetCookieHeader(), equalTo(SET_COOKIE_VALUE));
@@ -181,7 +176,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        WebClient webClient = factory.createClient(getHostPath() + "/query");
+        WebClient webClient = factory.createClient().withUrl(getHostPath() + "/query");
         assertThat(webClient.doPostRequest("abced"), equalTo(RESPONSE));
     }
 
@@ -189,40 +184,40 @@ public class WebClientImplTest extends HttpUserAgentTest {
     public void when400StatusReceived_throwsRestQueryException() throws Exception {
         defineResource("badRestQuery", new PseudoServlet() {
             @Override
-            public WebResource getPostResponse() throws IOException {
+            public WebResource getPostResponse() {
                 return new WebResource("bad query", "text/plain", SC_BAD_REQUEST);
             }
         });
 
-        factory.createClient(getHostPath() + "/badRestQuery").doPostRequest("abced");
+        factory.createClient().withUrl(getHostPath() + "/badRestQuery").doPostRequest("abced");
     }
 
     @Test(expected = BasicAuthenticationChallengeException.class)
     public void when401ReceivedFromServer_throwsException() throws Exception {
         defineResource("protected", new PseudoServlet() {
             @Override
-            public WebResource getPostResponse() throws IOException {
+            public WebResource getPostResponse() {
                 WebResource resource = new WebResource("unauthorized", "text/plain", SC_UNAUTHORIZED);
                 resource.addHeader("WWW-Authenticate: Basic realm=\"REST Realm\"");
                 return resource;
             }
         });
 
-        factory.createClient(getHostPath() + "/protected").doPostRequest("abced");
+        factory.createClient().withUrl(getHostPath() + "/protected").doPostRequest("abced");
     }
 
     @Test
     public void when401ReceivedFromServer_exceptionIncludesRealm() throws Exception {
         defineResource("protected", new PseudoServlet() {
             @Override
-            public WebResource getPostResponse() throws IOException {
+            public WebResource getPostResponse() {
                 WebResource resource = new WebResource("unauthorized", "text/plain", SC_UNAUTHORIZED);
                 resource.addHeader("WWW-Authenticate: Basic realm=\"REST Realm\"");
                 return resource;
             }
         });
 
-        WebClient webClient = factory.createClient(getHostPath() + "/protected");
+        WebClient webClient = factory.createClient().withUrl(getHostPath() + "/protected");
 
         try {
             webClient.doPostRequest("abcd");
@@ -235,12 +230,12 @@ public class WebClientImplTest extends HttpUserAgentTest {
     public void when403ReceivedFromServer_throwsException() throws Exception {
         defineResource("forbidden", new PseudoServlet() {
             @Override
-            public WebResource getPostResponse() throws IOException {
+            public WebResource getPostResponse() {
                 return new WebResource("not allowed", "text/plain", SC_FORBIDDEN);
             }
         });
 
-        factory.createClient(getHostPath() + "/forbidden").doPostRequest("abced");
+        factory.createClient().withUrl(getHostPath() + "/forbidden").doPostRequest("abced");
     }
 
     @Test
@@ -255,7 +250,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        WebClient webClient = factory.createClient(getHostPath() + "/session");
+        WebClient webClient = factory.createClient().withUrl(getHostPath() + "/session");
         webClient.doPostRequest("abced");
 
         assertThat(webClient.getSessionCookie(), equalTo(COOKIE));
@@ -265,7 +260,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
     public void afterSetCookieReceived_sendCookieOnNextRequest() throws Exception {
         defineSessionResource();
 
-        WebClient webClient = factory.createClient(getHostPath() + "/session");
+        WebClient webClient = factory.createClient().withUrl(getHostPath() + "/session");
         webClient.doPostRequest("abced");
         webClient.doPostRequest("abced");
 
@@ -298,7 +293,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
     public void afterSetCookieReceived_clientRetainsSetCookieOnNextRequest() throws Exception {
         defineSessionResource();
 
-        WebClient webClient = factory.createClient(getHostPath() + "/session");
+        WebClient webClient = factory.createClient().withUrl(getHostPath() + "/session");
         webClient.doPostRequest("abced");
         webClient.doPostRequest("abced");
 
@@ -309,7 +304,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
     public void afterSetCookieReceived_alsoSendAuthenticationOnNextRequest() throws Exception {
         defineSessionResource();
 
-        WebClient webClient = factory.createClient(getHostPath() + "/session");
+        WebClient webClient = factory.createClient().withUrl(getHostPath() + "/session");
         webClient.setAuthentication("authentication");
         webClient.doPostRequest("abced");
         sentHeaders.clear();
@@ -322,7 +317,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
     public void whenStartWithSessionCookie_sendOnMultipleRequests() throws Exception {
         defineSessionResource();
 
-        WebClient webClient = factory.createClient(getHostPath() + "/session");
+        WebClient webClient = factory.createClient().withUrl(getHostPath() + "/session");
         webClient.setAuthentication("authentication");
         webClient.setSessionCookie(COOKIE);
         webClient.doPostRequest("abced");
@@ -343,7 +338,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
             }
         });
 
-        WebClient webClient = factory.createClient(getHostPath() + "/session");
+        WebClient webClient = factory.createClient().withUrl(getHostPath() + "/session");
         webClient.setSessionCookie(COOKIE);
         webClient.doPostRequest("abced");
 

@@ -12,8 +12,7 @@ abstract class WebClientFactoryStub implements WebClientFactory {
     private String clientURL;
 
     @Override
-    public WebClient createClient(String clientURL) {
-        this.clientURL = clientURL;
+    public WebClient createClient() {
         return client;
     }
 
@@ -30,13 +29,20 @@ abstract class WebClientFactoryStub implements WebClientFactory {
     }
 
     String getClientURL() {
-        return clientURL;
+        return client.url;
     }
 
     static abstract class WebClientStub extends WebClient {
         private WebClientException exception;
         private String response;
         private String postedValue;
+        private String url;
+
+        @Override
+        WebClient withUrl(String url) {
+            this.url = url;
+            return this;
+        }
 
         @Override
         void addHeader(String name, String value) {

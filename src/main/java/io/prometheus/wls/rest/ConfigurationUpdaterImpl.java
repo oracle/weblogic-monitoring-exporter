@@ -74,7 +74,7 @@ class ConfigurationUpdaterImpl implements ConfigurationUpdater {
     private void getLatestConfiguration() {
         if (nextUpdateTime != null && nextUpdateTime.isAfter(clock.instant())) return;
         try {
-            WebClient client = factory.createClient(repeaterUrl);
+            WebClient client = factory.createClient().withUrl(repeaterUrl);
             latest = new Gson().fromJson(client.doGetRequest(), ConfigurationUpdate.class);
             nextUpdateTime = clock.instant().plusSeconds(refreshInterval);
         } catch (IOException | WebClientException e) {
@@ -86,7 +86,7 @@ class ConfigurationUpdaterImpl implements ConfigurationUpdater {
     @Override
     public void shareConfiguration(String configuration) {
         try {
-            WebClient client = factory.createClient(repeaterUrl);
+            WebClient client = factory.createClient().withUrl(repeaterUrl);
 
             client.doPutRequest(new Gson().toJson(createUpdate(configuration)));
         } catch (IOException | WebClientException e) {

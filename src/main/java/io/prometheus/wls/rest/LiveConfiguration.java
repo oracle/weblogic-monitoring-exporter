@@ -74,6 +74,15 @@ class LiveConfiguration {
     }
 
     /**
+     * Returns the URL used to query the management services
+     * @param selector the selector which will define the query
+     * @return a url built for the configured server
+     */
+    static String getUrl(MBeanSelector selector) {
+        return selector.getUrl(WLS_HOST, serverPort);
+    }
+
+    /**
      * Returns the qualifiers to add to the performance metrics, specifying the configured server
      * @return a metrics qualifier string
      */

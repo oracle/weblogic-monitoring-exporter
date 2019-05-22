@@ -115,9 +115,10 @@ public class ExporterServletTest {
 
     @Test
     public void onGet_defineConnectionUrlFromContext() throws Exception {
-        initServlet("");
+        initServlet(ONE_VALUE_CONFIG);
 
         servlet.doGet(request, response);
+        
         assertThat(factory.getClientUrl(),
                    equalTo(String.format(URL_PATTERN, LiveConfiguration.WLS_HOST, HttpServletRequestStub.PORT)));
     }
@@ -383,8 +384,7 @@ public class ExporterServletTest {
         private WebClientStub webClient = createStrictStub(WebClientStub.class);
 
         @Override
-        public WebClient createClient(String url) {
-            webClient.url = url;
+        public WebClient createClient() {
             return webClient;
         }
 
@@ -452,6 +452,12 @@ public class ExporterServletTest {
         @SuppressWarnings("SameParameterValue")
         void reportAuthenticationRequired(String basicRealmName) {
             this.basicRealmName = basicRealmName;
+        }
+
+        @Override
+        WebClient withUrl(String url) {
+            this.url = url;
+            return this;
         }
 
         @Override

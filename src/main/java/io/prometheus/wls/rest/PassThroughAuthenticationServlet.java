@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -29,7 +29,7 @@ abstract public class PassThroughAuthenticationServlet extends HttpServlet {
 
     private WebClient createWebClient(HttpServletRequest req) {
         LiveConfiguration.setServer(req.getServerName(), req.getServerPort());
-        final WebClient webClient = webClientFactory.createClient(LiveConfiguration.getQueryUrl());
+        final WebClient webClient = webClientFactory.createClient();
         webClient.addHeader("X-Requested-By", "rest-exporter");
 
         forwardRequestHeaders(req, webClient);

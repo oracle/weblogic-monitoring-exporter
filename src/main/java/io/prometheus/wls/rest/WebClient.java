@@ -82,6 +82,12 @@ abstract class WebClient {
     }
 
     /**
+     * Sets the url to which this client will send requests.
+     * @param url a URL for requests
+     */
+    abstract WebClient withUrl(String url);
+
+    /**
      * Adds a header to be sent on every query.
      * @param name the header name
      * @param value the header value

@@ -21,8 +21,11 @@ query_sync:
   url: http://coordinator:8999/
   interval: 5
 metricsNameSnakeCase: true
+domainQualifier: true
 queries:
-- applicationRuntimes:
+- key: name
+  keyName: server
+  applicationRuntimes:
     key: name
     keyName: app
     componentRuntimes:
@@ -43,6 +46,7 @@ Note that there are two parts to the configuration. The optional top portion def
 | query_sync.url | The url of the service. Required if this section is present. |
 | query_sync.interval | The interval in seconds at which the service will be queries. Defaults to 10. |
 | metricsNameSnakeCase | If true, metrics names will be converted to snake case. Defaults to false |
+| domainQualifier | If true, the domain name will be included as a qualifier for all metrics. Defaults to false |
 
 The `query` field is more complex. Each query consists of a hierarchy of the [mbeans](https://docs.oracle.com/middleware/1221/wls/WLMBR/core/index.html), starting relative to `ServerRuntimes`.
 Within each section, there are a number of options:
@@ -83,10 +87,10 @@ In the above example, the presumed underlying data structure is:
 ```                                                             
  The above configuration will then produce metrics such as:
 ```
-webapp_config_deployment_state{app="myapp",name="aWebApp"}                                                             
-webapp_config_open_sessions_high_count{app="myapp",name="aWebApp"}
-weblogic_servlet_invocation_total_count{app="myapp",name="aWebApp",servletName="servlet1"}                                                             
-weblogic_servlet_invocation_total_count{app="myapp",name="aWebApp",servletName="simpleServlet"}                                                             
+webapp_config_deployment_state{domain="mydomain",server="myserver",app="myapp",name="aWebApp"}                                                             
+webapp_config_open_sessions_high_count{domain="mydomain",server="myserver",app="myapp",name="aWebApp"}
+weblogic_servlet_invocation_total_count{domain="mydomain",server="myserver",app="myapp",name="aWebApp",servletName="servlet1"}                                                             
+weblogic_servlet_invocation_total_count{domain="mydomain",server="myserver",app="myapp",name="aWebApp",servletName="simpleServlet"}                                                             
 ```                                                             
 Note that no help or type text is current produced, as the REST API has no access to the underlying mbean info.
 

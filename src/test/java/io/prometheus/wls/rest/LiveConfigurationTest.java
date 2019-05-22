@@ -5,9 +5,11 @@ package io.prometheus.wls.rest;
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
 
+import com.google.common.collect.ImmutableMap;
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
 import io.prometheus.wls.rest.domain.ExporterConfig;
+import io.prometheus.wls.rest.domain.MBeanSelector;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -114,8 +116,9 @@ public class LiveConfigurationTest {
     public void afterServerDefined_queryUrlUsesLocalHost() throws MalformedURLException {
         init(CONFIGURATION);
         LiveConfiguration.setServer("fakeHost", 800);
+        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
 
-        assertThat(new URL(LiveConfiguration.getQueryUrl()).getHost(), equalTo("localhost"));
+        assertThat(new URL(LiveConfiguration.getUrl(selector)).getHost(), equalTo("localhost"));
     }
 
     @Test

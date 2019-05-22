@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest.domain;
 /*
- * Copyright (c) 2017,2019, Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -9,11 +9,8 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.scanner.ScannerException;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * This class represents the configuration for the exporter, created by parsing YAML.
@@ -24,6 +21,7 @@ public class ExporterConfig {
     static final String DEFAULT_HOST = "localhost";
     static final int DEFAULT_PORT = 7001;
     static final String SNAKE_CASE = "metricsNameSnakeCase";
+    static final String DOMAIN_QUALIFIER = "domainQualifier";
     static final String HOST = "host";
     static final String PORT = "port";
 
@@ -31,12 +29,15 @@ public class ExporterConfig {
 
     private static final String QUERIES = "queries";
     private static final MBeanSelector[] NO_QUERIES = {};
+    private static final String DOMAIN_NAME_QUALIFIER = "domain=\"%s\"";
 
     private MBeanSelector[] queries = {};
     private String host = DEFAULT_HOST;
     private int port = DEFAULT_PORT;
     private boolean metricsNameSnakeCase;
     private QuerySyncConfiguration querySyncConfiguration;
+    private boolean useDomainQualifier;
+    private String domainName;
 
     /**
      * Loads a YAML configuration to create a new configuration object.
@@ -68,9 +69,19 @@ public class ExporterConfig {
      * @return a map of metric names to values
      */
     public Map<String, Object> scrapeMetrics(MBeanSelector selector, JsonObject response) {
-        MetricsScraper scraper = new MetricsScraper();
+        MetricsScraper scraper = new MetricsScraper(getGlobalQualifiers());
         scraper.setMetricNameSnakeCase(metricsNameSnakeCase);
-        return scraper.scrape(selector, response);
+        Map<String, Object> metrics = scraper.scrape(selector, response);
+        selector.processMetrics(metrics, this::processMetrics);
+        return metrics;
+    }
+
+    private String getGlobalQualifiers() {
+        return Optional.ofNullable(domainName).map(n->String.format(DOMAIN_NAME_QUALIFIER, n)).orElse("");
+    }
+
+    private void processMetrics(Map<String, String> metrics) {
+        domainName = metrics.get(QueryType.DOMAIN_KEY);
     }
 
     /**
@@ -79,7 +90,13 @@ public class ExporterConfig {
      * @return an array of mbean selectors.
      */
     public MBeanSelector[] getQueries() {
-        return queries == null ? NO_QUERIES : queries;
+        if (queries == null) return NO_QUERIES;
+
+        return withPossibleDomainNameQuery(Arrays.stream(queries)).toArray(MBeanSelector[]::new);
+    }
+
+    private Stream<MBeanSelector> withPossibleDomainNameQuery(Stream<MBeanSelector> stream) {
+        return useDomainQualifier ? Stream.concat(Stream.of(MBeanSelector.DOMAIN_NAME_SELECTOR), stream) : stream;
     }
 
     public static ExporterConfig loadConfig(Map<String, Object> yamlConfig) {
@@ -93,6 +110,7 @@ public class ExporterConfig {
     }
 
     private ExporterConfig(Map<String, Object> yaml) {
+        if (yaml.containsKey(DOMAIN_QUALIFIER)) setDomainQualifier(yaml);
         if (yaml.containsKey(SNAKE_CASE)) setMetricsNameSnakeCase(yaml);
         if (yaml.containsKey(HOST)) host = MapUtils.getStringValue(yaml, HOST);
         if (yaml.containsKey(PORT)) port = MapUtils.getIntegerValue(yaml, PORT);
@@ -105,6 +123,15 @@ public class ExporterConfig {
             metricsNameSnakeCase = MapUtils.getBooleanValue(yaml, SNAKE_CASE);
         } catch (ConfigurationException e) {
             e.addContext(SNAKE_CASE);
+            throw e;
+        }
+    }
+
+    private void setDomainQualifier(Map<String, Object> yaml) {
+        try {
+            useDomainQualifier = MapUtils.getBooleanValue(yaml, DOMAIN_QUALIFIER);
+        } catch (ConfigurationException e) {
+            e.addContext(DOMAIN_QUALIFIER);
             throw e;
         }
     }
@@ -192,6 +219,18 @@ public class ExporterConfig {
     }
 
     /**
+     * Returns true if the domain name should be added as a qualifier for all metrics
+     * @return true if the qualifier should be added
+     */
+    boolean useDomainQualifier() {
+        return useDomainQualifier;
+    }
+
+    String getDomainName() {
+        return domainName;
+    }
+
+    /**
      * Appends the queries from the specified configuration
      * @param config2 an additional configuration to combine with this one
      */
@@ -207,6 +246,7 @@ public class ExporterConfig {
      */
     public void replace(ExporterConfig config2) {
         this.metricsNameSnakeCase = config2.metricsNameSnakeCase;
+        this.useDomainQualifier = config2.useDomainQualifier;
         MBeanSelector[] newQueries = config2.getQueries();
         this.queries = Arrays.copyOf(newQueries, newQueries.length);
     }
@@ -218,6 +258,7 @@ public class ExporterConfig {
         if (querySyncConfiguration != null)
             sb.append(querySyncConfiguration);
         if (metricsNameSnakeCase) sb.append("metricsNameSnakeCase: true\n");
+        if (useDomainQualifier) sb.append("domainQualifier: true\n");
         sb.append("queries:\n");
 
         for (MBeanSelector query : getQueries())

@@ -1,0 +1,10 @@
+metricsNameSnakeCase: true
+domainQualifier: true
+queries:
+- key: name
+  keyName: server
+  applicationRuntimes:
+    key: name
+    workManagerRuntimes:
+      prefix: workmanager_
+      key: applicationName

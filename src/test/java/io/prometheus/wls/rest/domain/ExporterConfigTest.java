@@ -5,6 +5,8 @@ package io.prometheus.wls.rest.domain;
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.Test;
@@ -14,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static io.prometheus.wls.rest.domain.ExporterConfigTest.QueryHierarchyMatcher.hasQueryFor;
+import static io.prometheus.wls.rest.domain.MetricMatcher.hasMetric;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
@@ -68,6 +71,25 @@ public class ExporterConfigTest {
         ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
 
         assertThat(config.getMetricsNameSnakeCase(), is(true));
+     }
+
+    @Test
+    public void whenDomainQualifierNotSpecified_dontModifyQueries() {
+        ExporterConfig config = loadFromString(SERVLET_CONFIG);
+
+        assertThat(config.getQueries(), arrayWithSize(1));
+        assertThat(config.getQueries()[0].getUrl("myhost", 1234),
+                equalTo(String.format(QueryType.RUNTIME_URL_PATTERN, "myhost", 1234)));
+     }
+
+    @Test
+    public void whenSpecified_prependConfigurationQuery() {
+        ExporterConfig config = loadFromString(DOMAIN_QUALIFIER_CONFIG);
+
+        assertThat(config.getQueries(), arrayWithSize(2));
+        assertThat(config.getQueries()[0], sameInstance(MBeanSelector.DOMAIN_NAME_SELECTOR));
+        assertThat(config.getQueries()[1].getUrl("myhost", 1234),
+                equalTo(String.format(QueryType.RUNTIME_URL_PATTERN, "myhost", 1234)));
      }
 
     @Test
@@ -282,6 +304,12 @@ public class ExporterConfigTest {
      }
 
     @Test
+    public void afterReplace_configHasChangedDomainQualifier() {
+        assertThat(getReplacedConfiguration(SERVLET_CONFIG, DOMAIN_QUALIFIER_CONFIG).useDomainQualifier(), is(true));
+        assertThat(getReplacedConfiguration(DOMAIN_QUALIFIER_CONFIG, SERVLET_CONFIG).useDomainQualifier(), is(false));
+     }
+
+    @Test
     public void afterReplace_configHasNewQuery() {
         ExporterConfig config = getReplacedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG);
 
@@ -418,6 +446,57 @@ public class ExporterConfigTest {
             "    key: name\n" +
             "    values: []\n";
 
+    @Test
+    public void afterScrapingServerConfig_hasDomainName() {
+        ExporterConfig exporterConfig = loadFromString(DOMAIN_QUALIFIER_CONFIG);
+
+        exporterConfig.scrapeMetrics(MBeanSelector.DOMAIN_NAME_SELECTOR, getJsonResponse(CONFIG_RESPONSE));
+        
+        assertThat(exporterConfig.getDomainName(), equalTo("mydomain"));
+    }
+
+    @Test
+    public void afterScrapingMetricsIncludeDomainNameQualifier() {
+        ExporterConfig exporterConfig = loadFromString(DOMAIN_QUALIFIER_CONFIG);
+
+        Map<String, Object> metrics = new HashMap<>();
+        metrics.putAll(exporterConfig.scrapeMetrics(exporterConfig.getQueries()[0], getJsonResponse(CONFIG_RESPONSE)));
+        metrics.putAll(exporterConfig.scrapeMetrics(exporterConfig.getQueries()[1], getJsonResponse(WORK_MANAGER_RESPONSE)));
+
+        assertThat(metrics, hasMetric("workmanager_pendingRequests{domain=\"mydomain\",applicationName=\"thisOne\"}", 2));
+        assertThat(metrics, hasMetric("workmanager_completedRequests{domain=\"mydomain\",applicationName=\"thisOne\"}", 15));
+        assertThat(metrics, hasMetric("workmanager_stuckThreadCount{domain=\"mydomain\",applicationName=\"thisOne\"}", 3));
+    }
+
+    private static final String DOMAIN_QUALIFIER_CONFIG =
+            ExporterConfig.DOMAIN_QUALIFIER + ": true\n" +
+            "queries:\n" +
+            "- applicationRuntimes:\n" +
+            "    workManagerRuntimes:\n" +
+            "      prefix: workmanager_\n" +
+            "      key: applicationName\n" +
+            "      values: [pendingRequests, completedRequests, stuckThreadCount]\n";
+
+    private static final String CONFIG_RESPONSE = "{\"name\": \"mydomain\"}";
+
+    private static final String WORK_MANAGER_RESPONSE =
+            "{\"applicationRuntimes\": {\"items\": [\n" +
+            "     {\n" +
+            "            \"internal\": false,\n" +
+            "            \"name\": \"mbeans\",\n" +
+            "            \"workManagerRuntimes\": {\"items\": [{\n" +
+            "                \"applicationName\": \"thisOne\",\n" +
+            "                \"pendingRequests\": 2,\n" +
+            "                \"completedRequests\": 15,\n" +
+            "                \"stuckThreadCount\": 3\n" +
+            "              }]}\n" +
+            "     }\n" +
+            "]}}";
+
+    @SuppressWarnings("SameParameterValue")
+    private JsonObject getJsonResponse(String jsonString) {
+        return new JsonParser().parse(jsonString).getAsJsonObject();
+    }
 
     @SuppressWarnings("unused")
     static class QueryHierarchyMatcher extends TypeSafeDiagnosingMatcher<ExporterConfig> {

@@ -78,7 +78,7 @@ public class ExporterServlet extends PassThroughAuthenticationServlet {
     }
 
     private Map<String, Object> getMetrics(WebClient webClient, MBeanSelector selector) throws IOException {
-        String jsonResponse = webClient.doPostRequest(selector.getRequest());
+        String jsonResponse = webClient.withUrl(LiveConfiguration.getUrl(selector)).doPostRequest(selector.getRequest());
         if (isNullOrEmptyString(jsonResponse)) return null;
 
         return LiveConfiguration.scrapeMetrics(selector, jsonResponse);

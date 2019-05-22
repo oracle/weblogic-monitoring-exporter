@@ -7,6 +7,7 @@ package io.prometheus.wls.rest.domain;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,8 +22,13 @@ import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
  */
 class MetricsScraper {
     private static final char QUOTE = '"';
+    private final String globalQualifiers;
     private Map<String, Object> metrics = new HashMap<>();
     private boolean metricNameSnakeCase;
+
+    MetricsScraper(String globalQualifiers) {
+        this.globalQualifiers = globalQualifiers;
+    }
 
     Map<String, Object> getMetrics() {
         return metrics;
@@ -35,7 +41,7 @@ class MetricsScraper {
      */
     Map<String, Object> scrape(MBeanSelector selector, JsonObject response) {
         metrics = new HashMap<>();
-        scrapeItem(response, selector, "");
+        scrapeItem(response, selector, globalQualifiers);
         return metrics;
     }
 
@@ -70,12 +76,19 @@ class MetricsScraper {
     }
 
     private String[] asArray(Set<String> set) {
-        return set.toArray(new String[set.size()]);
+        return set.toArray(new String[0]);
     }
 
     private void addMetric(MBeanSelector beanSelector, String qualifiers, String valueName, JsonElement value) {
-        if (value != null && value.isJsonPrimitive() && value.getAsJsonPrimitive().isNumber())
-            metrics.put(getMetricName(valueName, beanSelector, qualifiers), value.getAsJsonPrimitive().getAsNumber());
+        if (value != null && value.isJsonPrimitive())
+            addMetric(beanSelector, qualifiers, valueName, value.getAsJsonPrimitive());
+    }
+
+    private void addMetric(MBeanSelector beanSelector, String qualifiers, String valueName, JsonPrimitive jsonPrimitive) {
+        if (jsonPrimitive.isNumber())
+            metrics.put(getMetricName(valueName, beanSelector, qualifiers), jsonPrimitive.getAsNumber());
+        else if (beanSelector.acceptsStrings() && jsonPrimitive.isString())
+            metrics.put(getMetricName(valueName, beanSelector, qualifiers), jsonPrimitive.getAsString());
     }
 
     private boolean excludeByType(JsonElement typeField, String typeFilter) {

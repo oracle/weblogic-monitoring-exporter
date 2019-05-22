@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest.domain;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -30,70 +30,87 @@ public class MBeanSelectorTest {
     private static final String[] EXPECTED_COMPONENT_VALUES = {"age", "beauty"};
 
     @Test
-    public void whenNoTypeInMap_selectorHasNoType() throws Exception {
+    public void byDefault_useRuntimeRestUrl() {
+        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
+
+        assertThat(selector.getUrl("myhost", 1234),
+                   equalTo(String.format(QueryType.RUNTIME_URL_PATTERN, "myhost", 1234)));
+    }
+
+    @Test
+    public void whenConfigurationQuerySpecified_useConfigurationRestUrl() {
+        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
+        selector.setQueryType(QueryType.CONFIGURATION);
+
+        assertThat(selector.getUrl("myhost", 1234),
+                   equalTo(String.format(QueryType.CONFIGURATION_URL_PATTERN, "myhost", 1234)));
+    }
+
+    @Test
+    public void whenNoTypeInMap_selectorHasNoType() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
 
         assertThat(selector.getType(), emptyOrNullString());
     }
 
     @Test
-    public void whenMapHasType_selectorHasType() throws Exception {
+    public void whenMapHasType_selectorHasType() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of(MBeanSelector.TYPE, EXPECTED_TYPE));
 
         assertThat(selector.getType(), equalTo(EXPECTED_TYPE));
     }
 
     @Test
-    public void whenNoPrefixInMap_selectorHasNoPrefix() throws Exception {
+    public void whenNoPrefixInMap_selectorHasNoPrefix() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
 
         assertThat(selector.getPrefix(), emptyOrNullString());
     }
 
     @Test
-    public void whenMapHasPrefix_selectorHasPrefix() throws Exception {
+    public void whenMapHasPrefix_selectorHasPrefix() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of(MBeanSelector.PREFIX, EXPECTED_PREFIX));
 
         assertThat(selector.getPrefix(), equalTo(EXPECTED_PREFIX));
     }
 
     @Test
-    public void whenNoKeyInMap_selectorHasNoKey() throws Exception {
+    public void whenNoKeyInMap_selectorHasNoKey() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
 
         assertThat(selector.getKey(), emptyOrNullString());
     }
 
     @Test
-    public void whenMapHasKey_selectorHasKey() throws Exception {
+    public void whenMapHasKey_selectorHasKey() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of(MBeanSelector.KEY, EXPECTED_KEY));
 
         assertThat(selector.getKey(), equalTo(EXPECTED_KEY));
     }
 
     @Test
-    public void whenNoKeyNameInMap_selectorHasNoKeyName() throws Exception {
+    public void whenNoKeyNameInMap_selectorHasNoKeyName() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
 
         assertThat(selector.getKeyName(), emptyOrNullString());
     }
 
     @Test
-    public void whenMapHasKeyName_selectorHasKeyName() throws Exception {
+    public void whenMapHasKeyName_selectorHasKeyName() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of(MBeanSelector.KEY_NAME, EXPECTED_KEY_NAME));
 
         assertThat(selector.getKeyName(), equalTo(EXPECTED_KEY_NAME));
     }
 
     @Test
-    public void whenMapHasKeyNameButNoKeyName_selectorUsesKeyAsName() throws Exception {
+    public void whenMapHasKeyNameButNoKeyName_selectorUsesKeyAsName() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of(MBeanSelector.KEY, EXPECTED_KEY));
 
         assertThat(selector.getKeyName(), equalTo(EXPECTED_KEY));
     }
 
     @Test
-    public void whenMapHasBothKeyAndKeyName_selectorUsesKeyName() throws Exception {
+    public void whenMapHasBothKeyAndKeyName_selectorUsesKeyName() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of(MBeanSelector.KEY, EXPECTED_KEY,
                                                                       MBeanSelector.KEY_NAME, EXPECTED_KEY_NAME));
 
@@ -101,14 +118,14 @@ public class MBeanSelectorTest {
     }
 
     @Test
-    public void whenNoValuesInMap_selectorHasNoValues() throws Exception {
+    public void whenNoValuesInMap_selectorHasNoValues() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
 
         assertThat(selector.getValues(), emptyArray());
     }
 
     @Test
-    public void whenMapHasValues_selectorHasValues() throws Exception {
+    public void whenMapHasValues_selectorHasValues() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of(MBeanSelector.VALUES, EXPECTED_VALUES));
 
         assertThat(selector.getValues(), equalTo(EXPECTED_VALUES));
@@ -116,7 +133,7 @@ public class MBeanSelectorTest {
 
 
     @Test
-    public void whenNoNestedSelectorsInMap_selectorHasNoNestedSelectors() throws Exception {
+    public void whenNoNestedSelectorsInMap_selectorHasNoNestedSelectors() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
 
         assertThat(selector.getNestedSelectors(), anEmptyMap());
@@ -124,7 +141,7 @@ public class MBeanSelectorTest {
 
 
     @Test
-    public void whenMapHasNestedSelector_createInParent() throws Exception {
+    public void whenMapHasNestedSelector_createInParent() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of("servlets",
                 getServletMap()));
 
@@ -139,7 +156,7 @@ public class MBeanSelectorTest {
     }
 
     @Test
-    public void queryFieldsMatchValues() throws Exception {
+    public void queryFieldsMatchValues() {
         MBeanSelector selector = MBeanSelector.create(
                 ImmutableMap.of(MBeanSelector.VALUES, EXPECTED_COMPONENT_VALUES));
 
@@ -151,7 +168,7 @@ public class MBeanSelectorTest {
     }
 
     @Test
-    public void whenKeySpecified_isIncludedInQueryFields() throws Exception {
+    public void whenKeySpecified_isIncludedInQueryFields() {
         MBeanSelector selector = MBeanSelector.create(
                 ImmutableMap.of(MBeanSelector.VALUES, EXPECTED_COMPONENT_VALUES, MBeanSelector.KEY, "name"));
 
@@ -159,7 +176,7 @@ public class MBeanSelectorTest {
     }
 
     @Test
-    public void whenTypeSpecified_standardFieldTypeIsIncludedInQueryFields() throws Exception {
+    public void whenTypeSpecified_standardFieldTypeIsIncludedInQueryFields() {
         MBeanSelector selector = MBeanSelector.create(
                 ImmutableMap.of(MBeanSelector.VALUES, EXPECTED_COMPONENT_VALUES, MBeanSelector.TYPE, "OneTypeOnly"));
 
@@ -167,7 +184,7 @@ public class MBeanSelectorTest {
     }
 
     @Test
-    public void whenMapHasNestedElements_pathIncludesChildren() throws Exception {
+    public void whenMapHasNestedElements_pathIncludesChildren() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of("servlets",
                 ImmutableMap.of(MBeanSelector.VALUES, new String[] {"first", "second"})));
 
@@ -175,7 +192,7 @@ public class MBeanSelectorTest {
     }
 
     @Test
-    public void whenMergingLeafElements_combineValues() throws Exception {
+    public void whenMergingLeafElements_combineValues() {
         MBeanSelector selector1 = createLeaf("first", "second");
         MBeanSelector selector2 = createLeaf("second", "third");
 
@@ -183,7 +200,7 @@ public class MBeanSelectorTest {
     }
 
     @Test
-    public void whenLeafElementsHaveMatchingAttributes_mayCombine() throws Exception {
+    public void whenLeafElementsHaveMatchingAttributes_mayCombine() {
         MBeanSelector selector1 = createLeaf("type:Type1", "prefix:#_", "key:name", "keyName:numbers", "first", "second");
         MBeanSelector selector2 = createLeaf("type:Type1", "prefix:#_", "key:name", "keyName:numbers", "second", "third");
 
@@ -191,7 +208,7 @@ public class MBeanSelectorTest {
     }
 
     @Test
-    public void whenLeafElementsHaveMatchingAttributes_mergedResultHasOriginalAttributes() throws Exception {
+    public void whenLeafElementsHaveMatchingAttributes_mergedResultHasOriginalAttributes() {
         MBeanSelector selector1 = createLeaf("type:Type1", "prefix:#_", "key:name", "keyName:numbers", "first", "second");
         MBeanSelector selector2 = createLeaf("type:Type1", "prefix:#_", "key:name", "keyName:numbers", "second", "third");
 
@@ -203,7 +220,7 @@ public class MBeanSelectorTest {
     }
 
     @Test
-    public void whenLeafElementsHaveMisMatchedAttributes_mayNotCombine() throws Exception {
+    public void whenLeafElementsHaveMisMatchedAttributes_mayNotCombine() {
         assertThat(createLeaf("keyName:numbers", "first", "second").mayMergeWith(createLeaf("second", "third")), is(false));
         assertThat(createLeaf("prefix:_", "key:Name").mayMergeWith(createLeaf("prefix:_", "aValue")), is(false));
         assertThat(createLeaf("key:_", "type:Name").mayMergeWith(createLeaf("key:_", "type:color")), is(false));
@@ -224,7 +241,7 @@ public class MBeanSelectorTest {
     }
 
     @Test
-    public void whenSelectorsNoCommonNestedElementsWithSameName_mayMerge() throws Exception {
+    public void whenSelectorsNoCommonNestedElementsWithSameName_mayMerge() {
         MBeanSelector selector1 = MBeanSelector.create(ImmutableMap.of("servlets",
                 ImmutableMap.of(MBeanSelector.KEY, "oneKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
         MBeanSelector selector2 = MBeanSelector.create(ImmutableMap.of("kidlets",
@@ -234,7 +251,7 @@ public class MBeanSelectorTest {
     }
 
     @Test
-    public void whenSelectorsHaveMismatchedNestedElementsWithSameName_mayNotMerge() throws Exception {
+    public void whenSelectorsHaveMismatchedNestedElementsWithSameName_mayNotMerge() {
         MBeanSelector selector1 = MBeanSelector.create(ImmutableMap.of("servlets",
                 ImmutableMap.of(MBeanSelector.KEY, "oneKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
         MBeanSelector selector2 = MBeanSelector.create(ImmutableMap.of("servlets",
@@ -244,7 +261,7 @@ public class MBeanSelectorTest {
     }
 
     @Test
-    public void whenSelectorsHaveMismatchedNestedElementsWithDifferentName_merge() throws Exception {
+    public void whenSelectorsHaveMismatchedNestedElementsWithDifferentName_merge() {
         MBeanSelector selector1 = MBeanSelector.create(ImmutableMap.of("servlets",
                 ImmutableMap.of(MBeanSelector.KEY, "oneKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
         MBeanSelector selector2 = MBeanSelector.create(ImmutableMap.of("ejbs",
@@ -255,7 +272,7 @@ public class MBeanSelectorTest {
     }
 
     @Test
-    public void whenSelectorsHaveDeeplyNestedElementsWithDifferentName_mayMerge() throws Exception {
+    public void whenSelectorsHaveDeeplyNestedElementsWithDifferentName_mayMerge() {
         MBeanSelector selector1 = MBeanSelector.create(
                 ImmutableMap.of("components",
                     ImmutableMap.of("servlets",
@@ -269,7 +286,7 @@ public class MBeanSelectorTest {
     }
 
     @Test
-    public void whenSelectorsHaveDeeplyNestedElementsWithDifferentName_merge() throws Exception {
+    public void whenSelectorsHaveDeeplyNestedElementsWithDifferentName_merge() {
         MBeanSelector selector1 = MBeanSelector.create(
                 ImmutableMap.of("components",
                     ImmutableMap.of("servlets",
@@ -285,7 +302,7 @@ public class MBeanSelectorTest {
     }
 
     @Test
-    public void generateJsonRequest() throws Exception {
+    public void generateJsonRequest() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of("applicationRuntimes", getApplicationMap()));
 
         assertThat(selector.getRequest(), equalTo(compressedJsonForm(EXPECTED_JSON_REQUEST)));
@@ -301,6 +318,16 @@ public class MBeanSelectorTest {
                                "servlets", getServletMap());
     }
 
+    @Test
+    public void domainNameSelector_selectsConfigurationUrl() {
+        assertThat(MBeanSelector.DOMAIN_NAME_SELECTOR.getUrl("myhost", 1234),
+                   equalTo(String.format(QueryType.CONFIGURATION_URL_PATTERN, "myhost", 1234)));
+    }
+
+    @Test
+    public void domainNameSelector_requestsName() {
+        assertThat(MBeanSelector.DOMAIN_NAME_SELECTOR.getValues(), arrayContaining("name"));
+    }
 
     // This lets us simplify the creation of string to match the full request. All white space is removed and
     // single quotes are converted to double quotes, to match the actual format generated by Gson.
@@ -338,7 +365,7 @@ public class MBeanSelectorTest {
             "}";
 
     @Test
-    public void whenNoValuesListedForSerlvets_generateJsonRequest() throws Exception {
+    public void whenNoValuesListedForSerlvets_generateJsonRequest() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of("applicationRuntimes", getNoServletValuesApplicationMap()));
 
         assertThat(selector.getRequest(), equalTo(compressedJsonForm(EXPECTED_ALL_SERVLET_VALUES_JSON_REQUEST)));
