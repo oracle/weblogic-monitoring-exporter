@@ -15,6 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -113,12 +114,13 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void afterServerDefined_queryUrlUsesLocalHost() throws MalformedURLException {
+    public void afterServerDefined_queryUrlUsesLocalHost() throws Exception {
         init(CONFIGURATION);
         LiveConfiguration.setServer("fakeHost", 800);
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
 
-        assertThat(new URL(LiveConfiguration.getUrl(selector)).getHost(), equalTo("localhost"));
+        assertThat(new URL(LiveConfiguration.getUrl(selector)).getHost(),
+                   equalTo(InetAddress.getLocalHost().getHostName()));
     }
 
     @Test

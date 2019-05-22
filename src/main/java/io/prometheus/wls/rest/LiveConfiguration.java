@@ -16,6 +16,8 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Map;
 
 /**
@@ -28,7 +30,7 @@ class LiveConfiguration {
     static final String CONFIG_YML = "/config.yml";
 
     /** The address used to access WLS (cannot use the address found in the request due to potential server-side request forgery. */
-    static final String WLS_HOST = "localhost";
+    static final String WLS_HOST;
     
     private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
     private static ExporterConfig config;
@@ -39,6 +41,15 @@ class LiveConfiguration {
 
     static {
         loadFromString("");
+        WLS_HOST = getLocalHostName();
+    }
+
+    private static String getLocalHostName() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            return "localhost";
+        }
     }
 
     private static Long timestamp;
