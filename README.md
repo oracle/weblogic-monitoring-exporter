@@ -47,6 +47,7 @@ Note that there are two parts to the configuration. The optional top portion def
 | query_sync.interval | The interval in seconds at which the service will be queries. Defaults to 10. |
 | metricsNameSnakeCase | If true, metrics names will be converted to snake case. Defaults to false |
 | domainQualifier | If true, the domain name will be included as a qualifier for all metrics. Defaults to false |
+| restPort | Optional. Overrides the port on which the exporter should contact the REST API   . Needed when behind a load balancer. |
 
 The `query` field is more complex. Each query consists of a hierarchy of the [mbeans](https://docs.oracle.com/middleware/1221/wls/WLMBR/core/index.html), starting relative to `ServerRuntimes`.
 Within each section, there are a number of options:

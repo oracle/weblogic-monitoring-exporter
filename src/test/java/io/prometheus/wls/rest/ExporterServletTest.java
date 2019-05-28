@@ -465,7 +465,8 @@ public class ExporterServletTest {
             addedHeaders.put(name, value);
         }
         @Override
-        public String doPostRequest(String postBody) throws IOException {
+        public String doPostRequest(String postBody) {
+            if (url == null) throw new NullPointerException("No URL specified");
             if (status == SC_FORBIDDEN) throw new ForbiddenException();
             if (basicRealmName != null) throw new BasicAuthenticationChallengeException(basicRealmName);
 

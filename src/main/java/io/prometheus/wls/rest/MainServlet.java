@@ -1,11 +1,10 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
 import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -25,12 +24,12 @@ import static io.prometheus.wls.rest.ServletConstants.*;
 public class MainServlet extends HttpServlet {
 
     @Override
-    public void init(ServletConfig servletConfig) throws ServletException {
+    public void init(ServletConfig servletConfig) {
         LiveConfiguration.init(servletConfig);
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         LiveConfiguration.setServer(req.getServerName(), req.getServerPort());
         LiveConfiguration.updateConfiguration();
         resp.getOutputStream().println(ServletConstants.PAGE_HEADER);
@@ -74,11 +73,11 @@ public class MainServlet extends HttpServlet {
         return getEffectivePath(req, CONFIGURATION_PAGE);
     }
 
-    private void displayConfiguration(ServletOutputStream outputStream) throws IOException {
+    private void displayConfiguration(ServletOutputStream outputStream) {
         try (PrintStream ps = new PrintStream(outputStream)) {
             ps.println("<p>Current Configuration</p>");
             ps.println("<p><code><pre>");
-            ps.printf(LiveConfiguration.asString());
+            ps.print(LiveConfiguration.asString());
             ps.println("</pre></code></p>");
         }
     }
