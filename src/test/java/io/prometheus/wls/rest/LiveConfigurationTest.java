@@ -16,7 +16,6 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.net.InetAddress;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 import static io.prometheus.wls.rest.InMemoryFileSystem.withNoParams;
@@ -30,6 +29,14 @@ public class LiveConfigurationTest {
     private static final String CONFIGURATION =
             "host: localhost\n" +
             "port: 7001\n" +
+            "queries:\n" + "" +
+            "- groups:\n" +
+            "    prefix: new_\n" +
+            "    key: name\n" +
+            "    values: [sample1, sample2]\n";
+
+    private static final String LOAD_BALANCE_CONFIGURATION =
+            "restPort: 7001\n" +
             "queries:\n" + "" +
             "- groups:\n" +
             "    prefix: new_\n" +
@@ -99,6 +106,13 @@ public class LiveConfigurationTest {
     }
 
     @Test
+    public void whenInitCalledWithNoConfig_haveNoQueries() {
+        LiveConfiguration.init(withNoParams());
+        
+        assertThat(LiveConfiguration.hasQueries(), is(false));
+    }
+
+    @Test
     public void afterInitCalled_haveExpectedConfiguration() {
         init(CONFIGURATION);
 
@@ -121,6 +135,44 @@ public class LiveConfigurationTest {
 
         assertThat(new URL(LiveConfiguration.getUrl(selector)).getHost(),
                    equalTo(InetAddress.getLocalHost().getHostName()));
+    }
+
+    @Test
+    public void whenNoRestPortSpecified_queryUrlUsesRequestPort() throws Exception {
+        init(CONFIGURATION);
+        LiveConfiguration.setServer("fakeHost", 800);
+        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
+
+        assertThat(new URL(LiveConfiguration.getUrl(selector)).getPort(),
+                   equalTo(800));
+    }
+
+    @Test
+    public void whenRestPortSpecified_queryUrlUsesRequestPort() throws Exception {
+        init(LOAD_BALANCE_CONFIGURATION);
+        LiveConfiguration.setServer("fakeHost", 800);
+        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
+
+        assertThat(new URL(LiveConfiguration.getUrl(selector)).getPort(),
+                   equalTo(7001));
+    }
+
+    @Test
+    public void whenNoRestPortSpecified_authenticationUrlUsesRequestPort() throws Exception {
+        init(CONFIGURATION);
+        LiveConfiguration.setServer("fakeHost", 800);
+        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
+
+        assertThat(new URL(LiveConfiguration.getAuthenticationUrl()).getPort(), equalTo(800));
+    }
+
+    @Test
+    public void whenRestPortSpecified_authenticationUrlUsesRequestPort() throws Exception {
+        init(LOAD_BALANCE_CONFIGURATION);
+        LiveConfiguration.setServer("fakeHost", 800);
+        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
+
+        assertThat(new URL(LiveConfiguration.getAuthenticationUrl()).getPort(), equalTo(7001));
     }
 
     @Test

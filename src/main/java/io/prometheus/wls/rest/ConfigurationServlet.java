@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -45,7 +45,7 @@ public class ConfigurationServlet extends PassThroughAuthenticationServlet {
     }
 
     private void updateConfiguration(WebClient webClient, HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        authenticate(webClient);
+        authenticate(webClient.withUrl(LiveConfiguration.getAuthenticationUrl()));
         try {
             if (!ServletFileUpload.isMultipartContent(req)) throw new ServletException("Must be a multi-part request");
 

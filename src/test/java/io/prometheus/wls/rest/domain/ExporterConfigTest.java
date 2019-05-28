@@ -77,8 +77,9 @@ public class ExporterConfigTest {
     public void whenDomainQualifierNotSpecified_dontModifyQueries() {
         ExporterConfig config = loadFromString(SERVLET_CONFIG);
 
-        assertThat(config.getQueries(), arrayWithSize(1));
-        assertThat(config.getQueries()[0].getUrl("myhost", 1234),
+        MBeanSelector[] queries = config.getEffectiveQueries();
+        assertThat(queries, arrayWithSize(1));
+        assertThat(queries[0].getUrl("myhost", 1234),
                 equalTo(String.format(QueryType.RUNTIME_URL_PATTERN, "myhost", 1234)));
      }
 
@@ -86,29 +87,43 @@ public class ExporterConfigTest {
     public void whenSpecified_prependConfigurationQuery() {
         ExporterConfig config = loadFromString(DOMAIN_QUALIFIER_CONFIG);
 
-        assertThat(config.getQueries(), arrayWithSize(2));
-        assertThat(config.getQueries()[0], sameInstance(MBeanSelector.DOMAIN_NAME_SELECTOR));
-        assertThat(config.getQueries()[1].getUrl("myhost", 1234),
+        MBeanSelector[] queries = config.getEffectiveQueries();
+        assertThat(queries, arrayWithSize(2));
+        assertThat(queries[0], sameInstance(MBeanSelector.DOMAIN_NAME_SELECTOR));
+        assertThat(queries[1].getUrl("myhost", 1234),
                 equalTo(String.format(QueryType.RUNTIME_URL_PATTERN, "myhost", 1234)));
      }
 
     @Test
-    public void whenSpecified_readHostAndPortFromYaml() {
-        yamlConfig.put(ExporterConfig.HOST, EXPECTED_HOST);
-        yamlConfig.put(ExporterConfig.PORT, EXPECTED_PORT);
-
+    public void whenNotSpecified_wlsPortIsNull() {
         ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
 
-        assertThat(config.getHost(), equalTo(EXPECTED_HOST));
-        assertThat(config.getPort(), equalTo(EXPECTED_PORT));
+        assertThat(config.getRestPort(), nullValue());
     }
 
     @Test
-    public void whenNotSpecified_useDefaultHostAndPort() {
+    public void whenNotSpecified_wlsPortIsNotIncludedInToString() {
         ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
 
-        assertThat(config.getHost(), equalTo(ExporterConfig.DEFAULT_HOST));
-        assertThat(config.getPort(), equalTo(ExporterConfig.DEFAULT_PORT));
+        assertThat(config.toString(), not(containsString(ExporterConfig.REST_PORT)));
+    }
+
+    @Test
+    public void whenSpecified_readWlsPortFromYaml() {
+        yamlConfig.put(ExporterConfig.REST_PORT, EXPECTED_PORT);
+
+        ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
+
+        assertThat(config.getRestPort(), equalTo(EXPECTED_PORT));
+    }
+
+    @Test
+    public void whenSpecified_wlsPortIsIncludedInToString() {
+        yamlConfig.put(ExporterConfig.REST_PORT, EXPECTED_PORT);
+
+        ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
+
+        assertThat(config.toString(), containsString(ExporterConfig.REST_PORT + ": " + EXPECTED_PORT));
     }
 
     @Test
@@ -447,6 +462,32 @@ public class ExporterConfigTest {
             "    values: []\n";
 
     @Test
+    public void defineEmptyConfiguration() {
+        assertThat(ExporterConfig.createEmptyConfig().toString(), equalTo(EMPTY_CONFIG));
+    }
+
+    private static final String EMPTY_CONFIG =
+            "queries:\n";
+
+    @Test
+    public void afterReplaceEmptyConfig_haveReplacementConfig() {
+        ExporterConfig config = ExporterConfig.createEmptyConfig();
+
+        config.replace(loadFromString(PARTITION_CONFIG));
+
+        assertThat(config.toString(), equalTo(PARTITION_CONFIG));
+    }
+
+    @Test
+    public void afterAppendEmptyConfig_haveAppendedConfig() {
+        ExporterConfig config = ExporterConfig.createEmptyConfig();
+
+        config.append(loadFromString(PARTITION_CONFIG));
+
+        assertThat(config.toString(), equalTo(PARTITION_CONFIG));
+    }
+
+    @Test
     public void afterScrapingServerConfig_hasDomainName() {
         ExporterConfig exporterConfig = loadFromString(DOMAIN_QUALIFIER_CONFIG);
 
@@ -460,8 +501,8 @@ public class ExporterConfigTest {
         ExporterConfig exporterConfig = loadFromString(DOMAIN_QUALIFIER_CONFIG);
 
         Map<String, Object> metrics = new HashMap<>();
-        metrics.putAll(exporterConfig.scrapeMetrics(exporterConfig.getQueries()[0], getJsonResponse(CONFIG_RESPONSE)));
-        metrics.putAll(exporterConfig.scrapeMetrics(exporterConfig.getQueries()[1], getJsonResponse(WORK_MANAGER_RESPONSE)));
+        metrics.putAll(exporterConfig.scrapeMetrics(exporterConfig.getEffectiveQueries()[0], getJsonResponse(CONFIG_RESPONSE)));
+        metrics.putAll(exporterConfig.scrapeMetrics(exporterConfig.getEffectiveQueries()[1], getJsonResponse(WORK_MANAGER_RESPONSE)));
 
         assertThat(metrics, hasMetric("workmanager_pendingRequests{domain=\"mydomain\",applicationName=\"thisOne\"}", 2));
         assertThat(metrics, hasMetric("workmanager_completedRequests{domain=\"mydomain\",applicationName=\"thisOne\"}", 15));

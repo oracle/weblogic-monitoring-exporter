@@ -9,7 +9,6 @@ import static com.meterware.simplestub.Stub.createStrictStub;
 
 abstract class WebClientFactoryStub implements WebClientFactory {
     private WebClientStub client = createStrictStub(WebClientStub.class);
-    private String clientURL;
 
     @Override
     public WebClient createClient() {
@@ -56,12 +55,14 @@ abstract class WebClientFactoryStub implements WebClientFactory {
 
         @Override
         String doGetRequest() {
+            if (url == null) throw new NullPointerException("No URL specified");
             if (exception != null) throw exception;
             return response;
         }
 
         @Override
         String doPutRequest(String putBody) {
+            if (url == null) throw new NullPointerException("No URL specified");
             if (exception != null) throw exception;
             postedValue = putBody;
             return null;

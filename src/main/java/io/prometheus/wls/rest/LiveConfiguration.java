@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * The repository for the current exporter configuration.
@@ -80,8 +81,8 @@ class LiveConfiguration {
      * Returns the URL used to query the management services
      * @return a url built for the configured server
      */
-    static String getQueryUrl() {
-        return String.format(URL_PATTERN, WLS_HOST, serverPort);
+    static String getAuthenticationUrl() {
+        return String.format(URL_PATTERN, WLS_HOST, getRestPort());
     }
 
     /**
@@ -90,7 +91,11 @@ class LiveConfiguration {
      * @return a url built for the configured server
      */
     static String getUrl(MBeanSelector selector) {
-        return selector.getUrl(WLS_HOST, serverPort);
+        return selector.getUrl(WLS_HOST, getRestPort());
+    }
+
+    private static int getRestPort() {
+        return Optional.ofNullable(config.getRestPort()).orElse(serverPort);
     }
 
     /**
@@ -114,7 +119,7 @@ class LiveConfiguration {
      * @return an array of hierarchical mbean queries
      */
     static MBeanSelector[] getQueries() {
-        return getConfig().getQueries();
+        return getConfig().getEffectiveQueries();
     }
 
     /**
@@ -135,13 +140,14 @@ class LiveConfiguration {
         if (timestamp != null) return;
         
         InputStream configurationFile = getConfigurationFile(servletConfig);
-        if (configurationFile != null)
-            initialize(configurationFile);
+        initialize(Optional.ofNullable(configurationFile)
+                .map(ExporterConfig::loadConfig)
+                .orElse(ExporterConfig.createEmptyConfig()));
     }
 
-    private static void initialize(InputStream configurationFile) {
-        config = ExporterConfig.loadConfig(configurationFile);
-        installUpdater(config.getQuerySyncConfiguration());
+    private static void initialize(ExporterConfig config) {
+        LiveConfiguration.config = config;
+        installUpdater(LiveConfiguration.config.getQuerySyncConfiguration());
         timestamp = 0L;
     }
 

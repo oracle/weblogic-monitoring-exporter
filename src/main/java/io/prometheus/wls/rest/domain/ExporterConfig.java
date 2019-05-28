@@ -18,26 +18,35 @@ import java.util.stream.Stream;
  * @author Russell Gold
  */
 public class ExporterConfig {
-    static final String DEFAULT_HOST = "localhost";
-    static final int DEFAULT_PORT = 7001;
+    private static final String QUERY_SYNC = "query_sync";
     static final String SNAKE_CASE = "metricsNameSnakeCase";
     static final String DOMAIN_QUALIFIER = "domainQualifier";
-    static final String HOST = "host";
-    static final String PORT = "port";
-
-    private static final String QUERY_SYNC = "query_sync";
-
+    static final String REST_PORT = "restPort";
     private static final String QUERIES = "queries";
+    private static final String HOST = "host";
+    private static final String PORT = "port";
+    private static final String DEFAULT_HOST = "localhost";
+    private static final int DEFAULT_PORT = 7001;
+
+
     private static final MBeanSelector[] NO_QUERIES = {};
     private static final String DOMAIN_NAME_QUALIFIER = "domain=\"%s\"";
 
     private MBeanSelector[] queries = {};
     private String host = DEFAULT_HOST;
     private int port = DEFAULT_PORT;
+    private Integer restPort;
     private boolean metricsNameSnakeCase;
     private QuerySyncConfiguration querySyncConfiguration;
     private boolean useDomainQualifier;
     private String domainName;
+
+    /**
+     * Creates an empty configuration.
+     */
+    public static ExporterConfig createEmptyConfig() {
+        return new ExporterConfig(new HashMap<>());
+    }
 
     /**
      * Loads a YAML configuration to create a new configuration object.
@@ -85,6 +94,16 @@ public class ExporterConfig {
     }
 
     /**
+     * Returns the queries needed to create the metrics. May not be the same as the result from {@link #getQueries()}
+     * @return an array of mbean selectors.
+     */
+    public MBeanSelector[] getEffectiveQueries() {
+        if (queries == null) return NO_QUERIES;
+
+        return withPossibleDomainNameQuery(Arrays.stream(queries)).toArray(MBeanSelector[]::new);
+    }
+
+    /**
      * Returns an array of the mbean selector objects which correspond to the queries section
      * in the YAML.
      * @return an array of mbean selectors.
@@ -92,7 +111,7 @@ public class ExporterConfig {
     public MBeanSelector[] getQueries() {
         if (queries == null) return NO_QUERIES;
 
-        return withPossibleDomainNameQuery(Arrays.stream(queries)).toArray(MBeanSelector[]::new);
+        return queries;
     }
 
     private Stream<MBeanSelector> withPossibleDomainNameQuery(Stream<MBeanSelector> stream) {
@@ -114,6 +133,7 @@ public class ExporterConfig {
         if (yaml.containsKey(SNAKE_CASE)) setMetricsNameSnakeCase(yaml);
         if (yaml.containsKey(HOST)) host = MapUtils.getStringValue(yaml, HOST);
         if (yaml.containsKey(PORT)) port = MapUtils.getIntegerValue(yaml, PORT);
+        if (yaml.containsKey(REST_PORT)) restPort = MapUtils.getIntegerValue(yaml, REST_PORT);
         if (yaml.containsKey(QUERY_SYNC)) querySyncConfiguration = loadQuerySync(yaml.get(QUERY_SYNC));
         if (yaml.containsKey(QUERIES)) appendQueries(yaml.get(QUERIES));
     }
@@ -199,7 +219,7 @@ public class ExporterConfig {
     }
 
     private boolean emptyOrContainsMaps(List list) {
-        return list.isEmpty() || Map.class.isInstance(list.get(0));
+        return list.isEmpty() || list.get(0) instanceof Map;
     }
 
     String getHost() {
@@ -208,6 +228,14 @@ public class ExporterConfig {
 
     int getPort() {
         return port;
+    }
+
+    /**
+     * Returns the port on which the exporter will contact the REST API, if specified.
+     * @return a port number, or null
+     */
+    public Integer getRestPort() {
+        return restPort;
     }
 
     /**
@@ -258,7 +286,8 @@ public class ExporterConfig {
         if (querySyncConfiguration != null)
             sb.append(querySyncConfiguration);
         if (metricsNameSnakeCase) sb.append("metricsNameSnakeCase: true\n");
-        if (useDomainQualifier) sb.append("domainQualifier: true\n");
+        if (useDomainQualifier) sb.append(DOMAIN_QUALIFIER + ": true\n");
+        if (restPort != null) sb.append(REST_PORT + ": ").append(restPort).append("\n");
         sb.append("queries:\n");
 
         for (MBeanSelector query : getQueries())
