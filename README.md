@@ -105,9 +105,13 @@ The exporter produces metrics for monitoring its own performance:
 - `wls_scrape_cpu_seconds` reports the CPU time used during the scrape
 
 
-## Configuration
+## Access to the REST API.
 
-The exporter uses `localhost` to access the REST API, so that needs not to be disabled.
+The exporter must be able to contact the REST API of the WLS instance on which it is deployed. It does so via
+the primary host address of its server and the port on which the request for metrics was made. Usually, that will work;
+however, if the metrics request is made via a load balancer or Kubernetes NodePort service, the port to which the
+original request was might not be the same as the instance's HTTP port. In such a case, the configuration should
+include the 'restPort' configuration to tell the exporter what port to use.
  
 ## Copyright
  

@@ -135,7 +135,11 @@ public class ExporterConfig {
         if (yaml.containsKey(PORT)) port = MapUtils.getIntegerValue(yaml, PORT);
         if (yaml.containsKey(REST_PORT)) restPort = MapUtils.getIntegerValue(yaml, REST_PORT);
         if (yaml.containsKey(QUERY_SYNC)) querySyncConfiguration = loadQuerySync(yaml.get(QUERY_SYNC));
-        if (yaml.containsKey(QUERIES)) appendQueries(yaml.get(QUERIES));
+        if (yaml.containsKey(QUERIES)) appendQueries(asList(yaml.get(QUERIES)));
+    }
+
+    private Object asList(Object value) {
+        return Optional.ofNullable(value).orElse(Collections.emptyList());
     }
 
     private void setMetricsNameSnakeCase(Map<String, Object> yaml) {
