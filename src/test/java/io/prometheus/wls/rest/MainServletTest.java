@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -110,23 +110,20 @@ public class MainServletTest {
         assertThat(response.getHtml(), containsString(EFFECTIVE_CONFIGURATION));
     }
 
-    /*
-
     @Test
-    public void whenNewConfigAvailable_loadBeforeGeneratingMetrics() throws Exception {
-        factory.addJsonResponse(getGroupResponseMap());
-        initServlet(ONE_VALUE_CONFIG);
-        ConfigurationUpdaterStub.newConfiguration(1, TWO_VALUE_CONFIG);
+    public void whenNewConfigHasNoQueries_displayEmptyConfiguration() throws Exception {
+        InMemoryFileSystem.defineResource(LiveConfiguration.CONFIG_YML, PARSED_CONFIGURATION);
+        servlet.init(withNoParams());
 
+        ConfigurationUpdaterStub.newConfiguration(1, "queries:\n");
         servlet.doGet(request, response);
 
-        assertThat(toHtml(response), containsString("groupValue_testSample2{name=\"second\"} 71.0"));
+        assertThat(response.getHtml(), containsString(EMPTY_CONFIGURATION));
     }
 
-     */
     private static final String EMPTY_CONFIGURATION =
-            "host: localhost\n" +
-            "port: 7001\n";
+            "host: " + HttpServletRequestStub.HOST + "\n" +
+            "port: " + HttpServletRequestStub.PORT + "\n";
 
     private static final String PARSED_CONFIGURATION =
             "host: localhost\n" +
