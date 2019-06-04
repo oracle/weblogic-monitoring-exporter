@@ -1,57 +1,61 @@
 #!/bin/bash
 # Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
-set -e 
 
-MYDIR="$(dirname "$(readlink -f "$0")")" # get the absolute path of this file's folder
-PRJ_ROOT=$MYDIR/../../../../..
+set -e  # Exit immediately if a command exits with a non-zero status.
 
-# To build the archive which contains binaries and scripts etc.
-# Refer to WDT doc about the archive format: https://github.com/oracle/weblogic-deploy-tooling#simple-example
+CUR_DIR="$(dirname "$(readlink -f "$0")")" # get the absolute path of this file's folder
+PRJ_ROOT=${CUR_DIR}/../../../../..
+TMP_DIR=${CUR_DIR}/tmp
+
+# Create two webapps: testwebapp and wls-exporter.
 function createArchive() {
-  mkdir -p ${MYDIR}/archive/wlsdeploy/applications
-  mkdir -p ${MYDIR}/archive/wlsdeploy/domainLibraries
+  mkdir -p ${TMP_DIR}/archive/wlsdeploy/applications
 
   echo 'Build the test webapp...'
   cd test-webapp && mvn clean install && cd ..
-  cp test-webapp/target/testwebapp.war ${MYDIR}/archive/wlsdeploy/applications/testwebapp.war
+  cp test-webapp/target/testwebapp.war ${TMP_DIR}/archive/wlsdeploy/applications/testwebapp.war
 
   echo 'Build the metrics exporter...'
   cd $PRJ_ROOT
   mvn clean install
   cd webapp
-  mvn clean package -Dconfiguration=$MYDIR/../../dashboard/exporter-config.yaml
-  cd $MYDIR 
+  mvn clean package -Dconfiguration=${CUR_DIR}/../../dashboard/exporter-config.yaml
+  cd $CUR_DIR 
   cp $PRJ_ROOT/webapp/target/wls-exporter.war \
-     ${MYDIR}/archive/wlsdeploy/applications/wls-exporter.war
+     ${TMP_DIR}/archive/wlsdeploy/applications/wls-exporter.war
 
   echo 'Build the WDT archive...'
-  jar cvf ${MYDIR}/archive.zip  -C ${MYDIR}/archive wlsdeploy
+  jar cvf ${TMP_DIR}/archive.zip  -C ${TMP_DIR}/archive wlsdeploy
+  rm -rf ${TMP_DIR}/archive
 }
 
 function cleanTmpDir() {
-  rm -rf ${MYDIR}/archive
-  rm -rf ${MYDIR}/test-webapp/target
-  rm -f  ${MYDIR}/archive.zip
-  rm -rf $PRJ_ROOT/webapp/target
-  rm -f $MYDIR/weblogic-deploy.zip
+  rm -rf ${CUR_DIR}/test-webapp/target
+  rm -rf ${PRJ_ROOT}/webapp/target
+  rm -rf ${TMP_DIR}
 }
 
 function buildImage() {
-  if [ ! -e $MYDIR/weblogic-deploy.zip ] ; then
-    echo "weblogic-deploy.zip does not exist. Downloading it from github."  
-    wget -P $MYDIR https://github.com/oracle/weblogic-deploy-tooling/releases/download/weblogic-deploy-tooling-0.11/weblogic-deploy.zip
-    echo "download complete"
-  fi
+  cp ${CUR_DIR}/scripts/* ${TMP_DIR}
+  echo "Update domain.properties with cmdline arguments..."
+  sed -i "s/^DOMAIN_NAME.*/DOMAIN_NAME=$1/g" ${TMP_DIR}/domain.properties
+  sed -i "s/^ADMIN_USER.*/ADMIN_USER=$2/g" ${TMP_DIR}/domain.properties
+  sed -i "s/^ADMIN_PWD.*/ADMIN_PWD=$3/g" ${TMP_DIR}/domain.properties
+  sed -i "s/^MYSQL_USER.*/MYSQL_USER=$4/g" ${TMP_DIR}/domain.properties
+  sed -i "s/^MYSQL_PWD.*/MYSQL_PWD=$5/g" ${TMP_DIR}/domain.properties
+
+  echo 'Download the wdt zip...'
+  wget -P ${TMP_DIR} \
+    https://github.com/oracle/weblogic-deploy-tooling/releases/download/weblogic-deploy-tooling-0.24/weblogic-deploy.zip
 
   imageName=$1-image:1.0
-  echo "build image $imageName"
-  docker build --build-arg ARG_DOMAIN_NAME=$1  --build-arg ADMIN_USER=$2 \
-   --build-arg ADMIN_PWD=$3 $MYDIR --force-rm -t $imageName
+  echo "Build the domain image $imageName..."
+  docker build $CUR_DIR --force-rm -t $imageName
 }
 
-if [ "$#" != 3 ] ; then
-  echo "usage: $0 domainName adminUser adminPwd"
+if [ "$#" != 5 ] ; then
+  echo "usage: $0 domainName adminUser adminPwd mysqlUser mysqlPwd"
   exit 1 
 fi
 

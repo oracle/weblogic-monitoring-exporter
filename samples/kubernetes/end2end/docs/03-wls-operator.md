@@ -3,13 +3,17 @@ We depend on [the WLS operator](https://github.com/oracle/weblogic-kubernetes-op
 
 Here we provide the detail steps to install the WLS operator with release 2.1 as a example.
 
-
-Pull and tag docker images. **TODO: use OCR store?**
+Pull the WLS operator 2.1 image.
 ```
-docker pull wlsldi-v2.docker.oraclecorp.com/store-weblogic-12.2.1.3:latest
-docker tag wlsldi-v2.docker.oraclecorp.com/store-weblogic-12.2.1.3:latest store/oracle/weblogic:12.2.1.3
 docker pull oracle/weblogic-kubernetes-operator:2.1
 ```
+Pull the WebLogic 12.2.1.3 image from Oracle Container Registry site. And tag the image.
+```
+docker login container-registry.oracle.com
+docker pull container-registry.oracle.com/middleware/weblogic:12.2.1.3
+docker tag container-registry.oracle.com/middleware/weblogic:12.2.1.3 store/oracle/weblogic:12.2.1.3
+```
+
 Verify that the weblogic image has the right patch set.
 ```
 docker run store/oracle/weblogic:12.2.1.3 sh -c '$ORACLE_HOME/OPatch/opatch lspatches'
@@ -70,7 +74,7 @@ NAME                      CREATED AT
 domains.weblogic.oracle   2019-05-28T07:17:26Z
 ```
 
-Now the WLS operator is running and it's checking the default namespace. Later we'll deploy a domain resource to default namespace and the operator will create, run and manage the WLS domain.
+Now the WLS operator is running and it's monitoring the default namespace. Later we'll deploy a domain resource to default namespace and the operator will create, run and manage the WLS domain.
 
 Next: [Running a WLS Domain](04-wls-domain.md)
 

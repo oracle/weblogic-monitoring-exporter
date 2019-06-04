@@ -9,17 +9,21 @@ Before we go into the detail steps, see the diagram below for the overall archit
 
 Here's how the WebLogic metrics come all the way from WebLogic server and eventually displayed in the dashboard:
 - WebLogic servers exposes their runtime data via REST api.
-- The exporter running on each WebLogic server achieves WebLogic data via calling REST api, translates to the Prometheus metrics format and exposes in a HTTP endpoint.
-- Prometheus server is responsible to periodically scrape the metrics from the endpoints and store to its time series database.
+- The exporter running on each WebLogic server acquires WebLogic data via calling REST api, translates to the Prometheus metrics format and exposes in a HTTP endpoint.
+- Prometheus server is responsible for periodically scraping the metrics from the endpoints and store to its time series database.
 - Grafana server queries the metrics from Prometheus using PromQL and display the metrics and series in a visualization dashboard.
 
 ## Prerequisites
-Have a running Kubernetes cluster (1.10+) and have helm installed.  
-Clone this repository and change the directory to the root folder of this sample. All the commands in the step-by-step guide below are supposed to run under this root folder.
-```
-git clone https://github.com/oracle/weblogic-monitoring-exporter.git
-cd weblogic-monitoring-exporter/samples/kubernetes/end2end/
-```
+- Have a running Kubernetes cluster version 1.10 or higher.
+- Install Helm.  
+- Clone this repository.
+  ```
+  git clone https://github.com/oracle/weblogic-monitoring-exporter.git
+  ```
+- Change the directory to the root folder of this sample. All the commands in the step-by-step guide below are supposed to run under this root folder.
+  ```
+  cd weblogic-monitoring-exporter/samples/kubernetes/end2end/
+  ```
 
 ## Step-by-Step Guide
 1. [Configuring PV Path](docs/01-pv-path.md)
