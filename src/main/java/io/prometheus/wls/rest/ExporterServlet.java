@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -78,7 +78,9 @@ public class ExporterServlet extends PassThroughAuthenticationServlet {
     }
 
     private Map<String, Object> getMetrics(WebClient webClient, MBeanSelector selector) throws IOException {
-        String jsonResponse = webClient.withUrl(LiveConfiguration.getUrl(selector)).doPostRequest(selector.getRequest());
+        String request = selector.getRequest();
+        String jsonResponse = webClient.withUrl(LiveConfiguration.getUrl(selector)).doPostRequest(request);
+        MessagesServlet.addExchange(request, jsonResponse);
         if (isNullOrEmptyString(jsonResponse)) return null;
 
         return LiveConfiguration.scrapeMetrics(selector, jsonResponse);

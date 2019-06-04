@@ -24,6 +24,7 @@ public interface ServletConstants {
     String MAIN_PAGE = "";
     String METRICS_PAGE = "metrics";
     String CONFIGURATION_PAGE = "configure";
+    String MESSAGES_PAGE = "messages";
     String LOG_PAGE = "log";
 
     /** The header used by a web client to send its authentication credentials. **/

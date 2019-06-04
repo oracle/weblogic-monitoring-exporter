@@ -60,27 +60,28 @@ public class ExporterServletTest {
         LiveConfiguration.loadFromString("");
         LiveConfiguration.setServer("localhost", 7001);
         ExporterSession.cacheSession(null, null);
+        MessagesServlet.clear();
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         Locale.setDefault(locale);
         InMemoryFileSystem.uninstall();
         ConfigurationUpdaterStub.uninstall();
     }
 
     @Test
-    public void exporter_isHttpServlet() throws Exception {
+    public void exporter_isHttpServlet() {
         assertThat(servlet, instanceOf(HttpServlet.class));
     }
 
     @Test
-    public void servlet_hasWebServletAnnotation() throws Exception {
+    public void servlet_hasWebServletAnnotation() {
         assertThat(ExporterServlet.class.getAnnotation(WebServlet.class), notNullValue());
     }
 
     @Test
-    public void servletAnnotationIndicatesMetricsPage() throws Exception {
+    public void servletAnnotationIndicatesMetricsPage() {
         WebServlet annotation = ExporterServlet.class.getAnnotation(WebServlet.class);
 
         assertThat(annotation.value(), arrayContaining("/metrics"));
@@ -224,6 +225,15 @@ public class ExporterServletTest {
     private void initServlet(String configuration) throws ServletException {
         InMemoryFileSystem.defineResource(LiveConfiguration.CONFIG_YML, configuration);
         servlet.init(withNoParams());
+    }
+
+    @Test
+    public void onGet_recordJsonQuery() throws Exception {
+        initServlet(ONE_VALUE_CONFIG);
+
+        servlet.doGet(request, response);
+
+        assertThat(MessagesServlet.getMessages(), not(empty()));
     }
 
     @Test
