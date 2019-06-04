@@ -3,7 +3,7 @@ The WLS operator has documents about creating domains, e.g. different considerat
 
 In this task, we provide concrete scripts to create a demonstration domain.
 
-### Check Download Before Run
+### Set Proxy Before Run
 In the scripts to build the domain image, we use `wget` to donwload WebLogic Deploy Tool archive from GitHub. If you run the script behind a proxy, you need to configure the proxy setting properly first.  
 One of the approaches is to use proxy variables:
 ```
