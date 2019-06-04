@@ -39,10 +39,10 @@ resources:
                 JDBCDriverParams:
                     DriverName: org.gjt.mm.mysql.Driver 
                     URL: 'jdbc:mysql://mysql.default.svc.cluster.local:3306/@@PROP:DOMAIN_NAME@@'
-                    PasswordEncrypted: welcome1
+                    PasswordEncrypted: '@@PROP:MYSQL_PWD@@'
                     Properties:
                         user:
-                            Value: weblogic
+                            Value: '@@PROP:MYSQL_USER@@' 
                 JDBCConnectionPoolParams:
                     InitialCapacity: 3
                     MaxCapacity: 15
