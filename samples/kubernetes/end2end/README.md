@@ -34,4 +34,4 @@ Here's how the WebLogic metrics come all the way from WebLogic server and eventu
 1. [Installing Grafana](docs/06-grafana.md)
 
 ## Cleanup Guide
-(Cleanup)[docs/07-cleanup.md]
+[Cleanup](docs/07-cleanup.md)
