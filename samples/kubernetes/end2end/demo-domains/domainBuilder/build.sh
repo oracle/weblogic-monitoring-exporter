@@ -4,6 +4,8 @@
 
 set -e  # Exit immediately if a command exits with a non-zero status.
 
+WDT_VERSION=0.24
+
 CUR_DIR="$(dirname "$(readlink -f "$0")")" # get the absolute path of this file's folder
 PRJ_ROOT=${CUR_DIR}/../../../../..
 TMP_DIR=${CUR_DIR}/tmp
@@ -47,7 +49,7 @@ function buildImage() {
 
   echo 'Download the wdt zip...'
   wget -P ${TMP_DIR} \
-    https://github.com/oracle/weblogic-deploy-tooling/releases/download/weblogic-deploy-tooling-0.24/weblogic-deploy.zip
+    https://github.com/oracle/weblogic-deploy-tooling/releases/download/weblogic-deploy-tooling-${WDT_VERSION}/weblogic-deploy.zip
 
   imageName=$1-image:1.0
   echo "Build the domain image $imageName..."
