@@ -1,10 +1,10 @@
 ## Running a WLS Domain
-The WLS operator has documents about creating domains, e.g. different considerations and different options, see detail info in [managing domains guide](https://oracle.github.io/weblogic-kubernetes-operator/userguide/managing-domains/). The only extra step needed to integrate with Prometheus is to install the wls-exporter web application to WLS servers/clusters.
+The WLS operator has detailed documents about creating domains, e.g. different considerations and different options, see detail info in [managing domains guide](https://oracle.github.io/weblogic-kubernetes-operator/userguide/managing-domains/). The only extra step needed to integrate with Prometheus is to install the wls-exporter web application to WLS servers/clusters.
 
 In this task, we provide concrete scripts to create a demonstration domain.
 
 ### Set Proxy Before Run
-In the scripts to build the domain image, we use `wget` to donwload WebLogic Deploy Tool archive from GitHub. If you run the script behind a proxy, you need to configure the proxy setting properly first.  
+In the scripts running below, we use `wget` to donwload WebLogic Deploy Tool archive from GitHub. If you are behind a proxy, you need to configure the proxy setting properly.  
 One of the approaches is to use proxy variables:
 ```
 export http_proxy=http://proxy_host:proxy_port
@@ -17,7 +17,8 @@ wget https://github.com/oracle/weblogic-deploy-tooling/releases/download/weblogi
 ```
 
 ### Build the Domain Image
-A script wrapper [build.sh](../demo-domains/domainBuilder/build.sh) is used to do this. See the script usage below:
+We provide a script wrapper [build.sh](../demo-domains/domainBuilder/build.sh) to help do this.  
+See the script usage:
 ```
 usage: ./build.sh domainName adminUser adminPwd mysqlUser mysqlPwd
 ```
@@ -27,13 +28,11 @@ cd demo-domains/domainBuilder
 ./build.sh domain1 weblogic welcome1  wluser1 wlpwd123
 cd ../..
 ```
-A docker image `domain1-image:1.0` will be created. `weblogic` and `welcome1` are the domain's admin user name and password. `wluser1` and  `wlpwd123` are username and password of mysql database. The database name is the same as the domain name so the database used by `domain1` is `domain1`.
+A docker image `domain1-image:1.0` will be created. Note that the database name is the same as the domain name.
 
 The domain configuration is burned into the image. What's in the domain configuration?
 - One data source, one JDBC store, one JMS server and a JMS module. All the resources are deployed to the cluster. 
 - Two web applications deployed to cluster: test-webapp and wls-exporter.  
-
-Check the exporter configuration [exporter-config.yaml](../dashboard/exporter-config.yaml).
 
 ### Deploy the Domain Resource
 Create a secret for WLS admin credential.
@@ -115,6 +114,6 @@ wls_jms_bytes_current_count{jmsruntime="managed-server-1.jms",jmsserver="JMSServ
 wls_jms_bytes_high_count{jmsruntime="managed-server-1.jms",jmsserver="JMSServer1@managed-server-1"} 360324
 ...
 ```
-All the metric names are started with "wls_" and metric names of different comonents have different prefix which match to what we configured in [the exporter configuration](../dashboard/exporter-config.yaml). 
+All the metric names are started with "wls_" and metric names of different comonents have different prefix which match to what we configured in the [exporter configuration](../dashboard/exporter-config.yaml). 
 
 Next: [Installing Prometheus](05-prometheus.md)
