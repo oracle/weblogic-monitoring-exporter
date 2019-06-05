@@ -4,7 +4,7 @@ Deploy PV and PVC.
 kubectl apply -f ./mysql/persistence.yaml
 ```
 Install a mysql server.   
-Note that the root password is set to `123456` in the [mysql yaml](../mysql/mysql.yaml). Pls change to a desirable password if needed.
+Note that the root password is set to `123456` in the [mysql yaml](../mysql/mysql.yaml). Change to a more sucure password when needed.
 ```
 kubectl apply -f ./mysql/mysql.yaml
 ```
@@ -21,7 +21,7 @@ Get pod name of mysql server.
 ```
 POD_NAME=$(kubectl get pod -l app=mysql -o jsonpath="{.items[0].metadata.name}")
 ```
-Create a new database and a new user to be used by WebLogic domain.  
+Create a new database and a new user.  
 You will be prompted to fill in the MySQL root password for each command below.
 ```
 kubectl exec -it $POD_NAME -- mysql -p -e "CREATE DATABASE domain1;"
@@ -30,7 +30,7 @@ kubectl exec -it $POD_NAME -- mysql -p -e "GRANT ALL ON domain1.* TO 'wluser1';"
 ```
 
 ## Verification
-Use the new user to access the new database.
+Access the new database with the new user.
 ```
 kubectl exec -it $POD_NAME -- mysql -u wluser1 -p -D domain1 -e "show tables;"
 ```
