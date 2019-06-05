@@ -1,13 +1,13 @@
 ## Installing the WLS Operator
 We depend on [the WLS operator](https://github.com/oracle/weblogic-kubernetes-operator) to create and manage WLS domains. Check [the installation doc](https://oracle.github.io/weblogic-kubernetes-operator/userguide/managing-operators/installation/).
 
-Here we provide the detail steps to install the WLS operator with release 2.1 as a example.
+Here we provide the detail steps to install the WLS operator with release 2.1 as an example.
 
 Pull the WLS operator 2.1 image.
 ```
 docker pull oracle/weblogic-kubernetes-operator:2.1
 ```
-Pull the WebLogic 12.2.1.3 image from Oracle Container Registry site. And tag the image.
+Pull the WebLogic 12.2.1.3 image from Oracle Container Registry site. You need a valid user/pwd to log in to the site first. And then tag the image.
 ```
 docker login container-registry.oracle.com
 docker pull container-registry.oracle.com/middleware/weblogic:12.2.1.3
@@ -74,7 +74,7 @@ NAME                      CREATED AT
 domains.weblogic.oracle   2019-05-28T07:17:26Z
 ```
 
-Now the WLS operator is running and it's monitoring the default namespace. Later we'll deploy a domain resource to default namespace and the operator will create, run and manage the WLS domain.
+Now the WLS operator is running and it's monitoring the default namespace. Later we'll deploy a domain resource to default namespace and the operator is responsible for actually creating, running and managing the WLS domain.
 
 Next: [Running a WLS Domain](04-wls-domain.md)
 
