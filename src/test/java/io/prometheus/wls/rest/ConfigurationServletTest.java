@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -46,17 +46,17 @@ public class ConfigurationServletTest {
     }
 
     @Test
-    public void configuration_isHttpServlet() throws Exception {
+    public void configuration_isHttpServlet() {
         assertThat(servlet, instanceOf(HttpServlet.class));
     }
 
     @Test
-    public void servlet_hasWebServletAnnotation() throws Exception {
+    public void servlet_hasWebServletAnnotation() {
         assertThat(ConfigurationServlet.class.getAnnotation(WebServlet.class), notNullValue());
     }
 
     @Test
-    public void servletAnnotationIndicatesConfigurationPage() throws Exception {
+    public void servletAnnotationIndicatesConfigurationPage() {
         WebServlet annotation = ConfigurationServlet.class.getAnnotation(WebServlet.class);
 
         assertThat(annotation.value(), arrayContaining("/" + CONFIGURATION_PAGE));
@@ -201,7 +201,7 @@ public class ConfigurationServletTest {
 
     @Test
     public void whenServerSends401StatusOnGet_returnToClient() throws Exception {
-        factory.setException(new BasicAuthenticationChallengeException("Test-Realm"));
+        factory.setException(new AuthenticationChallengeException("Basic realm=\"Test-Realm\""));
         servlet.doPost(request, response);
 
         assertThat(response.getStatus(), equalTo(SC_UNAUTHORIZED));

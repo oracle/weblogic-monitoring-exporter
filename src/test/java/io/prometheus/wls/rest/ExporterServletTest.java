@@ -474,11 +474,12 @@ public class ExporterServletTest {
         void addHeader(String name, String value) {
             addedHeaders.put(name, value);
         }
+
         @Override
         public String doPostRequest(String postBody) {
             if (url == null) throw new NullPointerException("No URL specified");
             if (status == SC_FORBIDDEN) throw new ForbiddenException();
-            if (basicRealmName != null) throw new BasicAuthenticationChallengeException(basicRealmName);
+            if (basicRealmName != null) throw new AuthenticationChallengeException(String.format("Basic realm=\"%s\"", basicRealmName));
 
             sentHeaders = Collections.unmodifiableMap(addedHeaders);
             this.jsonQuery = postBody;

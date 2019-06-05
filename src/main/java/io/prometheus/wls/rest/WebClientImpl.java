@@ -26,6 +26,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import static io.prometheus.wls.rest.ServletConstants.AUTHENTICATION_HEADER;
 import static io.prometheus.wls.rest.ServletConstants.COOKIE_HEADER;
@@ -37,8 +38,6 @@ import static javax.servlet.http.HttpServletResponse.*;
  * @author Russell Gold
  */
 public class WebClientImpl extends WebClient {
-    private static final char QUOTE = '"';
-
     private String url;
     private List<BasicHeader> addedHeaders = new ArrayList<>();
     private List<BasicHeader> sessionHeaders = new ArrayList<>();
@@ -144,20 +143,13 @@ public class WebClientImpl extends WebClient {
         }
     }
 
-    private BasicAuthenticationChallengeException createAuthenticationChallengeException(CloseableHttpResponse response) {
-        return new BasicAuthenticationChallengeException(getRealm(response));
+    private AuthenticationChallengeException createAuthenticationChallengeException(CloseableHttpResponse response) {
+        return new AuthenticationChallengeException(getAuthenticationHeader(response));
     }
 
-    private String getRealm(CloseableHttpResponse response) {
+    private String getAuthenticationHeader(CloseableHttpResponse response) {
         Header header = response.getFirstHeader("WWW-Authenticate");
-        return extractRealm(header == null ? "" : header.getValue());
-    }
-
-    // the value should be of the form <Basic realm="<realm-name>" and we want to extract the realm name
-    private String extractRealm(String authenticationHeaderValue) {
-        int start = authenticationHeaderValue.indexOf(QUOTE);
-        int end = authenticationHeaderValue.indexOf(QUOTE, start+1);
-        return start > 0 ? authenticationHeaderValue.substring(start+1, end) : "none";
+        return Optional.ofNullable(header).map(Header::getValue).orElse("");
     }
 
     private String extractSessionSetCookieHeader(CloseableHttpResponse response) {

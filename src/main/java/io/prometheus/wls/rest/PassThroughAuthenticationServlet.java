@@ -69,8 +69,8 @@ abstract public class PassThroughAuthenticationServlet extends HttpServlet {
             webClient.forwardResponseHeaders(resp);
         } catch (ForbiddenException e) {
             resp.sendError(SC_FORBIDDEN, "Not authorized");
-        } catch (BasicAuthenticationChallengeException e) {
-            resp.setHeader("WWW-Authenticate", String.format("Basic realm=\"%s\"", e.getRealm()));
+        } catch (AuthenticationChallengeException e) {
+            resp.setHeader("WWW-Authenticate", e.getChallenge());
             resp.sendError(SC_UNAUTHORIZED, "Authentication required");
         } finally {
             final HttpSession session = req.getSession(false);

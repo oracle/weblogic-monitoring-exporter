@@ -25,6 +25,7 @@ import static org.hamcrest.junit.MatcherAssert.assertThat;
  * @author Russell Gold
  */
 public class WebClientImplTest extends HttpUserAgentTest {
+    private static final char QUOTE = '"';
 
     /** A URL with a host guaranteed not to exist. */
     private static final String UNDEFINED_HOST_URL = "http://mxyptlk/";
@@ -192,7 +193,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
         factory.createClient().withUrl(getHostPath() + "/badRestQuery").doPostRequest("abced");
     }
 
-    @Test(expected = BasicAuthenticationChallengeException.class)
+    @Test(expected = AuthenticationChallengeException.class)
     public void when401ReceivedFromServer_throwsException() throws Exception {
         defineResource("protected", new PseudoServlet() {
             @Override
@@ -221,11 +222,16 @@ public class WebClientImplTest extends HttpUserAgentTest {
 
         try {
             webClient.doPostRequest("abcd");
-        } catch (BasicAuthenticationChallengeException e) {
-            assertThat(e.getRealm(), equalTo("REST Realm"));
+        } catch (AuthenticationChallengeException e) {
+            assertThat(extractRealm(e.getChallenge()), equalTo("REST Realm"));
         }
     }
-
+    // the value should be of the form <Basic realm="<realm-name>" and we want to extract the realm name
+    private String extractRealm(String authenticationHeaderValue) {
+        int start = authenticationHeaderValue.indexOf(QUOTE);
+        int end = authenticationHeaderValue.indexOf(QUOTE, start+1);
+        return start > 0 ? authenticationHeaderValue.substring(start+1, end) : "none";
+    }
     @Test(expected = ForbiddenException.class)
     public void when403ReceivedFromServer_throwsException() throws Exception {
         defineResource("forbidden", new PseudoServlet() {

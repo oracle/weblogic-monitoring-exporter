@@ -76,7 +76,6 @@ public class ConfigurationServlet extends PassThroughAuthenticationServlet {
         out.close();
     }
 
-    @SuppressWarnings("unchecked")
     private PostAction createPostAction(HttpServletRequest request) throws IOException, ServletException {
         PostAction postAction = new PostAction();
         try {
