@@ -15,7 +15,7 @@ Here's how the WebLogic metrics come all the way from WebLogic server and eventu
 
 ## Prerequisites
 - Have a running Kubernetes cluster version 1.10 or higher.
-- Install Helm.  
+- Have Helm installed.  
 - Clone this repository.
   ```
   git clone https://github.com/oracle/weblogic-monitoring-exporter.git
