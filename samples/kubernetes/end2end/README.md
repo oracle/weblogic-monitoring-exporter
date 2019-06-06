@@ -1,5 +1,5 @@
 ## Monitoring WebLogic Server with Grafana Dashboard
-This is an end-to-end sample that walks through the steps to setup monitoring for WebLogic domains using Prometheus and Grafana from scratch. In the end you'll have Prometheus, Grafana, WLS domains installed, configured and running. And runtime metrics of WebLogic servers will be visualized in a Grafana dashboard.
+This is an end-to-end sample that walks through the steps to setup monitoring for WebLogic domains using Prometheus and Grafana from scratch. In the end you'll have Prometheus, Grafana, WLS domains installed, configured and running. This sample offers Grafana dashboards to visualize the WebLogic server runtime metrics.
 
 Firstly, let's check [what's in the WebLogic Dashboard](docs/dashboard.md).
 
