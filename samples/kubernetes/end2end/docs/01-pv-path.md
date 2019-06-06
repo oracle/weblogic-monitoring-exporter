@@ -1,6 +1,6 @@
 ## Configuring PV Path
-In this sample we have three applications that use PersistentVolumes (PV) and PersistentVolumeClaims(PVC) to store data. See the yaml files for the three pv&pvc.
-- [PV and PVC for mysql server](../mysql/persistence.yaml).
+In this sample we need to create three PersistentVolumes (PV) and PersistentVolumeClaims(PVC) to store data for MySQL, Prometheus, and Grafana. See the yaml files for the three PVs/PVCs.
+- [PV and PVC for MYSQL server](../mysql/persistence.yaml).
 - [PV and PVC for Prometheus server](../prometheus/persistence.yaml).
 - [PV and PVC for Grafana server](../grafana/persistence.yaml).
 
