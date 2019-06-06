@@ -34,8 +34,8 @@ Access the new database with the new user.
 ```
 kubectl exec -it $POD_NAME -- mysql -u wluser1 -p -D domain1 -e "show tables;"
 ```
-There is not table created in the database yet. Just make sure no error occur.
+Note that we have not created any user tables in the database and the purpose of running this query is to verify that the MySQL database has been created correctly.
 
-Now the mysql database is ready. The WLS domain created in later step will store its data to this database.  
+The WLS domain created in later step will store its data to the database, e.g. persistent JMS messages.
 
 Next: [Installing the WLS Operator](03-wls-operator.md)
