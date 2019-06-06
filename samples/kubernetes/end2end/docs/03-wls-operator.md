@@ -7,16 +7,15 @@ Pull the WLS operator 2.1 image.
 ```
 docker pull oracle/weblogic-kubernetes-operator:2.1
 ```
-Pull the WebLogic 12.2.1.3 image from Oracle Container Registry site. You need a valid user/pwd to log in to the site first. And then tag the image.
+Pull the WebLogic 12.2.1.3 image from Oracle Container Registry site. You need a valid user/pwd to log in to the site first.
 ```
 docker login container-registry.oracle.com
 docker pull container-registry.oracle.com/middleware/weblogic:12.2.1.3
-docker tag container-registry.oracle.com/middleware/weblogic:12.2.1.3 store/oracle/weblogic:12.2.1.3
 ```
 
 Verify that the weblogic image has the right patch set.
 ```
-docker run store/oracle/weblogic:12.2.1.3 sh -c '$ORACLE_HOME/OPatch/opatch lspatches'
+docker run container-registry.oracle.com/middleware/weblogic:12.2.1.3  sh -c '$ORACLE_HOME/OPatch/opatch lspatches'
 ```
 > output
 ```

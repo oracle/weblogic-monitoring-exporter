@@ -1,5 +1,5 @@
 
-FROM store/oracle/weblogic:12.2.1.3
+FROM container-registry.oracle.com/middleware/weblogic:12.2.1.3
 
 ENV SCRIPTS_DIR="/tmp/scripts/"
 
