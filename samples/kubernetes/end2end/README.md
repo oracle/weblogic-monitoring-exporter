@@ -33,4 +33,4 @@ Here's how the WebLogic metrics come all the way from WebLogic server and eventu
 1. [Installing Prometheus](docs/05-prometheus.md)
 1. [Installing Grafana](docs/06-grafana.md)
 
-Follow the [cleanup](docs/07-cleanup.md) guide to clean your environment.
+Follow the [cleanup](docs/07-cleanup.md) after you finish this guide and want to clean up your environment.
