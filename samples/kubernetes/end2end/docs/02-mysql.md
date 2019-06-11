@@ -1,4 +1,6 @@
 ## Setting up MYSQL Server
+In this step we'll describe how to setup MySQL database in the Kubernetes cluster. In this sample we are using the MySQL database to store application data. The WLS domain created in a later step will store its data to the database, e.g. persistent JMS messages.  
+
 Deploy PV and PVC.
 ```
 kubectl apply -f ./mysql/persistence.yaml
@@ -35,7 +37,5 @@ Access the new database with the new user.
 kubectl exec -it $POD_NAME -- mysql -u wluser1 -p -D domain1 -e "show tables;"
 ```
 Note that we have not created any user tables in the database and the purpose of running this query is to verify that the MySQL database has been created correctly.
-
-The WLS domain created in later step will store its data to the database, e.g. persistent JMS messages.
 
 Next: [Installing the WLS Operator](03-wls-operator.md)
