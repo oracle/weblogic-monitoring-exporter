@@ -12,4 +12,4 @@ For more details on how to set up and run Prometheus and Kibana with the WebLogi
 
 ## Copyright
 
- Copyright (c) 2017-2019 Oracle and/or its affiliates. All rights reserved.
+ Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
