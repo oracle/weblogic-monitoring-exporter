@@ -85,11 +85,11 @@ abstract public class PassThroughAuthenticationServlet extends HttpServlet {
         try (ServletOutputStream out = resp.getOutputStream()) {
             out.println("# Unable to contact the REST API at " + uri + ". May be using the wrong port.");
             out.println("#");
-            out.println("# This most commonly occurs when the exporter is accessed via a load-balancer");
+            out.println("# This most commonly occurs when the exporter is accessed via a load balancer");
             out.println("# configured on a different port than the managed server.");
             out.println("#");
             out.println("# You can correct this by giving the exporter WAR an initial configuration with the");
-            out.println("# restPort field set to the managed server's plain-text port.");
+            out.println("# restPort field set to the managed server's plain text port.");
         }
     }
 
