@@ -21,7 +21,7 @@ kubectl get pod -l app=mysql
 NAME                    READY   STATUS    RESTARTS   AGE
 mysql-7bf4d88f9-sbd25   1/1     Running   0          31h
 ```
-Get pod name of MySQL server.
+Get the pod name of MySQL server.
 ```
 POD_NAME=$(kubectl get pod -l app=mysql -o jsonpath="{.items[0].metadata.name}")
 ```

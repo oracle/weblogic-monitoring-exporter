@@ -1,5 +1,5 @@
 ## Monitoring WebLogic Server with the Grafana Dashboard
-This is an end-to-end sample that shows you the steps to set up monitoring for WebLogic domains using Prometheus and Grafana from scratch. In the end, you'll have Prometheus, Grafana, and WLS domains installed, configured, and running. This sample includes Grafana dashboards to visualize the WebLogic Server runtime metrics.
+This is an end-to-end sample that shows you the steps to set up monitoring for WebLogic domains using Prometheus and Grafana. In the end, you'll have Prometheus, Grafana, and WLS domains installed, configured, and running. This sample includes Grafana dashboards to visualize the WebLogic Server runtime metrics.
 
 First, let's look at [what's in the WebLogic Server Dashboard](docs/dashboard.md).
 
@@ -9,7 +9,7 @@ Before going into the detailed steps, look at the diagram below for the overall 
 
 Here's how the WebLogic metrics come from WebLogic Server and get displayed in the dashboard:
 - WebLogic Servers expose their runtime data via the REST API.
-- The exporter, running on each WebLogic Server, acquires WebLogic data by calling the REST API, which it then translates to the Prometheus metrics format and exposes in an HTTP endpoint.
+- The exporter, running on each WebLogic Server instance, acquires WebLogic data by calling the REST API, which it then translates to the Prometheus metrics format and exposes in an HTTP endpoint.
 - The Prometheus server is responsible for periodically scraping the metrics from the endpoints and storing them in its time series database.
 - The Grafana server queries the metrics from Prometheus using PromQL and displays the metrics and series in a visualization dashboard.
 

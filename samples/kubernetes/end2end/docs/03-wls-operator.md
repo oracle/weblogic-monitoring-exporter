@@ -8,7 +8,7 @@ Pull the WLS Kubernetes Operator 2.1 image.
 docker pull oracle/weblogic-kubernetes-operator:2.1
 ```
 Pull the WebLogic 12.2.1.3 image from the Oracle Container Registry site.
-First, you need a valid user name and password to log in to the site. For details, see [here](https://oracle.github.io/weblogic-kubernetes-operator/userguide/managing-domains/domain-in-image/base-images/_index.md#obtaining-standard-images-from-the-oracle-container-registry).
+First, you need a valid user name and password to log in to the site. For details, see [here](https://oracle.github.io/weblogic-kubernetes-operator/userguide/managing-domains/domain-in-image/base-images/#obtaining-standard-images-from-the-oracle-container-registry).
 ```
 docker login container-registry.oracle.com
 docker pull container-registry.oracle.com/middleware/weblogic:12.2.1.3
