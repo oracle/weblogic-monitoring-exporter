@@ -6,6 +6,7 @@ package io.prometheus.wls.rest;
  */
 
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -13,8 +14,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Enumeration;
 
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
+import static javax.servlet.http.HttpServletResponse.*;
 
 /**
  * An abstract servlet which performs authentication by forwarding all pertinent headers between the client
@@ -72,9 +72,24 @@ abstract public class PassThroughAuthenticationServlet extends HttpServlet {
         } catch (AuthenticationChallengeException e) {
             resp.setHeader("WWW-Authenticate", e.getChallenge());
             resp.sendError(SC_UNAUTHORIZED, "Authentication required");
+        } catch (RestPortConnectionException e) {
+            resp.sendError(SC_INTERNAL_SERVER_ERROR, "Unable to reach REST API");
+            reportUnableToContactRestApi(resp, e.getUri());
         } finally {
             final HttpSession session = req.getSession(false);
             if (session != null) session.invalidate();
+        }
+    }
+
+    private void reportUnableToContactRestApi(HttpServletResponse resp, String uri) throws IOException {
+        try (ServletOutputStream out = resp.getOutputStream()) {
+            out.println("# Unable to contact the REST API at " + uri + ". May be using the wrong port.");
+            out.println("#");
+            out.println("# This most commonly occurs when the exporter is accessed via a load-balancer");
+            out.println("# configured on a different port than the managed server.");
+            out.println("#");
+            out.println("# You can correct this by giving the exporter WAR an initial configuration with the");
+            out.println("# restPort field set to the managed server's plain-text port.");
         }
     }
 

@@ -7,6 +7,7 @@ package io.prometheus.wls.rest;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
+import org.apache.http.HttpHost;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -371,6 +372,16 @@ public class ExporterServletTest {
     }
 
     @Test
+    public void whenHttpConnectionFails_produceConnectionWarning() throws Exception {
+        initServlet(CONFIG_WITH_CATEGORY_VALUE);
+        factory.throwConnectionFailure("myhost", 1234);
+
+        servlet.doGet(request, response);
+
+        assertThat(toHtml(response), allOf(containsOnlyComments(),containsString("restPort"), containsString("http://myhost:1234")));
+    }
+
+    @Test
     public void whenKeyAlsoListedAsValue_dontDisplayIt() throws Exception {
         factory.addJsonResponse(getGroupResponseMap());
         initServlet("queries:" +
@@ -437,6 +448,11 @@ public class ExporterServletTest {
         private void reportAuthenticationRequired(String basicRealmName) {
             webClient.reportAuthenticationRequired(basicRealmName);
         }
+
+        @SuppressWarnings("SameParameterValue")
+        void throwConnectionFailure(String host, int port) {
+            webClient.throwConnectionFailure(host, port);
+        }
     }
 
     static abstract class WebClientStub extends WebClient {
@@ -444,7 +460,7 @@ public class ExporterServletTest {
         private String url;
         private String jsonQuery;
         private int status = SC_OK;
-        private String basicRealmName;
+        private WebClientException webClientException;
         private String setCookieHeader;
         private List<String> responseList = new ArrayList<>();
         private Iterator<String> responses;
@@ -461,7 +477,11 @@ public class ExporterServletTest {
 
         @SuppressWarnings("SameParameterValue")
         void reportAuthenticationRequired(String basicRealmName) {
-            this.basicRealmName = basicRealmName;
+            webClientException = new AuthenticationChallengeException(String.format("Basic realm=\"%s\"", basicRealmName));
+        }
+
+        void throwConnectionFailure(String host, int port) {
+            webClientException = new RestPortConnectionException(new HttpHost(host, port));
         }
 
         @Override
@@ -479,7 +499,7 @@ public class ExporterServletTest {
         public String doPostRequest(String postBody) {
             if (url == null) throw new NullPointerException("No URL specified");
             if (status == SC_FORBIDDEN) throw new ForbiddenException();
-            if (basicRealmName != null) throw new AuthenticationChallengeException(String.format("Basic realm=\"%s\"", basicRealmName));
+            if (webClientException != null) throw webClientException;
 
             sentHeaders = Collections.unmodifiableMap(addedHeaders);
             this.jsonQuery = postBody;

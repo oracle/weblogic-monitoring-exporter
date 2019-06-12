@@ -12,6 +12,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -63,6 +64,8 @@ public class WebClientImpl extends WebClient {
     private String sendRequest(HttpRequestBase request) throws IOException {
         try (CloseableHttpClient httpClient = createHttpClient()) {
             return getReply(httpClient, request);
+        } catch (HttpHostConnectException e) {
+            throw new RestPortConnectionException(e.getHost());
         } catch (UnknownHostException | ConnectException e) {
             throw new WebClientException(e, "Unable to execute %s request to %s", request.getMethod(), request.getURI());
         }
