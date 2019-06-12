@@ -1,15 +1,15 @@
 ## Installing Prometheus
-Install Prometheus using [helm chart](https://github.com/helm/charts/tree/master/stable/prometheus) and with the customized [values.yaml](../prometheus/values.yaml).
+Install Prometheus using a [Helm chart](https://github.com/helm/charts/tree/master/stable/prometheus) with the customized [values.yaml](../prometheus/values.yaml) file.
 
 Create a new namespace `monitoring`.
 ```
 kubectl create ns monitoring
 ```
-Deploy PV and PVC yaml.
+Deploy the PV and PVC YAML file.
 ```
 kubectl apply -f prometheus/persistence.yaml
 ```
-Install Prometheus chart.
+Install the Prometheus chart.
 ```
 helm install --wait --name prometheus --namespace monitoring --values  prometheus/values.yaml stable/prometheus
 ```
@@ -40,10 +40,9 @@ prometheus-server               NodePort    10.99.199.236   <none>        80:300
 
 ```
 ### Access the Prometheus web UI
-Now you can access the Prometheus web UI in your browser with URL `http://<HostIP>:30000`.  
-In the top menu, click `Status` and then `Targets`, the target page is displayed. Go to the bottom of the page, you'll find the two endpoints of `wls-domain1` are up and healthy.
+Now you can access the Prometheus web UI in your browser with the URL `http://<HostIP>:30000`.  
+In the top menu, click `Status` and then `Targets`. The target page is displayed. Go to the bottom of the page. You'll find the two endpoints of `wls-domain1` are up and healthy.
 
 ![Prometheus Targets](./images/prometheus-targets.png)
 
 Next: [Installing Grafana](06-grafana.md)
-

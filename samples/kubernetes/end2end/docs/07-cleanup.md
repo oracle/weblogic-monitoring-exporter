@@ -7,7 +7,7 @@ Delete the Grafana chart.
 helm delete --purge grafana
 ```
 
-Delete Grafana admin credential.
+Delete the Grafana administrative credentials.
 ```
 kubectl -n monitoring delete secret grafana-secret
 ```
@@ -38,12 +38,12 @@ Delete the domain resource.
 kubectl delete -f demo-domains/domain1.yaml
 ```
 
-Delete the secrete of WLS admin credential.
+Delete the WLS administrative credentials secret.
 ```
 kubectl delete secret domain1-weblogic-credentials
 ```
 
-Wait until all the pods the domain are deleted.
+Wait until all the pods in the domain are deleted.
 ```
 kubectl get pod -l weblogic.domainName=domain1
 ```
@@ -52,7 +52,7 @@ kubectl get pod -l weblogic.domainName=domain1
 No resources found.
 ```
 
-Wait until all the services the domain are deleted. 
+Wait until all the services in the domain are deleted.
 ```
 kubectl get service -l weblogic.domainName=domain1
 ```
@@ -61,15 +61,15 @@ kubectl get service -l weblogic.domainName=domain1
 No resources found.
 ```
 
-### Delete the WLS Operator
-Please wait until all WLS domain related resources are deleted before go ahead to delete the WLS operator.
+### Delete the WLS Kubernetes Operator
+Wait until all the WLS domain related resources are deleted before deleting the operator.
 
-Delete the wls operator chart.
+Delete the operator chart.
 ```
 helm delete --purge sample-weblogic-operator
 ```
 
-Delete the service account
+Delete the service account.
 ```
 kubectl delete -n weblogic-operator1 serviceaccount sample-weblogic-operator-sa
 ```
@@ -85,18 +85,18 @@ rm -rf weblogic-kubernetes-operator
 ```
 
 ### Delete MYSQL Server
-Delete the mysql server.
+Delete the MYSQL server.
 ```
 kubectl delete  -f ./mysql/mysql.yaml
 ```
 
-Delete the PV and PVC used by the mysql server.
+Delete the PV and PVC used by the MYSQL server.
 ```
 kubectl delete  -f ./mysql/persistence.yaml
 ```
 
-### Clean the Host Folder of PV
-To get around the permission checking of files under this folder, we do the deletion in a docker container with root privilege.
+### Delete the PV from the Host Folder
+To get around file permission checking under this folder, we do the deletion in a Docker container with root privilege.
 ```
 docker run --rm -v $PV_ROOT:/tt -v $PWD/util:/util  nginx /util/clean-pv.sh
 ```

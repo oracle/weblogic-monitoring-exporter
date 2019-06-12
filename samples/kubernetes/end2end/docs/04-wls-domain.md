@@ -1,16 +1,15 @@
 ## Running a WLS Domain
-The WLS operator has detailed documents about creating domains, e.g. different considerations and different options, see detail info in [managing domains guide](https://oracle.github.io/weblogic-kubernetes-operator/userguide/managing-domains/). The only extra step needed to integrate with Prometheus is to install the wls-exporter web application to WLS servers/clusters.
+The WLS Kubernetes Operator has detailed documentation about creating domains, for example, different considerations and options to consider. For more information, see the [Manage Domains](https://oracle.github.io/weblogic-kubernetes-operator/userguide/managing-domains/) guide. The only extra step needed to integrate with Prometheus is to install the wls-exporter web application to WLS servers/clusters.
 
-In this task, we provide concrete scripts to create a demonstration domain.
+In this task, we provide scripts that create a demonstration domain.
 
 ### Set Proxy Before Run
-In the scripts running below, we use `wget` to donwload WebLogic Deploy Tool archive from GitHub. If you are behind a proxy, you need to configure the proxy setting properly.  
-One of the approaches is to use proxy variables:
+In the scripts below, we use `wget` to download the WebLogic Deploy Tool archive from GitHub. If you are behind a proxy, you need to configure the proxy settings properly. One of the approaches is to use proxy variables:
 ```
 export http_proxy=http://proxy_host:proxy_port
 export https_proxy=$http_proxy
 ```
-Verify the download with `wget` can work correctly.
+Verify that the download with `wget` works correctly.
 ```
 wget https://github.com/oracle/weblogic-deploy-tooling/releases/download/weblogic-deploy-tooling-0.24/weblogic-deploy.zip \
 -O /dev/null
@@ -28,27 +27,27 @@ cd demo-domains/domainBuilder
 ./build.sh domain1 weblogic welcome1  wluser1 wlpwd123
 cd ../..
 ```
-A docker image `domain1-image:1.0` will be created. Note that the database name is the same as the domain name.
+A Docker image `domain1-image:1.0` will be created. Note that the database name is the same as the domain name.
 
 The domain configuration is burned into the image. What's in the domain configuration?
-- One data source, one JDBC store, one JMS server and a JMS module. All the resources are deployed to the cluster. 
+- One data source, one JDBC store, one JMS server and a JMS module. All the resources are deployed to the cluster.
 - Two web applications deployed to cluster: test-webapp and wls-exporter.  
 
 ### Deploy the Domain Resource
-Create a secret for WLS admin credential.
+Create a secret for WLS administrative credential.
 ```
 kubectl -n default create secret generic domain1-weblogic-credentials \
       --from-literal=username=weblogic \
       --from-literal=password=welcome1
 ```
-Deploy the domain resource. The resource is deployed to `default` namespace.
+Deploy the domain resource. The resource is deployed to the `default` namespace.
 ```
 kubectl apply -f demo-domains/domain1.yaml
 ```
-Now the WLS operator is supposed to detect this new domain resource and actually run a WebLogic domain based on it.
+Now the operator will detect this new domain resource and run a WebLogic domain based on it.
 
 ### Verification
-Wait until the three wls server pods are running and ready.
+Wait until the three WLS server pods are running and ready.
 ```
 kubectl get pod -l weblogic.domainName=domain1
 ```
@@ -73,12 +72,12 @@ domain1-managed-server-1        ClusterIP   None             <none>        8001/
 domain1-managed-server-2        ClusterIP   None             <none>        8001/TCP                         32h
 ```
 
-You can access the WLS admin console from your browser via URL `http://<hostname>:30701/console`.
+You can access the WLS Administration Console from your browser at `http://<hostname>:30701/console`.
 
 ### Check the WLS Runtime Metrics
 The exported metrics are plain text and human-readable. We can use `curl` or similar tools to check the metrics.
 
-Let's deploy curl tool.
+Let's deploy the curl tool.
 ```
 kubectl apply -f ./util/curl.yaml
 ```
@@ -91,11 +90,11 @@ kubectl get pod curl
 NAME   READY   STATUS    RESTARTS   AGE
 curl   1/1     Running   5          1h
 ```
-Access metrics of `managed-server-1`.
+Access the metrics of `managed-server-1`.
 ```
 kubectl exec curl -- curl http://weblogic:welcome1@domain1-managed-server-1:8001/wls-exporter/metrics
 ```
-Access metrics of `managed-server-2`.
+Access the metrics of `managed-server-2`.
 ```
 kubectl exec curl -- curl http://weblogic:welcome1@domain1-managed-server-2:8001/wls-exporter/metrics
 ```
@@ -114,6 +113,6 @@ wls_jms_bytes_current_count{jmsruntime="managed-server-1.jms",jmsserver="JMSServ
 wls_jms_bytes_high_count{jmsruntime="managed-server-1.jms",jmsserver="JMSServer1@managed-server-1"} 360324
 ...
 ```
-All the metric names are started with "wls_" and metric names of different comonents have different prefix which match to what we configured in the [exporter configuration](../dashboard/exporter-config.yaml). 
+All the metric names start with "wls_" and the metric names of different components have different prefixes which match what we configured in the [exporter configuration](../dashboard/exporter-config.yaml).
 
 Next: [Installing Prometheus](05-prometheus.md)
