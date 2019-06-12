@@ -4,6 +4,7 @@ package io.prometheus.wls.rest;
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+
 import com.google.common.base.Strings;
 import com.meterware.pseudoserver.HttpUserAgentTest;
 import com.meterware.pseudoserver.PseudoServlet;
@@ -11,6 +12,8 @@ import com.meterware.pseudoserver.WebResource;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -226,12 +229,14 @@ public class WebClientImplTest extends HttpUserAgentTest {
             assertThat(extractRealm(e.getChallenge()), equalTo("REST Realm"));
         }
     }
+
     // the value should be of the form <Basic realm="<realm-name>" and we want to extract the realm name
     private String extractRealm(String authenticationHeaderValue) {
         int start = authenticationHeaderValue.indexOf(QUOTE);
         int end = authenticationHeaderValue.indexOf(QUOTE, start+1);
         return start > 0 ? authenticationHeaderValue.substring(start+1, end) : "none";
     }
+
     @Test(expected = ForbiddenException.class)
     public void when403ReceivedFromServer_throwsException() throws Exception {
         defineResource("forbidden", new PseudoServlet() {
@@ -242,6 +247,22 @@ public class WebClientImplTest extends HttpUserAgentTest {
         });
 
         factory.createClient().withUrl(getHostPath() + "/forbidden").doPostRequest("abced");
+    }
+
+    @Test(expected = RestPortConnectionException.class)
+    public void whenUnableToConnection_throwsException() throws IOException {
+        testSupport.tearDownServer();
+
+        for (int attempt = 0; attempt < 20; attempt++)
+            accessUndefinedPort();
+    }
+
+    // try to read the just-closed port. If it is not yet closed, we get a socket exception, which we swallow to retry
+    private void accessUndefinedPort() throws IOException {
+        try {
+            factory.createClient().withUrl(getHostPath() + "/noConnection").doPostRequest("abced");
+        } catch (SocketException ignored) {
+        }
     }
 
     @Test
