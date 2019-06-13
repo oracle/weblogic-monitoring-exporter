@@ -1,6 +1,6 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017 Oracle and/or its affiliates
+ * Copyright (c) 2017, 2019, Oracle and/or its affiliates
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
@@ -39,12 +39,12 @@ abstract class HttpServletResponseStub implements HttpServletResponse {
     }
 
     @Override
-    public ServletOutputStream getOutputStream() throws IOException {
+    public ServletOutputStream getOutputStream() {
         return out;
     }
 
     @Override
-    public void sendError(int sc, String msg) throws IOException {
+    public void sendError(int sc, String msg) {
         status = sc;
         responseSent = true;
     }
@@ -55,7 +55,12 @@ abstract class HttpServletResponseStub implements HttpServletResponse {
     }
 
     @Override
-    public void sendRedirect(String location) throws IOException {
+    public void setStatus(int sc) {
+        status = sc;
+    }
+
+    @Override
+    public void sendRedirect(String location) {
         redirectLocation = location;
     }
 
@@ -78,7 +83,7 @@ abstract class HttpServletResponseStub implements HttpServletResponse {
 
     @Override
     public Collection<String> getHeaders(String name) {
-        return headers.containsKey(name) ? headers.get(name) : Collections.emptyList();
+        return headers.getOrDefault(name, Collections.emptyList());
     }
 
     abstract static class ServletOutputStreamStub extends ServletOutputStream {
@@ -86,7 +91,7 @@ abstract class HttpServletResponseStub implements HttpServletResponse {
         private String html;
 
         @Override
-        public void write(int b) throws IOException {
+        public void write(int b) {
             baos.write(b);
         }
 
