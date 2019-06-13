@@ -73,7 +73,7 @@ abstract public class PassThroughAuthenticationServlet extends HttpServlet {
             resp.setHeader("WWW-Authenticate", e.getChallenge());
             resp.sendError(SC_UNAUTHORIZED, "Authentication required");
         } catch (RestPortConnectionException e) {
-            resp.sendError(SC_INTERNAL_SERVER_ERROR, "Unable to reach REST API");
+            resp.setStatus(SC_INTERNAL_SERVER_ERROR);
             reportUnableToContactRestApi(resp, e.getUri());
         } finally {
             final HttpSession session = req.getSession(false);
