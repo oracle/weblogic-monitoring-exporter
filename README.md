@@ -3,8 +3,8 @@ WebLogic Monitoring Exporter
 
 [![Build Status](https://travis-ci.org/oracle/weblogic-monitoring-exporter.svg?branch=master)](https://travis-ci.org/oracle/weblogic-monitoring-exporter)
 
-The WebLogic Monitoring Exporter uses the [WLS RESTful Management API](https://docs.oracle.com/middleware/1221/wls/WLRUR/overview.htm#WLRUR111) to scrape runtime information, and then exports [Prometheus](http://prometheus.io)-compatible metrics.
-It is deployed as a web application in a WebLogic Server (WLS) instance, version 12.2.1 or higher, typically, in the instance from which you want to get metrics.
+The WebLogic Monitoring Exporter uses the [WLS RESTful Management API](https://docs.oracle.com/middleware/1221/wls/WLRUR/overview.htm#WLRUR111) to scrape runtime information and then exports [Prometheus](http://prometheus.io)-compatible metrics.
+It is deployed as a web application in a WebLogic Server (WLS) instance, version 12.2.1 or later, typically, in the instance from which you want to get metrics.
 
 ## Building
 
@@ -38,7 +38,7 @@ queries:
         key: servletName
         values: invocationTotalCount
 ```
-Note that there are two parts to the configuration. The optional top portion defines general processing rules:
+Note that there are two parts to the configuration. The optional top portion defines general processing rules.
 
 | Name | Description |
 | --- | --- |
@@ -56,7 +56,7 @@ Within each section, there are a number of options:
 | --- | --- |
 | `key` | The name of the attribute to use as a key for qualifiers in the output. |
 | `keyName` | The name to use for the key in the qualifier; defaults to the name of the attribute. |
-| `prefix` | A prefix to use for all metrics gathered from the current level. |
+| `prefix` | A prefix to use for all the metrics gathered from the current level. |
 | `values` | The attributes for which metrics are to be output. If not specified and a prefix is defined, all values on the MBean will be selected. |
 | `type` | A filter for subtypes. If specified, only those objects whose `type` attribute matches will be collected. |
 
