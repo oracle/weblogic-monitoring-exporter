@@ -4,7 +4,7 @@ In this sample, we need to create three Persistent Volumes (PV) and Persistent V
 - [PV and PVC for Prometheus server](../prometheus/persistence.yaml).
 - [PV and PVC for Grafana server](../grafana/persistence.yaml).
 
-> **Note**: To simply the configuration, we use `hostPath` PV that can only work in a single-node Kubernetes cluster, therefore, it's for demonstration purposes only. In a production environment, you would need to use a more sophisticated PV type like NFS, iSCSI. For more details, see the Kubernetes [Types of Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#types-of-persistent-volumes) document.  
+> **Note**: To simply the configuration, we use `hostPath` PV that can only work in a single-node Kubernetes cluster; therefore, it's for demonstration purposes only. In a production environment, you would need to use a more sophisticated PV type like NFS, iSCSI. For more details, see the Kubernetes [Types of Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#types-of-persistent-volumes) document.  
 
 To simplify configuration and management, the three PVs will share the same root path. Prepare a host folder as the root path of the PVs.
 
