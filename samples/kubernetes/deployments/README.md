@@ -7,7 +7,7 @@ All the examples are configured to be deployed in the `monitoring` namespace. Th
 
 You can customize the examples to reflect a specific configuration.
 
-For more details on how to set up and run Prometheus and Kibana with the WebLogic Monitoring Exporter, see the blog post, [Using Prometheus and Grafana to Monitor WebLogic Server on Kubernetes](https://blogs.oracle.com/weblogicserver/use-prometheus-and-grafana-to-monitor-weblogic-server-on-kubernetes).
+For more details on how to set up and run Prometheus and Kibana with the WebLogic Monitoring Exporter, see the blog, [Using Prometheus and Grafana to Monitor WebLogic Server on Kubernetes](https://blogs.oracle.com/weblogicserver/use-prometheus-and-grafana-to-monitor-weblogic-server-on-kubernetes).
 
 
 ## Copyright
