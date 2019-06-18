@@ -128,7 +128,7 @@ include the `restPort` configuration to tell the exporter which port to use.
 
 ## Samples
 
-See the [samples](../samples/kubernetes) for example deployments to start Prometheus and Kibana in a Kubernetes cluster and an end-to-end sample that shows you the steps to set up monitoring for WebLogic domains using Prometheus and Grafana. 
+See the [samples](https://github.com/oracle/weblogic-monitoring-exporter/tree/master/samples/kubernetes) for example deployments to start Prometheus and Kibana in a Kubernetes cluster and an end-to-end sample that shows you the steps to set up monitoring for WebLogic domains using Prometheus and Grafana. 
 
 
 ## Copyright
