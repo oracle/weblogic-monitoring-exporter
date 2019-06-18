@@ -114,6 +114,12 @@ however, if the metrics request is made via a load balancer or Kubernetes NodePo
 original request was made might not be the same as the instance's HTTP port. In such a case, the configuration should
 include the `restPort` configuration to tell the exporter which port to use.
 
+
+## Samples
+
+See the [samples](../samples/kubernetes) for example deployments to start Prometheus and Kibana in a Kubernetes cluster and an end-to-end sample that shows you the steps to set up monitoring for WebLogic domains using Prometheus and Grafana. 
+
+
 ## Copyright
 
  Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
