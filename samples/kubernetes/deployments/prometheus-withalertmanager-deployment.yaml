@@ -1,3 +1,6 @@
+# Copyright 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
@@ -119,18 +122,18 @@ data:
     # Kubernetes labels will be added as Prometheus labels on metrics via the
     # `labelmap` relabeling action.
     #
-    
-    # 
+
+    #
     rule_files:
     - "scaling.rules"
-    
+
     alerting:
        alertmanagers:
        - scheme: http
          static_configs:
          - targets:
-           - "alertmanager:9093"    
-    
+           - "alertmanager:9093"
+
     # Scrape config for API servers.
     #
     # Kubernetes exposes API servers as endpoints to the default/kubernetes
@@ -156,7 +159,7 @@ data:
         # <kubernetes_sd_config>.
         tls_config:
           ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-        
+
         # If your node certificates are self-signed or use a different CA to the
         # master CA, then disable certificate verification below. Note that
         # certificate verification is an integral part of a secure infrastructure
