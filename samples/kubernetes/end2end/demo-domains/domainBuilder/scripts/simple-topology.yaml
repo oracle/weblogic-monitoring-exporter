@@ -1,3 +1,6 @@
+# Copyright 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+
 domainInfo:
     AdminUserName: '@@PROP:ADMIN_USER@@'
     AdminPassword: '@@PROP:ADMIN_PWD@@'
@@ -37,12 +40,12 @@ resources:
                     JNDIName: dc1
                     GlobalTransactionsProtocol: OnePhaseCommit
                 JDBCDriverParams:
-                    DriverName: org.gjt.mm.mysql.Driver 
+                    DriverName: org.gjt.mm.mysql.Driver
                     URL: 'jdbc:mysql://mysql.default.svc.cluster.local:3306/@@PROP:DOMAIN_NAME@@'
                     PasswordEncrypted: '@@PROP:MYSQL_PWD@@'
                     Properties:
                         user:
-                            Value: '@@PROP:MYSQL_USER@@' 
+                            Value: '@@PROP:MYSQL_USER@@'
                 JDBCConnectionPoolParams:
                     InitialCapacity: 3
                     MaxCapacity: 15
