@@ -1,0 +1,35 @@
+apiVersion: apps/v1 
+kind: Deployment 
+metadata:
+  name: webhook 
+  namespace: default
+  labels:
+    app: webhook 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webhook
+  template:
+    metadata:
+      labels:
+        app: webhook
+    spec:  
+      containers:
+      - image: webhook-log:1.0
+        imagePullPolicy: Never
+        name: webhook
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webhook
+  namespace: default
+  labels:
+    app: webhook
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+  selector:
+    app: webhook 

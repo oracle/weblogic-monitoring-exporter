@@ -1,13 +1,17 @@
-alertmanager:
-  enabled: false
-kubeStateMetrics:
-  enabled: true
-nodeExporter:
-  enabled: true
+serviceAccounts:
+  pushgateway:
+    create: false
+
 pushgateway:
   enabled: false
-server:
+
+alertmanager:
   enabled: true
+  persistentVolume:
+    existingClaim: pvc-alertmanager
+  service:
+    type: NodePort
+    nodePort: 32000
 
 server:
   persistentVolume:
@@ -15,6 +19,38 @@ server:
   service:
     type: NodePort
     nodePort: 30000
+
+alertmanagerFiles:
+  alertmanager.yml:
+    global:
+      resolve_timeout: 5m
+      #http_config:
+       # proxy_url: 'http://www-proxy-hqdc.us.oracle.com:80'
+
+    route:
+      group_by: ['alertname']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 5m
+      receiver: 'webhook-test'
+    receivers:
+      - name: 'webhook-test'
+        webhook_configs:
+        - url: 'http://webhook.default.svc.cluster.local:8080/log'
+
+serverFiles:
+  alerts:
+    groups:
+      - name: node_rules
+        rules:
+          - alert: ClusterWarning
+            for: 1m
+            expr: sum by(weblogic_domainUID, weblogic_clusterName) (up{weblogic_domainUID=~'.+'}) == 1
+            labels:
+              severity: page
+            annotations:
+              description: 'One WLS cluster has only one running server for more than 1 minutes.'
+              summary: 'Some wls cluster is done.'
 
 extraScrapeConfigs: |
     - job_name: 'wls-domain1'
