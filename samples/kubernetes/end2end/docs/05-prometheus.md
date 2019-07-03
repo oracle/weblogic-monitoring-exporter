@@ -1,4 +1,4 @@
-## Installing Prometheus
+## Setting up Prometheus
 Install Prometheus using a [Helm chart](https://github.com/helm/charts/tree/master/stable/prometheus) with the customized [values.yaml](../prometheus/values.yaml). There are four components will be installed with this chart: Prometheus server, Alertmanager, node-exporter and kube-state-metrics.  
 
 Create a new namespace `monitoring`.
@@ -50,4 +50,4 @@ In the top menu, click `Status` and then `Targets`. The target page is displayed
 
 We'll talk about Alertmanager in later step.
 
-Next: [Installing Grafana](06-grafana.md)
+Next: [Setting up Grafana](06-grafana.md)
