@@ -115,4 +115,4 @@ wls_jms_bytes_high_count{jmsruntime="managed-server-1.jms",jmsserver="JMSServer1
 ```
 All the metric names start with "wls_" and the metric names of different components have different prefixes which match what we configured in the [exporter configuration](../dashboard/exporter-config.yaml).
 
-Next: [Installing Prometheus](05-prometheus.md)
+Next: [Setting up Prometheus](05-prometheus.md)
