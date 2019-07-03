@@ -81,3 +81,5 @@ Check the WebLogic dashboard.
 ![dashboard](images/weblogicDashboard.png)
 
 You can monitor the WebLogic domain with the dashboard now.
+
+Next: [Setting up a Webhook](07-webhook.md)

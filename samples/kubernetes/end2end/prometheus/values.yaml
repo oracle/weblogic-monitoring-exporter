@@ -31,12 +31,12 @@ alertmanagerFiles:
       group_by: ['alertname']
       group_wait: 10s
       group_interval: 10s
-      repeat_interval: 5m
-      receiver: 'webhook-test'
+      repeat_interval: 1h
+      receiver: 'logging-webhook'
     receivers:
-      - name: 'webhook-test'
+      - name: 'logging-webhook'
         webhook_configs:
-        - url: 'http://webhook.default.svc.cluster.local:8080/log'
+        - url: 'http://webhook.webhook.svc.cluster.local:8080/log'
 
 serverFiles:
   alerts:
@@ -49,8 +49,8 @@ serverFiles:
             labels:
               severity: page
             annotations:
-              description: 'One WLS cluster has only one running server for more than 1 minutes.'
-              summary: 'Some wls cluster is done.'
+              description: 'Some WLS cluster has only one running server for more than 1 minutes.'
+              summary: 'Some wls cluster is in warning state.'
 
 extraScrapeConfigs: |
     - job_name: 'wls-domain1'

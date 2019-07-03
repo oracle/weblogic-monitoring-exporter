@@ -1,6 +1,16 @@
 ## Cleanup
 Follow the steps below to clean up all the resources created in this sample.
 
+### Delete Webhook
+Delete the webhook server.
+```
+kubectl delete -f webhook/server.yaml
+```
+Delete the webhook namespace.
+```
+kubectl delete ns webhook
+```
+
 ### Delete Grafana
 Delete the Grafana chart.
 ```

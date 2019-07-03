@@ -4,4 +4,4 @@ WORKDIR /usr/src/app
 
 COPY scripts/* ./
 
-CMD ["python", "-u", "./webhook.py"]
+CMD ["python", "-u", "./server.py"]
