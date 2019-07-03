@@ -1,4 +1,4 @@
-## Installing Grafana
+## Setting up Grafana
 Install Grafana using a [Helm chart](https://github.com/helm/charts/tree/master/stable/grafana) with the customized [values.yaml](../grafana/values.yaml) file.
 
 Deploy the PV and PVC YAML file.
