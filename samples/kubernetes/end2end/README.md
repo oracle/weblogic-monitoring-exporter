@@ -33,13 +33,13 @@ Here's how the WebLogic runtime metrics are generated, stored and processed:
 ## Step-by-Step Guide
 1. [Configuring the PV Path](docs/01-pv-path.md)
 1. Preparing and Running a WLS Domain
-    1. [Setting up MYSQL Server](docs/02-mysql.md)
-    1. [Installing the WLS Kubernetes Operator](docs/03-wls-operator.md)
-    1. [Running a WLS Domain](docs/04-wls-domain.md)
+    - [Setting up MYSQL Server](docs/02-mysql.md)
+    - [Installing the WLS Kubernetes Operator](docs/03-wls-operator.md)
+    - [Running a WLS Domain](docs/04-wls-domain.md)
 1. [Setting up Prometheus](docs/05-prometheus.md)
 1. [Setting up Grafana](docs/06-grafana.md)
 1. Setting up and Firing Alerts
-    1. [Setting up a Webhook](docs/07-webhook.md)
-    1. [Firing Alerts](docs/08-alert.md)
+    - [Setting up a Webhook](docs/07-webhook.md)
+    - [Firing Alerts](docs/08-alert.md)
 
 Follow the [cleanup](docs/cleanup.md) after you finish this guide and want to clean up your environment.
