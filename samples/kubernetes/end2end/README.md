@@ -7,7 +7,7 @@ Before going into the detailed steps, look at the diagram below for the overall 
 
 ![architecture](docs/images/architecture.png)
 
-Here's how the WebLogic runtime metrics are generated, scraped, stored and processed:
+Here's how the WebLogic runtime metrics are generated, scraped, stored and used:
 - WebLogic Servers expose their runtime data via the REST API.
 - The exporter, running on each WebLogic Server instance, acquires WebLogic data by calling the REST API, which it then translates to the Prometheus metrics format and exposes in an HTTP endpoint.
 - The Prometheus server is responsible for periodically scraping the metrics from the endpoints and storing them in its time series database.
