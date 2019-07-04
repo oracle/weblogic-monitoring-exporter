@@ -14,7 +14,7 @@ Install the Prometheus chart.
 ```
 helm install --wait --name prometheus --namespace monitoring --values  prometheus/values.yaml stable/prometheus
 ```
-Note that in the customized values.yaml file we add a new job [wls-domain1](../prometheus/values.yaml#L56) to scrape data from the WLS domain created in the previous step.
+Note that in the customized values.yaml file we add a new job [wls-domain1](../prometheus/values.yaml#L59) to scrape data from the WLS domain created in the previous step.
 
 ### Verification
 Wait until all the Prometheus pods are running and ready.
