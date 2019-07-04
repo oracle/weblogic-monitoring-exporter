@@ -2,11 +2,11 @@
 In this step we show you how to fire alerts.
 
 ### Configuring Alerts
-We have done all the alerting related configurations in the customized [values.yaml](../prometheus/values.yaml) when installing the Prometheus chart.  
+We do all the alerting related configurations in the customized [values.yaml](../prometheus/values.yaml) when installing the Prometheus chart.  
 
-First, configure alerting rules. For demonstration purpse, We define one [alerting rule](../prometheus/values.yaml#L42) named 'ClusterWarning' that will fire an alert if the WLS cluster has only one running server.  
+First, configure alerting rules. For demonstration purpse, We define one [alerting rule](../prometheus/values.yaml#L45) named 'ClusterWarning' that will fire an alert if the WLS cluster has only one running server.  
 
-Second, configure Alertmanager. In [alertmanager.yml](../prometheus/values.yaml#L24) we define one route and one receiver that will send all the received alerts to a webhook.
+Second, configure Alertmanager. In [alertmanager.yml](../prometheus/values.yaml#L27) we define one route and one receiver that will send all the received alerts to a webhook.
 
 ### Verifying Configuration
 Access the Prometheus alerts page in your browser with the URL `http://<HostIP>:30000/alerts`. Check the configured alert rules. You should get something like below.  
