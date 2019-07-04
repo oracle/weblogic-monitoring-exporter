@@ -6,7 +6,17 @@ WebLogic Monitoring Exporter
 The WebLogic Monitoring Exporter uses the [WLS RESTful Management API](https://docs.oracle.com/middleware/1221/wls/WLRUR/overview.htm#WLRUR111) to scrape runtime information and then exports [Prometheus](http://prometheus.io)-compatible metrics.
 It is deployed as a web application in a WebLogic Server (WLS) instance, version 12.2.1 or later, typically, in the instance from which you want to get metrics.
 
-## Building
+## Building and configuring
+
+Each release contains a getXXX.sh script. Download it and then run
+
+```
+bash getXXX.sh <some-config-file>
+```
+
+to download the release and install the specified default configuration.
+
+## Building from source
 
 Use `mvn install` to build the exporter servlets.
 
@@ -22,6 +32,7 @@ query_sync:
   interval: 5
 metricsNameSnakeCase: true
 domainQualifier: true
+restPort: 7001
 queries:
 - key: name
   keyName: server
@@ -124,4 +135,4 @@ include the `restPort` configuration to tell the exporter which port to use.
 
 ## Copyright
 
- Copyright (c) 2017, 2019, Oracle and/or its affiliates. All rights reserved.
+ Copyright (c) 2017, 2019, Oracle Corporation and/or its affiliates. All rights reserved.

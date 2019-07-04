@@ -1,3 +1,8 @@
+<!--
+    Copyright (c) 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+    Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+-->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -7,7 +12,7 @@
     <version>1.0-SNAPSHOT</version>
     <name>exporter-webapp Maven Webapp</name>
     <url>http://maven.apache.org</url>
-    
+
     <dependencies>
         <dependency>
             <groupId>io.prometheus.wls</groupId>
@@ -15,7 +20,7 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
-    
+
     <properties>
         <configuration.directory>${project.build.directory}/configuration</configuration.directory>
     </properties>

@@ -1,3 +1,6 @@
+# Copyright 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+
 # Start from a Debian image with the desired version of Go installed
 # and a workspace (GOPATH) configured at /go.
 FROM golang:1.9.2
