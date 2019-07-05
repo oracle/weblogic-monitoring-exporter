@@ -25,7 +25,7 @@ Get the pod name of MySQL server.
 ```
 POD_NAME=$(kubectl get pod -l app=mysql -o jsonpath="{.items[0].metadata.name}")
 ```
-Create a new database and a new user.  
+Create a new database with name `domain1` and a new user `wluser1` with password `wlpwd123`.  
 ```
 kubectl exec -it $POD_NAME -- mysql -p123456 -e "CREATE DATABASE domain1;"
 kubectl exec -it $POD_NAME -- mysql -p123456 -e "CREATE USER 'wluser1' IDENTIFIED BY 'wlpwd123';"
