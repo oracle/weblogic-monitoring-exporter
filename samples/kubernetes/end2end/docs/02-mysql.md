@@ -26,17 +26,16 @@ Get the pod name of MySQL server.
 POD_NAME=$(kubectl get pod -l app=mysql -o jsonpath="{.items[0].metadata.name}")
 ```
 Create a new database and a new user.  
-You will be prompted to fill in the MySQL root password for each command below.
 ```
-kubectl exec -it $POD_NAME -- mysql -p -e "CREATE DATABASE domain1;"
-kubectl exec -it $POD_NAME -- mysql -p -e "CREATE USER 'wluser1' IDENTIFIED BY 'wlpwd123';"
-kubectl exec -it $POD_NAME -- mysql -p -e "GRANT ALL ON domain1.* TO 'wluser1';"
+kubectl exec -it $POD_NAME -- mysql -p123456 -e "CREATE DATABASE domain1;"
+kubectl exec -it $POD_NAME -- mysql -p123456 -e "CREATE USER 'wluser1' IDENTIFIED BY 'wlpwd123';"
+kubectl exec -it $POD_NAME -- mysql -p123456 -e "GRANT ALL ON domain1.* TO 'wluser1';"
 ```
 
 ## Verification
 Access the new database with the new user.
 ```
-kubectl exec -it $POD_NAME -- mysql -u wluser1 -p -D domain1 -e "show tables;"
+kubectl exec -it $POD_NAME -- mysql -u wluser1 -pwlpwd123 -D domain1 -e "show tables;"
 ```
 Note that we have not created any user tables in the database. The purpose of running this query is to verify that the MySQL database has been created correctly.
 
