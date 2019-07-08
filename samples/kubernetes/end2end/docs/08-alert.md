@@ -4,7 +4,7 @@ In this step we show you how to fire alerts.
 ### Configuring Alerts
 We do all the alerting related configurations in the customized [values.yaml](../prometheus/values.yaml) when installing the Prometheus chart.  
 
-First, configure alerting rules. For demonstration purpse, We define one [alerting rule](../prometheus/values.yaml#L45) named 'ClusterWarning' that will fire alerts if some WLS cluster has only one running server.
+First, configure alerting rules. For demonstration purpse, We define one [alerting rule](../prometheus/values.yaml#L45) named 'ClusterWarning' that will fire alerts if some WebLogic cluster has only one running server.
 
 Second, configure Alertmanager. In [alertmanager.yml](../prometheus/values.yaml#L27) we define one route and one receiver that will send all the received alerts to a webhook.
 
@@ -20,13 +20,13 @@ Go to Alert Manager web UI via the URL `http://<HostIP>:32000`.
 - Check the alert page via the URL `http://<HostIP>:32000/#/alerts`. There is no received alert yet.
 
 ### Triggering Alerts
-To trigger alerts, one WLS cluster need to have only one managed server running. 
+To trigger alerts, one WebLogic cluster need to have only one managed server running. 
 - Update file `demo-domains/domain1.yaml` to change the line from `replicas: 2` to `replicas: 1`.
 - Apply the updated domain resource file.
   ```
   kubectl apply -f demo-domains/domain1.yaml
   ```
-If the new domain resource is applied successfully, one WLS server will start to termiate. Wait until only one managed server is running.
+If the new domain resource is applied successfully, one WebLogic server will start to termiate. Wait until only one managed server is running.
 ```
 kubectl get pod -l weblogic.domainName=domain1
 ```

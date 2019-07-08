@@ -11,6 +11,9 @@ class LogHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.end_headers()
         if 'Content-Type' in self.headers and self.headers['Content-Type'] == 'application/json':
+          if 'Content-Length' not in self.headers:
+            print('Receiving a json request, but not an alert.')
+            return
           length = int(self.headers['Content-Length'])
           data = json.loads(self.rfile.read(length).decode('utf-8'))
           for alert in data["alerts"]:

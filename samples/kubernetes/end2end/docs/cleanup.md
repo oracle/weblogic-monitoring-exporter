@@ -3,8 +3,8 @@ Follow the steps below to clean up all the resources created in this sample.
 * [Delete Webhook](#delete-webhook)
 * [Delete Grafana](#delete-grafana)
 * [Delete Prometheus](#delete-prometheus)
-* [Delete the WLS Domain](#delete-the-wls-domain)
-* [Delete the WLS Kubernetes Operator](#delete-the-wls-kubernetes-operator)
+* [Delete the WebLogic Domain](#delete-the-wls-domain)
+* [Delete the WebLogic Kubernetes Operator](#delete-the-wls-kubernetes-operator)
 * [Delete MYSQL Server](#delete-mysql-server)
 * [Delete Content in PV Folder](#delete-content-in-pv-folder)
 
@@ -49,13 +49,13 @@ Now we can delete the `monitoring` namespace.
 kubectl delete ns monitoring
 ```
 
-### Delete the WLS Domain
+### Delete the WebLogic Domain
 Delete the domain resource.
 ```
 kubectl delete -f demo-domains/domain1.yaml
 ```
 
-Delete the WLS administrative credentials secret.
+Delete the WebLogic administrative credentials secret.
 ```
 kubectl delete secret domain1-weblogic-credentials
 ```
@@ -78,8 +78,8 @@ kubectl get service -l weblogic.domainName=domain1
 No resources found.
 ```
 
-### Delete the WLS Kubernetes Operator
-Wait until all the WLS domain related resources are deleted before deleting the operator.
+### Delete the WebLogic Kubernetes Operator
+Wait until all the WebLogic domain related resources are deleted before deleting the operator.
 
 Delete the operator chart.
 ```
