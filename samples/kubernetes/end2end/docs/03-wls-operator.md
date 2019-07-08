@@ -4,7 +4,7 @@ We depend on the [WebLogic Kubernetes Operator](https://github.com/oracle/weblog
 In this example, we provide the steps to install the 2.1 release of the WLS Kubernetes Operator.
 
 ### Pulling the Images
-We need two images, one is the WebLogic Kubernetes Operator image from [Docker Hub](https://hub.docker.com) and the other is the WebLogic Server image from [Oracle Container Registry](https://container-registry.oracle.com).  
+We need two images, the WebLogic Kubernetes Operator image from [Docker Hub](https://hub.docker.com) and the WebLogic Server image from [Oracle Container Registry](https://container-registry.oracle.com).  
 Before pulling the image, you need to:
 - Aquire an user account to the image site.
 - Log in to the site in your browser, find the image and accept the license.
