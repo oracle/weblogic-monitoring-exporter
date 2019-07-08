@@ -11,12 +11,12 @@ Here's how the WebLogic runtime metrics are generated, scraped, stored and used:
 - WebLogic Servers expose their runtime data via the REST API.
 - The exporter, running on each WebLogic Server instance, acquires WebLogic data by calling the REST API, which it then translates to the Prometheus metrics format and exposes in an HTTP endpoint.
 - The Prometheus server is responsible for periodically scraping the metrics from the endpoints and storing them in its time series database.
-- graphing
+- Graphing
   - The Grafana server queries the metrics from Prometheus server using PromQL and displays the metrics and series in a visualization dashboard.
-- alerting
+- Alerting
   - Alerting rules are defined in Prometheus server in the form of PromQL expressions. 
   - When the condtions of alerts are met, Prometheus server is responsible for firing alerts to the Alertmanager.
-  - Alertmanager deduplicates, groups and routes all the alerts and send notifications accordingly to receivers like email, slack, webhook etc. In this sample we set up a simple webhook as the receiver.
+  - Alertmanager potentially can deduplicate, group and route all the alerts and send notifications accordingly to differet receivers like email, slack, webhook etc. In this sample Alertmanager simply sends notifications to a test webhook.
 
 ## Prerequisites
 - Have a running Kubernetes cluster version 1.10 or higher.
