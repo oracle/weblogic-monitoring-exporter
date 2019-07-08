@@ -1,20 +1,20 @@
-## Installing the WLS Kubernetes Operator
-We depend on the [WLS Kubernetes Operator](https://github.com/oracle/weblogic-kubernetes-operator) to create and manage WLS domains. For detailed installation information, see [Install the Operator](https://oracle.github.io/weblogic-kubernetes-operator/userguide/managing-operators/installation/).
+## Installing the WebLogic Kubernetes Operator
+We depend on the [WebLogic Kubernetes Operator](https://github.com/oracle/weblogic-kubernetes-operator) to create and manage WebLogic domains. For detailed installation information, see [Install the Operator](https://oracle.github.io/weblogic-kubernetes-operator/userguide/managing-operators/installation/).
 
 In this example, we provide the steps to install the 2.1 release of the WLS Kubernetes Operator.
 
 ### Pulling the Images
-We need two images, one is the WLS Kubernetes Operator image from [Docker Hub](https://hub.docker.com) and the other is the WebLogic image from [Oracle Container Registry](https://container-registry.oracle.com).  
+We need two images, one is the WebLogic Kubernetes Operator image from [Docker Hub](https://hub.docker.com) and the other is the WebLogic Server image from [Oracle Container Registry](https://container-registry.oracle.com).  
 Before pulling the image, you need to:
 - Aquire an user account to the image site.
 - Log in to the site in your browser, find the image and accept the license.
 
-Pull the WLS Kubernetes Operator 2.1 image.
+Pull the WebLogic Kubernetes Operator 2.1 image.
 ```
 docker login
 docker pull oracle/weblogic-kubernetes-operator:2.1
 ```
-Pull the WebLogic 12.2.1.3 image.
+Pull the WebLogic Server 12.2.1.3 image.
 ```
 docker login container-registry.oracle.com
 docker pull container-registry.oracle.com/middleware/weblogic:12.2.1.3
@@ -37,9 +37,9 @@ OPatch succeeded.
 ```
 Confirm that patch set `29135930` is in the patch list.
 
-### Installing the WLS Operator
+### Installing the WebLogic Operator
 
-Clone the WLS operator 2.1 repo.
+Clone the WebLogic operator 2.1 repo.
 ```
 git clone -b release/2.1 https://github.com/oracle/weblogic-kubernetes-operator.git
 ```
@@ -51,7 +51,7 @@ Create a service account.
 ```
 kubectl create serviceaccount -n weblogic-operator1 sample-weblogic-operator-sa
 ```
-Install the WLS operator chart.
+Install the WebLogic operator chart.
 ```
 helm install weblogic-kubernetes-operator/kubernetes/charts/weblogic-operator \
   --name sample-weblogic-operator \
@@ -82,6 +82,6 @@ NAME                      CREATED AT
 domains.weblogic.oracle   2019-05-28T07:17:26Z
 ```
 
-Now the WLS Kubernetes Operator is running and it's monitoring the default namespace. Later we'll deploy a domain resource to the default namespace and the operator will be responsible for creating, running, and managing the WLS domain.
+Now the WebLogic Kubernetes Operator is running and it's monitoring the default namespace. Later we'll deploy a domain resource to the default namespace and the operator will be responsible for creating, running, and managing the WebLogic domain.
 
 Next: [Running a WLS Domain](04-wls-domain.md)
