@@ -43,10 +43,18 @@ prometheus-server               NodePort    10.103.186.222   <none>        80:30
 ```
 
 ### Access the Prometheus web UI
-Now you can access the Prometheus web UI in your browser with the URL `http://<HostIP>:30000`.  
-In the top menu, click `Status` and then `Targets`. The target page is displayed. Go to the bottom of the page. You'll find that the two endpoints of `wls-domain1` are up and healthy.
+Now you can access the Prometheus web UI in your browser with the URL `http://<HostIP>:30000`. 
+
+#### Access the Target Page
+In the top menu, click `Status` and then `Targets`. The target page is displayed. Go to the bottom of the page, you'll find that the two targets of `wls-domain1` are up and healthy.
 
 ![Prometheus Targets](./images/prometheus-targets.png)
+
+#### Query the WebLogic Metrics from Graph Page
+In the top menu, click `Graph`. The gragph page is displayed. Enter the expression `wls_jvm_uptime` that is one of the WebLogic metrics and click `Execute`. There will be two results displayed as shown below. This means that Prometheus server can scrape metrics from WebLogic servers successfully.
+
+![Prometheus Targets](./images/prometheus-graph.png)
+
 
 We'll talk about Alertmanager in later step.
 
