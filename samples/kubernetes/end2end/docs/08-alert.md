@@ -9,12 +9,12 @@ First, configure alerting rules. For demonstration purpse, We define one [alerti
 Second, configure Alertmanager. In [alertmanager.yml](../prometheus/values.yaml#L27) we define one route and one receiver that will send all the received alerts to a webhook.
 
 ### Verifying Configuration
-Access the Prometheus alerts page in your browser with the URL `http://<HostIP>:30000/alerts`. Check the configured alert rules. You should get something like below.  
+Access the Prometheus alerts page in your browser with the URL `http://<HostIP>:30000/alerts`. Check the configured alert rules and you'll get an alert rule as below.  
 
 ![Alert Rule](./images/alert-rule.png)  
 
 Go to Alert Manager web UI via the URL `http://<HostIP>:32000`. 
-- Check the configured rule and receiver via the URL `http://<HostIP>:32000/#/status`. You should get something similar as below.  
+- Check the configured rule and receiver via the URL `http://<HostIP>:32000/#/status`. You'll get the Alertmanager configuration as below.  
 
 ![Alert Manager Configuration](./images/alert-manager-config.png)  
 - Check the alert page via the URL `http://<HostIP>:32000/#/alerts`. There is no received alert yet.
@@ -37,7 +37,7 @@ domain1-admin-server       1/1     Running   1         2h
 domain1-managed-server-1   1/1     Running   1         2h
 ```
 
-Then keep refreshing the Prometheus alerts page `http://<HostIP>:30000/alerts`. There will be one alert generated. First the alert is in `PENDING` state. After about 1 minutes (as configured),  the alert state is changed to `FIRING` and this is the time that the alert is actually sent to the Alert Manager. 
+Then keep refreshing the Prometheus alerts page `http://<HostIP>:30000/alerts`. There will be one alert generated. The state of the alert at first is PENDING and after about 1 minute (or after configured minutes), the state of the alert changes to FIRING, it is at this time that the alert is sent to the Alert Manager.
 
 ![Active Alert](./images/active-alert.png)
 
