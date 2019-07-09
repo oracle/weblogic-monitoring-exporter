@@ -6,7 +6,8 @@ In this example, we provide the steps to install the 2.1 release of the WebLogic
 ### Pulling the Images
 We need two images, the WebLogic Kubernetes Operator image from [Docker Hub](https://hub.docker.com) and the WebLogic Server image from [Oracle Container Registry](https://container-registry.oracle.com).  
 Before pulling the image, you need to:
-- Aquire an user account to the image site.
+- Aquire an user account to the image sites.  
+  If you do not already have Oracle Single Sign-On credentials, navigate to https://container-registry.oracle.com and create your SSO credentials by clicking the Sign In link to create them, at the top of the page.
 - Log in to the site in your browser, find the image and accept the license.
 
 Pull the WebLogic Kubernetes Operator 2.1 image.
