@@ -56,6 +56,6 @@ In the top menu, click `Graph`. The gragph page is displayed. Enter the expressi
 ![Prometheus Targets](./images/prometheus-graph.png)
 
 
-We'll talk about Alertmanager in later step.
+We'll talk about Alertmanager in a later step.
 
 Next: [Setting up Grafana](06-grafana.md)
