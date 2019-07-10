@@ -47,7 +47,7 @@ Now let's check whether the Alert Manager has received the alert. Visit the Aler
 ![Received Alert](./images/received-alert.png)
 
 ### Verification in Webhook Server
-After the Alert Manger received the alert, it's supposed to send notifications to the configured receiver - the webhook. Let's check the output of webhook server.
+After the Alert Manger received the alert, it's supposed to send notifications to the configured receiver - the webhook. Let's check the output of webhook server.  
 Get the pod name of the webhook server.
 ```
 POD_NAME=$(kubectl -n webhook get pod -l app=webhook -o jsonpath="{.items[0].metadata.name}")
