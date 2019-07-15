@@ -1,5 +1,5 @@
 ## Setting up a Webhook
-Let's set up a simple webhook as the notification receiver. The webhook is written in [a Python script](../webhook/scripts/server.py) which simply logs all the received notifications. In the real world, webhook receivers are often used to notify systems that Alertmanager doesn’t support directly.  
+Let's set up a simple webhook as the notification receiver. The webhook is written in [a Python script](../webhook/scripts/server.py) which simply logs all the received notifications. Typically, webhook receivers are often used to notify systems that Alertmanager doesn’t support directly.  
 
 Build the webhook image.
 ```
@@ -8,7 +8,7 @@ docker build ./webhook -t webhook-log:1.0
 Create a new namespace and install the webhook server.
 ```
 kubectl create ns webhook
-kubectl apply -f ./webhook/server.yaml 
+kubectl apply -f ./webhook/server.yaml
 ```
 Wait until the webhook server pod is running and ready.
 ```
@@ -28,6 +28,6 @@ kubectl -n webhook get svc -l app=webhook
 NAME      TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
 webhook   ClusterIP   10.102.22.170   <none>        8080/TCP   1h
 ```
-The webhook server is ready now. 
+Now the webhook server is ready.
 
 Next: [Firing Alerts](08-alert.md)

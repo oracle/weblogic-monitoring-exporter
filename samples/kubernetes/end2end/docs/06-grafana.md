@@ -58,7 +58,7 @@ To import the WebLogic dashboard:
 - On the `Import` page, click `Upload .json File`, then select the [WebLogic dashboard file](../dashboard/weblogic_dashboard.json) to import.
 
 #### Using the Grafana REST API
-Alternatively, you can do this by calling the Grafana REST API.  
+Alternatively, you can create the data source and dashboard using the Grafana REST API.  
 Create the Prometheus data source with the predefined JSON file.
 ```
 curl -v -H 'Content-Type: application/json' -H "Content-Type: application/json" \
@@ -72,7 +72,7 @@ curl -v -H 'Content-Type: application/json' -H "Content-Type: application/json" 
   --data-binary @grafana/dashboard.json
 ```
 ### Verification
-Use the Grafana web UI to confirm that the resources are created successfully.
+Use the Grafana web UI to confirm that the resources were created successfully.
 
 Check the datasource.  
 ![datasource](images/datasource.png)  
@@ -80,6 +80,6 @@ Check the datasource.
 Check the WebLogic dashboard.  
 ![dashboard](images/weblogicDashboard.png)
 
-You can monitor the WebLogic domain with the dashboard now.
+Now you can monitor the WebLogic domain with the dashboard.
 
 Next: [Setting up a Webhook](07-webhook.md)

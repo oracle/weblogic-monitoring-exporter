@@ -1,6 +1,6 @@
 ## Setting up MYSQL Server
 
-In this step, we describe how to set up MySQL database in the Kubernetes cluster. In this sample, we are using the MySQL database to store application data. The WebLogic domain created in a later step will store its data to the database, for example, persistent JMS messages.  
+In this step, we describe how to set up MySQL database in the Kubernetes cluster. In this sample, we are using the MySQL database to store application data. The WebLogic domain created in a later step will store its data in the database, for example, persistent JMS messages.  
 
 Deploy the PV and PVC.
 ```
@@ -8,7 +8,7 @@ kubectl apply -f ./mysql/persistence.yaml
 ```
 Install a MySQL server.   
 
-Note that the root password is set to `123456` in the [mysql yaml](../mysql/mysql.yaml). Change it to a more secure password when needed.
+Note that the root password is set to `123456` in the [mysql YAML](../mysql/mysql.yaml) file. Change it to a more secure password when needed.
 ```
 kubectl apply -f ./mysql/mysql.yaml
 ```
@@ -25,7 +25,7 @@ Get the pod name of MySQL server.
 ```
 POD_NAME=$(kubectl get pod -l app=mysql -o jsonpath="{.items[0].metadata.name}")
 ```
-Create a new database with name `domain1` and a new user `wluser1` with password `wlpwd123`.  
+Create a new database with the name `domain1` and a new user `wluser1` with the password `wlpwd123`.  
 ```
 kubectl exec -it $POD_NAME -- mysql -p123456 -e "CREATE DATABASE domain1;"
 kubectl exec -it $POD_NAME -- mysql -p123456 -e "CREATE USER 'wluser1' IDENTIFIED BY 'wlpwd123';"

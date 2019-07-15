@@ -79,7 +79,7 @@ No resources found.
 ```
 
 ### Delete the WebLogic Kubernetes Operator
-Wait until all the WebLogic domain related resources are deleted before deleting the operator.
+Wait until all the WebLogic domain-related resources are deleted before deleting the operator.
 
 Delete the operator chart.
 ```
