@@ -1,4 +1,4 @@
-## Installing Grafana
+## Setting up Grafana
 Install Grafana using a [Helm chart](https://github.com/helm/charts/tree/master/stable/grafana) with the customized [values.yaml](../grafana/values.yaml) file.
 
 Deploy the PV and PVC YAML file.
@@ -81,3 +81,5 @@ Check the WebLogic dashboard.
 ![dashboard](images/weblogicDashboard.png)
 
 You can monitor the WebLogic domain with the dashboard now.
+
+Next: [Setting up a Webhook](07-webhook.md)

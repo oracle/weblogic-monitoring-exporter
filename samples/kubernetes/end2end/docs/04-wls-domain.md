@@ -1,5 +1,5 @@
-## Running a WLS Domain
-The WLS Kubernetes Operator has detailed documentation about creating domains, for example, different considerations and options to consider. For more information, see the [Manage Domains](https://oracle.github.io/weblogic-kubernetes-operator/userguide/managing-domains/) guide. The only extra step needed to integrate with Prometheus is to install the wls-exporter web application to WLS servers/clusters.
+## Running a WebLogic Domain
+The WebLogic Kubernetes Operator has detailed documentation about creating domains, for example, different considerations and options to consider. For more information, see the [Manage Domains](https://oracle.github.io/weblogic-kubernetes-operator/userguide/managing-domains/) guide. The only extra step needed to integrate with Prometheus is to install the wls-exporter web application to WebLogic servers/clusters.
 
 In this task, we provide scripts that create a demonstration domain.
 
@@ -34,7 +34,7 @@ The domain configuration is burned into the image. What's in the domain configur
 - Two web applications deployed to cluster: test-webapp and wls-exporter.  
 
 ### Deploy the Domain Resource
-Create a secret for WLS administrative credential.
+Create a secret for WebLogic administrative credential.
 ```
 kubectl -n default create secret generic domain1-weblogic-credentials \
       --from-literal=username=weblogic \
@@ -47,7 +47,7 @@ kubectl apply -f demo-domains/domain1.yaml
 Now the operator will detect this new domain resource and run a WebLogic domain based on it.
 
 ### Verification
-Wait until the three WLS server pods are running and ready.
+Wait until the three WebLogic server pods are running and ready.
 ```
 kubectl get pod -l weblogic.domainName=domain1
 ```
@@ -72,9 +72,9 @@ domain1-managed-server-1        ClusterIP   None             <none>        8001/
 domain1-managed-server-2        ClusterIP   None             <none>        8001/TCP                         32h
 ```
 
-You can access the WLS Administration Console from your browser at `http://<hostname>:30701/console`.
+You can access the WebLogic Administration Console from your browser at `http://<hostname>:30701/console`.
 
-### Check the WLS Runtime Metrics
+### Check the WebLogic Runtime Metrics
 The exported metrics are plain text and human-readable. We can use `curl` or similar tools to check the metrics.
 
 Let's deploy the curl tool.
@@ -115,4 +115,4 @@ wls_jms_bytes_high_count{jmsruntime="managed-server-1.jms",jmsserver="JMSServer1
 ```
 All the metric names start with "wls_" and the metric names of different components have different prefixes which match what we configured in the [exporter configuration](../dashboard/exporter-config.yaml).
 
-Next: [Installing Prometheus](05-prometheus.md)
+Next: [Setting up Prometheus](05-prometheus.md)

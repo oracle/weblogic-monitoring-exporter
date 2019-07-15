@@ -1,5 +1,22 @@
 ## Cleanup
 Follow the steps below to clean up all the resources created in this sample.
+* [Delete Webhook](#delete-webhook)
+* [Delete Grafana](#delete-grafana)
+* [Delete Prometheus](#delete-prometheus)
+* [Delete the WebLogic Domain](#delete-the-wls-domain)
+* [Delete the WebLogic Kubernetes Operator](#delete-the-wls-kubernetes-operator)
+* [Delete MYSQL Server](#delete-mysql-server)
+* [Delete Content in PV Folder](#delete-content-in-pv-folder)
+
+### Delete Webhook
+Delete the webhook server.
+```
+kubectl delete -f webhook/server.yaml
+```
+Delete the webhook namespace.
+```
+kubectl delete ns webhook
+```
 
 ### Delete Grafana
 Delete the Grafana chart.
@@ -32,13 +49,13 @@ Now we can delete the `monitoring` namespace.
 kubectl delete ns monitoring
 ```
 
-### Delete WLS Domains
+### Delete the WebLogic Domain
 Delete the domain resource.
 ```
 kubectl delete -f demo-domains/domain1.yaml
 ```
 
-Delete the WLS administrative credentials secret.
+Delete the WebLogic administrative credentials secret.
 ```
 kubectl delete secret domain1-weblogic-credentials
 ```
@@ -61,8 +78,8 @@ kubectl get service -l weblogic.domainName=domain1
 No resources found.
 ```
 
-### Delete the WLS Kubernetes Operator
-Wait until all the WLS domain related resources are deleted before deleting the operator.
+### Delete the WebLogic Kubernetes Operator
+Wait until all the WebLogic domain related resources are deleted before deleting the operator.
 
 Delete the operator chart.
 ```
@@ -95,7 +112,7 @@ Delete the PV and PVC used by the MYSQL server.
 kubectl delete  -f ./mysql/persistence.yaml
 ```
 
-### Delete the PV from the Host Folder
+### Delete Content in PV Folder
 To get around file permission checking under this folder, we do the deletion in a Docker container with root privilege.
 ```
 docker run --rm -v $PV_ROOT:/tt -v $PWD/util:/util  nginx /util/clean-pv.sh
