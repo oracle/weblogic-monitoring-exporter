@@ -1,10 +1,10 @@
 ## Running a WebLogic Domain
-The WebLogic Kubernetes Operator has detailed documentation about creating domains, for example, different considerations and options to consider. For more information, see the [Manage Domains](https://oracle.github.io/weblogic-kubernetes-operator/userguide/managing-domains/) guide. The only extra step needed to integrate with Prometheus is to install the wls-exporter web application to WebLogic servers/clusters.
+The WebLogic Kubernetes Operator has detailed documentation about creating domains, including important considerations and different options to consider. For more information, see the [Manage Domains](https://oracle.github.io/weblogic-kubernetes-operator/userguide/managing-domains/) guide. To integrate with Prometheus, the only extra step needed is to install the `wls-exporter` web application to WebLogic servers/clusters.
 
 In this task, we provide scripts that create a demonstration domain.
 
 ### Set Proxy Before Run
-In the scripts below, we use `wget` to download the WebLogic Deploy Tool archive from GitHub. If you are behind a proxy, you need to configure the proxy settings properly. One of the approaches is to use proxy variables:
+In the scripts below, we use `wget` to download the WebLogic Deploy Tool archive from GitHub. If you are behind a proxy, you need to configure the proxy settings properly. One approach is to use proxy variables:
 ```
 export http_proxy=http://proxy_host:proxy_port
 export https_proxy=$http_proxy
@@ -16,7 +16,7 @@ wget https://github.com/oracle/weblogic-deploy-tooling/releases/download/weblogi
 ```
 
 ### Build the Domain Image
-We provide a script wrapper [build.sh](../demo-domains/domainBuilder/build.sh) to help do this.  
+We provide a script wrapper [build.sh](../demo-domains/domainBuilder/build.sh) to help you do this.  
 See the script usage:
 ```
 usage: ./build.sh domainName adminUser adminPwd mysqlUser mysqlPwd
@@ -30,11 +30,11 @@ cd ../..
 A Docker image `domain1-image:1.0` will be created. Note that the database name is the same as the domain name.
 
 The domain configuration is burned into the image. What's in the domain configuration?
-- One data source, one JDBC store, one JMS server and a JMS module. All the resources are deployed to the cluster.
-- Two web applications deployed to cluster: test-webapp and wls-exporter.  
+- One data source, one JDBC store, one JMS server, and a JMS module. All the resources are deployed to the cluster.
+- Two web applications deployed to cluster: `test-webapp` and `wls-exporter`.  
 
 ### Deploy the Domain Resource
-Create a secret for WebLogic administrative credential.
+Create a secret for the WebLogic administrative credential.
 ```
 kubectl -n default create secret generic domain1-weblogic-credentials \
       --from-literal=username=weblogic \
@@ -47,7 +47,7 @@ kubectl apply -f demo-domains/domain1.yaml
 Now the operator will detect this new domain resource and run a WebLogic domain based on it.
 
 ### Verification
-Wait until the three WebLogic server pods are running and ready.
+Wait until the three WebLogic Server pods are running and ready.
 ```
 kubectl get pod -l weblogic.domainName=domain1
 ```
@@ -72,7 +72,7 @@ domain1-managed-server-1        ClusterIP   None             <none>        8001/
 domain1-managed-server-2        ClusterIP   None             <none>        8001/TCP                         32h
 ```
 
-You can access the WebLogic Administration Console from your browser at `http://<hostname>:30701/console`.
+You can access the WebLogic Server Administration Console from your browser at `http://<hostname>:30701/console`.
 
 ### Check the WebLogic Runtime Metrics
 The exported metrics are plain text and human-readable. We can use `curl` or similar tools to check the metrics.

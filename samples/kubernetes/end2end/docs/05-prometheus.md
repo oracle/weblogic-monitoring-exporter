@@ -1,5 +1,5 @@
 ## Setting up Prometheus
-Install Prometheus using a [Helm chart](https://github.com/helm/charts/tree/master/stable/prometheus) with the customized [values.yaml](../prometheus/values.yaml). There are four components will be installed with this chart: Prometheus server, Alertmanager, node-exporter and kube-state-metrics.  
+Install Prometheus using a [Helm chart](https://github.com/helm/charts/tree/master/stable/prometheus) with the customized [values.yaml](../prometheus/values.yaml). There are four components that will be installed with this chart: Prometheus server, Alertmanager, node-exporter, and kube-state-metrics.  
 
 Create a new namespace `monitoring`.
 ```
@@ -14,7 +14,7 @@ Install the Prometheus chart.
 ```
 helm install --wait --name prometheus --namespace monitoring --values  prometheus/values.yaml stable/prometheus
 ```
-Note that in the customized values.yaml file we add a new job [wls-domain1](../prometheus/values.yaml#L59) to scrape data from the WebLogic domain created in the previous step.
+Note that in the customized `values.yaml` file, we added a new job [wls-domain1](../prometheus/values.yaml#L59) to scrape data from the WebLogic domain created in the previous step.
 
 ### Verification
 Wait until all the Prometheus pods are running and ready.
@@ -43,15 +43,15 @@ prometheus-server               NodePort    10.103.186.222   <none>        80:30
 ```
 
 ### Access the Prometheus web UI
-Now you can access the Prometheus web UI in your browser with the URL `http://<HostIP>:30000`. 
+Now you can access the Prometheus web UI in your browser with the URL `http://<HostIP>:30000`.
 
 #### Access the Target Page
-In the top menu, click `Status` and then `Targets`. The target page is displayed. Go to the bottom of the page, you'll find that the two targets of `wls-domain1` are up and healthy.
+In the top menu, click `Status` and then `Targets`. The target page is displayed. Go to the bottom of the page; you'll find that the two targets of `wls-domain1` are up and healthy.
 
 ![Prometheus Targets](./images/prometheus-targets.png)
 
-#### Query the WebLogic Metrics from Graph Page
-In the top menu, click `Graph`. The gragph page is displayed. Enter the expression `wls_jvm_uptime` that is one of the WebLogic metrics and click `Execute`. There will be two results displayed as shown below. This means that Prometheus server can scrape metrics from WebLogic servers successfully.
+#### Query the WebLogic Metrics from the Graph Page
+In the top menu, click `Graph`. The graph page is displayed. Enter the expression `wls_jvm_uptime` that is one of the WebLogic metrics, and click `Execute`. There will be two results displayed as shown below. This means that the Prometheus server can scrape metrics from WebLogic Servers successfully.
 
 ![Prometheus Targets](./images/prometheus-graph.png)
 

@@ -4,11 +4,11 @@ We depend on the [WebLogic Kubernetes Operator](https://github.com/oracle/weblog
 In this example, we provide the steps to install the 2.1 release of the WebLogic Kubernetes Operator.
 
 ### Pulling the Images
-We need two images, the WebLogic Kubernetes Operator image from [Docker Hub](https://hub.docker.com) and the WebLogic Server image from [Oracle Container Registry](https://container-registry.oracle.com).  
-Before pulling the image, you need to:
-- Aquire an user account to the image sites.  
-  If you do not already have Oracle Single Sign-On credentials, navigate to https://container-registry.oracle.com and create your SSO credentials by clicking the Sign In link to create them, at the top of the page.
-- Log in to the site in your browser, find the image and accept the license.
+We need two images, the WebLogic Kubernetes Operator image from [Docker Hub](https://hub.docker.com) and the WebLogic Server image from the [Oracle Container Registry](https://container-registry.oracle.com).  
+Before pulling the image, you must:
+- Acquire a user account to the image sites.  
+  If you do not already have Oracle Single Sign-On credentials, go to https://container-registry.oracle.com and create them by clicking the Sign In link at the top of the page.
+- Log in to the site in your browser, find the image, and accept the license.
 
 Pull the WebLogic Kubernetes Operator 2.1 image.
 ```
@@ -38,13 +38,13 @@ OPatch succeeded.
 ```
 Confirm that patch set `29135930` is in the patch list.
 
-### Installing the WebLogic Operator
+### Installing the WebLogic Kubernetes Operator
 
-Clone the WebLogic operator 2.1 repo.
+Clone the WebLogic Kubernetes Operator 2.1 repo.
 ```
 git clone -b release/2.1 https://github.com/oracle/weblogic-kubernetes-operator.git
 ```
-Create a namespace in which to run the WebLogic operator.
+Create a namespace in which to run the operator.
 ```
 kubectl create namespace weblogic-operator1
 ```
@@ -52,7 +52,7 @@ Create a service account.
 ```
 kubectl create serviceaccount -n weblogic-operator1 sample-weblogic-operator-sa
 ```
-Install the WebLogic operator chart.
+Install the operator chart.
 ```
 helm install weblogic-kubernetes-operator/kubernetes/charts/weblogic-operator \
   --name sample-weblogic-operator \
