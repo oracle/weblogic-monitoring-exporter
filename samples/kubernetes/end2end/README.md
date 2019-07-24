@@ -40,6 +40,6 @@ Here's how the WebLogic runtime metrics are generated, scraped, stored, and used
 1. Setting up and Firing Alerts
     - [Setting up a Webhook](docs/07-webhook.md)
     - [Firing Alerts](docs/08-alert.md)
-1. [How to Monitor from an Existing WebLogic Domain](docs/existing-domain.md)
+1. [How to Monitor an Existing WebLogic Domain](docs/existing-domain.md)
 1. [Cleanup](docs/cleanup.md)
 
