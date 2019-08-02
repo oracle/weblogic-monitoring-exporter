@@ -23,8 +23,15 @@ public class PrometheusMetricsMatcher extends org.hamcrest.TypeSafeDiagnosingMat
 
     @Override
     protected boolean matchesSafely(String metricsList, Description description) {
-        String[] metrics = metricsList.split("\n");
+        String[] metrics = Arrays.stream(metricsList.split("\n"))
+              .filter(this::isNotAComment)
+              .toArray(String[]::new);
+
         return allMetricsAreNumeric(description, metrics) && metricsInOrder(description, metrics);
+    }
+
+    private boolean isNotAComment(String l) {
+        return !l.trim().startsWith("#");
     }
 
     private boolean allMetricsAreNumeric(Description description, String[] metrics) {
@@ -41,7 +48,6 @@ public class PrometheusMetricsMatcher extends org.hamcrest.TypeSafeDiagnosingMat
         return false;
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     private boolean hasNonNumericValue(String metric) {
         if (Strings.isNullOrEmpty(metric) || metric.trim().startsWith("#")) return false;
         if (!metric.contains(" ")) return false;
