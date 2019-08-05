@@ -5,20 +5,6 @@ package io.prometheus.wls.rest;
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
 
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
-import org.apache.http.HttpHost;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.servlet.ServletException;
-import javax.servlet.ServletInputStream;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import java.io.*;
-import java.util.*;
-
 import static com.meterware.simplestub.Stub.createStrictStub;
 import static io.prometheus.wls.rest.HttpServletRequestStub.createGetRequest;
 import static io.prometheus.wls.rest.HttpServletResponseStub.createServletResponse;
@@ -30,9 +16,44 @@ import static io.prometheus.wls.rest.matchers.CommentsOnlyMatcher.containsOnlyCo
 import static io.prometheus.wls.rest.matchers.MetricsNamesSnakeCaseMatcher.usesSnakeCase;
 import static io.prometheus.wls.rest.matchers.PrometheusMetricsMatcher.followsPrometheusRules;
 import static io.prometheus.wls.rest.matchers.ResponseHeaderMatcher.containsHeader;
-import static javax.servlet.http.HttpServletResponse.*;
-import static org.hamcrest.Matchers.*;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.arrayContaining;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import javax.servlet.ServletException;
+import javax.servlet.ServletInputStream;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import org.apache.http.HttpHost;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Russell Gold
@@ -133,6 +154,16 @@ public class ExporterServletTest {
         servlet.doGet(request, response);
 
         assertThat(response.getStatus(), equalTo(SC_FORBIDDEN));
+    }
+
+    @Test
+    public void whenServerSends400StatusOnGet_reportErrorInComments() throws Exception {
+        initServlet(ONE_VALUE_CONFIG);
+
+        factory.reportBadQuery();
+        servlet.doGet(request, response);
+
+        assertThat(toHtml(response), followsPrometheusRules());
     }
 
     @Test
@@ -444,6 +475,10 @@ public class ExporterServletTest {
             webClient.reportForbidden();
         }
 
+        private void reportBadQuery() {
+            webClient.reportBadQuery();
+        }
+
         @SuppressWarnings("SameParameterValue")
         private void reportAuthenticationRequired(String basicRealmName) {
             webClient.reportAuthenticationRequired(basicRealmName);
@@ -475,6 +510,10 @@ public class ExporterServletTest {
             status = SC_FORBIDDEN;
         }
 
+        void reportBadQuery() {
+            status = SC_BAD_REQUEST;
+        }
+
         @SuppressWarnings("SameParameterValue")
         void reportAuthenticationRequired(String basicRealmName) {
             webClientException = new AuthenticationChallengeException(String.format("Basic realm=\"%s\"", basicRealmName));
@@ -499,6 +538,7 @@ public class ExporterServletTest {
         public String doPostRequest(String postBody) {
             if (url == null) throw new NullPointerException("No URL specified");
             if (status == SC_FORBIDDEN) throw new ForbiddenException();
+            if (status == SC_BAD_REQUEST) throw new RestQueryException();
             if (webClientException != null) throw webClientException;
 
             sentHeaders = Collections.unmodifiableMap(addedHeaders);

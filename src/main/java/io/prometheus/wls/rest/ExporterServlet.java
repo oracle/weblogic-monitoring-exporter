@@ -5,18 +5,17 @@ package io.prometheus.wls.rest;
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
 
-import io.prometheus.wls.rest.domain.MBeanSelector;
+import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
 
+import io.prometheus.wls.rest.domain.MBeanSelector;
+import java.io.IOException;
+import java.util.Map;
+import java.util.TreeMap;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Map;
-import java.util.TreeMap;
-
-import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
 
 /**
  * The servlet which produces the exported metrics.
@@ -69,8 +68,16 @@ public class ExporterServlet extends PassThroughAuthenticationServlet {
             if (metrics != null)
                 sort(metrics).forEach(metricsStream::printMetric);
         } catch (RestQueryException e) {
-            metricsStream.println("REST service was unable to handle this query\n" + selector.getPrintableRequest());
+            metricsStream.println(
+                  withCommentMarkers("REST service was unable to handle this query\n" + selector.getPrintableRequest()));
         }
+    }
+
+    private String withCommentMarkers(String string) {
+        StringBuilder sb = new StringBuilder();
+        for (String s : string.split("\\r?\\n"))
+            sb.append("# ").append(s).append(System.lineSeparator());
+        return sb.toString();
     }
 
     private TreeMap<String, Object> sort(Map<String, Object> metrics) {
