@@ -15,6 +15,9 @@ alertmanager:
   service:
     type: NodePort
     nodePort: 32000
+  securityContext:
+    runAsNonRoot: false
+    runAsUser: 0
 
 server:
   persistentVolume:
@@ -22,6 +25,9 @@ server:
   service:
     type: NodePort
     nodePort: 30000
+  securityContext:
+    runAsNonRoot: false
+    runAsUser: 0
 
 alertmanagerFiles:
   alertmanager.yml:
