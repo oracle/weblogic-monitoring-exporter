@@ -6,7 +6,7 @@ WebLogic Monitoring Exporter
 The WebLogic Monitoring Exporter uses the [WLS RESTful Management API](https://docs.oracle.com/middleware/1221/wls/WLRUR/overview.htm#WLRUR111) to scrape runtime information and then exports [Prometheus](http://prometheus.io)-compatible metrics.
 It is deployed as a web application in a WebLogic Server (WLS) instance, version 12.2.1 or later, typically, in the instance from which you want to get metrics.
 
-## Download the release
+## Downloading the release
 
 You can find all the previous releases in the [releases page](https://github.com/oracle/weblogic-monitoring-exporter/releases).  
 Each release contains a getXXX.sh script. Download it and then run
