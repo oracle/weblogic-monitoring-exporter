@@ -6,7 +6,7 @@ We assume that you have already followed the [Manage Domains](https://oracle.git
 ### Installing the wls-exporter to the WebLogic domain
 You need to install the wls-exporter web application to the WebLogic domain.
 
-First, generate the wls-exporter WAR file following the [Building from a release](https://github.com/oracle/weblogic-monitoring-exporter#building-from-a-release) guide using the configuration file in this sample [exporter-config.yaml](../dashboard/exporter-config.yaml). Then deploy the WAR to the WebLogic servers and clusters using WLST or WDT.  
+First, get the wls-exporter WAR file following the [Downloading a release](https://github.com/oracle/weblogic-monitoring-exporter#downloading-a-release) guide using the configuration file in this sample [exporter-config.yaml](../dashboard/exporter-config.yaml). Then deploy the WAR to the WebLogic servers and clusters using WLST or WDT.  
 
 After the wls-exporter is installed successfully, you can check the exported WebLogic runtime metrics from each server. See the detail guide [here](04-wls-domain.md#check-the-weblogic-runtime-metrics).
 
