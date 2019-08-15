@@ -8,14 +8,12 @@ It is deployed as a web application in a WebLogic Server (WLS) instance, version
 
 ## Downloading the release
 
-You can find all the previous releases in the [releases page](https://github.com/oracle/weblogic-monitoring-exporter/releases).  
-Each release contains a getXXX.sh script. Download it and then run
+You can find all the releases on the [releases page](https://github.com/oracle/weblogic-monitoring-exporter/releases).  
+To download the web application wls-exporter.war and put your configuration file into the WAR, download the getXXX.sh script and then run:
 
 ```
 bash getXXX.sh <your-config-file>
 ```
-
-to download the web application `wls-exporter.war` and put your configuration file into the WAR.
 
 ## Building from source
 
