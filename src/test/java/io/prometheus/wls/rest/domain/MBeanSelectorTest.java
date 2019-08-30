@@ -33,8 +33,8 @@ public class MBeanSelectorTest {
     public void byDefault_useRuntimeRestUrl() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
 
-        assertThat(selector.getUrl("myhost", 1234),
-                   equalTo(String.format(QueryType.RUNTIME_URL_PATTERN, "myhost", 1234)));
+        assertThat(selector.getUrl("http", "myhost", 1234),
+                   equalTo(String.format(QueryType.RUNTIME_URL_PATTERN, "http", "myhost", 1234)));
     }
 
     @Test
@@ -42,8 +42,8 @@ public class MBeanSelectorTest {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
         selector.setQueryType(QueryType.CONFIGURATION);
 
-        assertThat(selector.getUrl("myhost", 1234),
-                   equalTo(String.format(QueryType.CONFIGURATION_URL_PATTERN, "myhost", 1234)));
+        assertThat(selector.getUrl("http", "myhost", 1234),
+                   equalTo(String.format(QueryType.CONFIGURATION_URL_PATTERN, "http", "myhost", 1234)));
     }
 
     @Test
@@ -320,8 +320,8 @@ public class MBeanSelectorTest {
 
     @Test
     public void domainNameSelector_selectsConfigurationUrl() {
-        assertThat(MBeanSelector.DOMAIN_NAME_SELECTOR.getUrl("myhost", 1234),
-                   equalTo(String.format(QueryType.CONFIGURATION_URL_PATTERN, "myhost", 1234)));
+        assertThat(MBeanSelector.DOMAIN_NAME_SELECTOR.getUrl("http", "myhost", 1234),
+                   equalTo(String.format(QueryType.CONFIGURATION_URL_PATTERN, "http", "myhost", 1234)));
     }
 
     @Test

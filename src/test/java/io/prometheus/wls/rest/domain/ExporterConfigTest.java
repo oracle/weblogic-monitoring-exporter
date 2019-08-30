@@ -79,8 +79,8 @@ public class ExporterConfigTest {
 
         MBeanSelector[] queries = config.getEffectiveQueries();
         assertThat(queries, arrayWithSize(1));
-        assertThat(queries[0].getUrl("myhost", 1234),
-                equalTo(String.format(QueryType.RUNTIME_URL_PATTERN, "myhost", 1234)));
+        assertThat(queries[0].getUrl("http", "myhost", 1234),
+                equalTo(String.format(QueryType.RUNTIME_URL_PATTERN, "http", "myhost", 1234)));
      }
 
     @Test
@@ -90,8 +90,8 @@ public class ExporterConfigTest {
         MBeanSelector[] queries = config.getEffectiveQueries();
         assertThat(queries, arrayWithSize(2));
         assertThat(queries[0], sameInstance(MBeanSelector.DOMAIN_NAME_SELECTOR));
-        assertThat(queries[1].getUrl("myhost", 1234),
-                equalTo(String.format(QueryType.RUNTIME_URL_PATTERN, "myhost", 1234)));
+        assertThat(queries[1].getUrl("http", "myhost", 1234),
+                equalTo(String.format(QueryType.RUNTIME_URL_PATTERN, "http", "myhost", 1234)));
      }
 
     @Test

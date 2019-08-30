@@ -283,8 +283,8 @@ public class MBeanSelector {
         return nestedSelectors.get(selectorKey).mayMergeWith(other.nestedSelectors.get(selectorKey));
     }
 
-    public String getUrl(String myhost, int port) {
-        return String.format(queryType.getUrlPattern(), myhost, port);
+    public String getUrl(String protocol, String myhost, int port) {
+        return String.format(queryType.getUrlPattern(), protocol, myhost, port);
     }
 
     @SuppressWarnings("SameParameterValue")

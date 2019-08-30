@@ -22,6 +22,7 @@ public class ExporterConfig {
     static final String SNAKE_CASE = "metricsNameSnakeCase";
     static final String DOMAIN_QUALIFIER = "domainQualifier";
     static final String REST_PORT = "restPort";
+    static final String REST_PROTOCOL = "restProtocol";
     private static final String QUERIES = "queries";
     private static final String HOST = "host";
     private static final String PORT = "port";
@@ -36,6 +37,7 @@ public class ExporterConfig {
     private String host = DEFAULT_HOST;
     private int port = DEFAULT_PORT;
     private Integer restPort;
+    private String restProtocol;
     private boolean metricsNameSnakeCase;
     private QuerySyncConfiguration querySyncConfiguration;
     private boolean useDomainQualifier;
@@ -134,6 +136,7 @@ public class ExporterConfig {
         if (yaml.containsKey(HOST)) host = MapUtils.getStringValue(yaml, HOST);
         if (yaml.containsKey(PORT)) port = MapUtils.getIntegerValue(yaml, PORT);
         if (yaml.containsKey(REST_PORT)) restPort = MapUtils.getIntegerValue(yaml, REST_PORT);
+        if (yaml.containsKey(REST_PROTOCOL)) restProtocol = MapUtils.getStringValue(yaml, REST_PROTOCOL);
         if (yaml.containsKey(QUERY_SYNC)) querySyncConfiguration = loadQuerySync(yaml.get(QUERY_SYNC));
         if (yaml.containsKey(QUERIES)) appendQueries(asList(yaml.get(QUERIES)));
     }
@@ -243,6 +246,14 @@ public class ExporterConfig {
     }
 
     /**
+     * Returns the protocol with which the exporter will contact the REST API, if specified
+     * @return protocol string, or null
+     */
+    public String getRestProtocol() {
+        return restProtocol;
+    }
+
+    /**
      * Returns true if attribute names should be converted to snake case as metric names
      * @return true if the conversion should be done
      */
@@ -292,6 +303,7 @@ public class ExporterConfig {
         if (metricsNameSnakeCase) sb.append("metricsNameSnakeCase: true\n");
         if (useDomainQualifier) sb.append(DOMAIN_QUALIFIER + ": true\n");
         if (restPort != null) sb.append(REST_PORT + ": ").append(restPort).append("\n");
+        if (restProtocol != null) sb.append(REST_PROTOCOL + ": ").append(restProtocol).append("\n");
         sb.append("queries:\n");
 
         for (MBeanSelector query : getQueries())

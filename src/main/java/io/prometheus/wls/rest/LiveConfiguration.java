@@ -32,7 +32,9 @@ class LiveConfiguration {
 
     /** The address used to access WLS (cannot use the address found in the request due to potential server-side request forgery. */
     static final String WLS_HOST;
-    
+
+    static final String DEFAULT_REST_PROTOCOL = "http";
+
     private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
     private static ExporterConfig config;
     private static String serverName;
@@ -91,7 +93,11 @@ class LiveConfiguration {
      * @return a url built for the configured server
      */
     static String getUrl(MBeanSelector selector) {
-        return selector.getUrl(WLS_HOST, getRestPort());
+        return selector.getUrl(getRestProtocol(), WLS_HOST, getRestPort());
+    }
+
+    private static String getRestProtocol() {
+        return Optional.ofNullable(config.getRestProtocol()).orElse(DEFAULT_REST_PROTOCOL);
     }
 
     private static int getRestPort() {
