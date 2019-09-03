@@ -38,7 +38,7 @@ public class MetricsStreamTest {
     @Before
     public void setUp() throws NoSuchFieldException {
         initMetricsStream();
-        LiveConfiguration.setServer("localhost", 7001);
+        LiveConfiguration.setServer("http", "localhost", 7001);
         mementos.add(SystemPropertySupport.preserve(LINE_SEPARATOR));
         mementos.add(StaticStubSupport.preserve(System.class, "lineSeparator"));
     }

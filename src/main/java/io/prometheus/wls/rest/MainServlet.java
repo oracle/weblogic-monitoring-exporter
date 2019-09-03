@@ -30,7 +30,7 @@ public class MainServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        LiveConfiguration.setServer(req.getServerName(), req.getServerPort());
+        LiveConfiguration.setServer(req.getScheme(), req.getServerName(), req.getServerPort());
         LiveConfiguration.updateConfiguration();
         resp.getOutputStream().println(ServletConstants.PAGE_HEADER);
         displayMetricsLink(req, resp.getOutputStream());

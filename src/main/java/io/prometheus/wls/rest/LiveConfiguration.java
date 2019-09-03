@@ -33,12 +33,11 @@ class LiveConfiguration {
     /** The address used to access WLS (cannot use the address found in the request due to potential server-side request forgery. */
     static final String WLS_HOST;
 
-    static final String DEFAULT_REST_PROTOCOL = "http";
-
-    private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
+    private static final String URL_PATTERN = "%s://%s:%d/management/weblogic/latest/serverRuntime/search";
     private static ExporterConfig config;
     private static String serverName;
     private static int serverPort;
+    private static String serverProtocol;
     private static ConfigurationUpdater updater = new NullConfigurationUpdater();
     private static ErrorLog errorLog = new ErrorLog();
 
@@ -74,7 +73,8 @@ class LiveConfiguration {
      * @param serverName the name of the server
      * @param serverPort the port on which the server is listening
      */
-    static void setServer(String serverName, int serverPort) {
+    static void setServer(String serverProtocol, String serverName, int serverPort) {
+        LiveConfiguration.serverProtocol = serverProtocol;
         LiveConfiguration.serverName = serverName;
         LiveConfiguration.serverPort = serverPort;
     }
@@ -84,7 +84,7 @@ class LiveConfiguration {
      * @return a url built for the configured server
      */
     static String getAuthenticationUrl() {
-        return String.format(URL_PATTERN, WLS_HOST, getRestPort());
+        return String.format(URL_PATTERN, getRestProtocol(), WLS_HOST, getRestPort());
     }
 
     /**
@@ -97,7 +97,7 @@ class LiveConfiguration {
     }
 
     private static String getRestProtocol() {
-        return Optional.ofNullable(config.getRestProtocol()).orElse(DEFAULT_REST_PROTOCOL);
+        return Optional.ofNullable(config.getRestProtocol()).orElse(serverProtocol);
     }
 
     private static int getRestPort() {

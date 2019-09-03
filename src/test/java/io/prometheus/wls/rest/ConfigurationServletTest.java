@@ -41,7 +41,7 @@ public class ConfigurationServletTest {
     @Before
     public void setUp() throws Exception {
         LiveConfiguration.loadFromString("");
-        LiveConfiguration.setServer(HttpServletRequestStub.HOST, HttpServletRequestStub.PORT);
+        LiveConfiguration.setServer(HttpServletRequestStub.SCHEME, HttpServletRequestStub.HOST, HttpServletRequestStub.PORT);
         request = createUploadRequest(createEncodedForm("replace", CONFIGURATION));
     }
 

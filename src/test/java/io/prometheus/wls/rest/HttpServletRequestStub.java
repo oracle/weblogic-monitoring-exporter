@@ -25,6 +25,7 @@ import static com.meterware.simplestub.Stub.createStrictStub;
 abstract class HttpServletRequestStub implements HttpServletRequest {
     final static String HOST = "myhost";
     final static int PORT = 7654;
+    final static String SCHEME = "http";
 
     private final static String DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded";
     private Map<String,String> headers = new HashMap<>();
@@ -78,6 +79,11 @@ abstract class HttpServletRequestStub implements HttpServletRequest {
     @Override
     public String getProtocol() {
         return "HTTP/1.1";
+    }
+
+    @Override
+    public String getScheme() {
+        return SCHEME;
     }
 
     @Override

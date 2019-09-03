@@ -28,7 +28,7 @@ abstract public class PassThroughAuthenticationServlet extends HttpServlet {
     }
 
     private WebClient createWebClient(HttpServletRequest req) {
-        LiveConfiguration.setServer(req.getServerName(), req.getServerPort());
+        LiveConfiguration.setServer(req.getScheme(), req.getServerName(), req.getServerPort());
         final WebClient webClient = webClientFactory.createClient();
         webClient.addHeader("X-Requested-By", "rest-exporter");
 

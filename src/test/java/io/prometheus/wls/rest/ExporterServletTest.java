@@ -80,7 +80,7 @@ public class ExporterServletTest {
         InMemoryFileSystem.install();
         ConfigurationUpdaterStub.install();
         LiveConfiguration.loadFromString("");
-        LiveConfiguration.setServer("localhost", 7001);
+        LiveConfiguration.setServer("http", "localhost", 7001);
         ExporterSession.cacheSession(null, null);
         MessagesServlet.clear();
     }
