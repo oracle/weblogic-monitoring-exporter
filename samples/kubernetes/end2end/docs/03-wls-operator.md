@@ -52,7 +52,7 @@ Add the operator chart repository to helm.
 ```
 helm repo add weblogic-operator https://oracle.github.io/weblogic-kubernetes-operator/charts
 ```
-Install the operator with the operator chart.
+Install the operator with the operator chart with version `2.3.0`.
 ```
 helm install weblogic-operator/weblogic-operator \
   --version 2.3.0 \
@@ -87,7 +87,7 @@ Verify the domain CRD version is correct.
 ```
 kubectl get crd domains.weblogic.oracle -o jsonpath="{.spec.version}"
 ```
-The expected output should be `v5`.
+The expected version should be `v5`.
 
 Now the WebLogic Kubernetes Operator is running and it's monitoring the default namespace. Later we'll deploy a domain resource to the default namespace and the operator will be responsible for creating, running, and managing the WebLogic domain.
 
