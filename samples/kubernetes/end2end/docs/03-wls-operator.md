@@ -83,11 +83,11 @@ kubectl get crd domains.weblogic.oracle
 NAME                      CREATED AT
 domains.weblogic.oracle   2019-05-28T07:17:26Z
 ```
-Verify the domain CRD version is correct.
+Verify that the domain CRD version is correct.
 ```
 kubectl get crd domains.weblogic.oracle -o jsonpath="{.spec.version}"
 ```
-The expected version should be `v5`.
+The expected version should be `v5`. Since the WebLogic operator is backward compatible, domain resource with version older than `v5` should be supported.
 
 Now the WebLogic Kubernetes Operator is running and it's monitoring the default namespace. Later we'll deploy a domain resource to the default namespace and the operator will be responsible for creating, running, and managing the WebLogic domain.
 
