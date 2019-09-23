@@ -1,7 +1,7 @@
 ## Installing the WebLogic Kubernetes Operator
 We depend on the [WebLogic Kubernetes Operator](https://github.com/oracle/weblogic-kubernetes-operator) to create and manage WebLogic domains. For detailed installation information, see [Install the Operator](https://oracle.github.io/weblogic-kubernetes-operator/userguide/managing-operators/installation/).
 
-In this example, we provide the steps to install the 2.1 release of the WebLogic Kubernetes Operator.
+In this example, we provide the steps to install the 2.3.0 release of the WebLogic Kubernetes Operator.
 
 ### Pulling the Images
 We need two images, the WebLogic Kubernetes Operator image from [Docker Hub](https://hub.docker.com) and the WebLogic Server image from the [Oracle Container Registry](https://container-registry.oracle.com).  
@@ -10,10 +10,10 @@ Before pulling the image, you must:
   If you do not already have Oracle Single Sign-On credentials, go to https://container-registry.oracle.com and create them by clicking the Sign In link at the top of the page.
 - Log in to the site in your browser, find the image, and accept the license.
 
-Pull the WebLogic Kubernetes Operator 2.1 image.
+Pull the WebLogic Kubernetes Operator 2.3.0 image.
 ```
 docker login
-docker pull oracle/weblogic-kubernetes-operator:2.1
+docker pull oracle/weblogic-kubernetes-operator:2.3.0
 ```
 Pull the WebLogic Server 12.2.1.3 image.
 ```
@@ -40,10 +40,6 @@ Confirm that patch set `29135930` is in the patch list.
 
 ### Installing the WebLogic Kubernetes Operator
 
-Clone the WebLogic Kubernetes Operator 2.1 repo.
-```
-git clone -b release/2.1 https://github.com/oracle/weblogic-kubernetes-operator.git
-```
 Create a namespace in which to run the operator.
 ```
 kubectl create namespace weblogic-operator1
@@ -52,13 +48,18 @@ Create a service account.
 ```
 kubectl create serviceaccount -n weblogic-operator1 sample-weblogic-operator-sa
 ```
-Install the operator chart.
+Add the operator chart repository to helm.
 ```
-helm install weblogic-kubernetes-operator/kubernetes/charts/weblogic-operator \
-  --name sample-weblogic-operator \
+helm repo add weblogic-operator https://oracle.github.io/weblogic-kubernetes-operator/charts
+```
+Install the operator with the operator chart with version `2.3.0`.
+```
+helm install weblogic-operator/weblogic-operator \
+  --version 2.3.0 \
+  --name weblogic-operator \
   --namespace weblogic-operator1 \
   --set serviceAccount=sample-weblogic-operator-sa \
-  --set image=oracle/weblogic-kubernetes-operator:2.1 \
+  --set image=oracle/weblogic-kubernetes-operator:2.3.0 \
   --set "domainNamespaces={default}" \
   --wait
 ```
@@ -82,6 +83,11 @@ kubectl get crd domains.weblogic.oracle
 NAME                      CREATED AT
 domains.weblogic.oracle   2019-05-28T07:17:26Z
 ```
+Verify that the domain CRD version is correct.
+```
+kubectl get crd domains.weblogic.oracle -o jsonpath="{.spec.version}"
+```
+The expected version should be `v5`. Because the WebLogic operator is backward compatible, a domain resource with any version older than `v5` should be supported.
 
 Now the WebLogic Kubernetes Operator is running and it's monitoring the default namespace. Later we'll deploy a domain resource to the default namespace and the operator will be responsible for creating, running, and managing the WebLogic domain.
 
