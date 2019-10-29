@@ -5,7 +5,6 @@
 set -e  # Exit immediately if a command exits with a non-zero status.
 
 WDT_VERSION=0.24
-MONITORING_EXPORTER_VERSION=1.1.0
 
 CUR_DIR="$(dirname "$(readlink -f "$0")")" # get the absolute path of this file's folder
 PRJ_ROOT=${CUR_DIR}/../../../../..
@@ -19,14 +18,13 @@ function createArchive() {
   cd test-webapp && mvn clean install && cd ..
   cp test-webapp/target/testwebapp.war ${TMP_DIR}/archive/wlsdeploy/applications/testwebapp.war
 
-  echo "Download the metrics exporter webapp from ://github.com/oracle/weblogic-monitoring-exporter/releases/download/v${MONITORING_EXPORTER_VERSION}/get${MONITORING_EXPORTER_VERSION}.sh..."
-
+  echo 'Build the metrics exporter...'
   cd $PRJ_ROOT
-  wget https://github.com/oracle/weblogic-monitoring-exporter/releases/download/v${MONITORING_EXPORTER_VERSION}/get${MONITORING_EXPORTER_VERSION}.sh
-  bash get${MONITORING_EXPORTER_VERSION}.sh ${CUR_DIR}/../../dashboard/exporter-config.yaml
-  
+  mvn clean install
+  cd webapp
+  mvn clean package -Dconfiguration=${CUR_DIR}/../../dashboard/exporter-config.yaml
   cd $CUR_DIR 
-  cp $PRJ_ROOT/wls-exporter.war \
+  cp $PRJ_ROOT/webapp/target/wls-exporter.war \
      ${TMP_DIR}/archive/wlsdeploy/applications/wls-exporter.war
 
   echo 'Build the WDT archive...'
@@ -36,7 +34,7 @@ function createArchive() {
 
 function cleanTmpDir() {
   rm -rf ${CUR_DIR}/test-webapp/target
-  rm -rf ${PRJ_ROOT}/wls-exporter.war
+  rm -rf ${PRJ_ROOT}/webapp/target
   rm -rf ${TMP_DIR}
 }
 
