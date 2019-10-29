@@ -22,10 +22,8 @@ function createArchive() {
   echo "Download the metrics exporter webapp from ://github.com/oracle/weblogic-monitoring-exporter/releases/download/v${MONITORING_EXPORTER_VERSION}/get${MONITORING_EXPORTER_VERSION}.sh..."
 
   cd $PRJ_ROOT
-  curl -O -L https://github.com/oracle/weblogic-monitoring-exporter/releases/download/v${MONITORING_EXPORTER_VERSION}/get${MONITORING_EXPORTER_VERSION}.sh
-  chmod 777 get${MONITORING_EXPORTER_VERSION}.sh
+  wget https://github.com/oracle/weblogic-monitoring-exporter/releases/download/v${MONITORING_EXPORTER_VERSION}/get${MONITORING_EXPORTER_VERSION}.sh
   bash get${MONITORING_EXPORTER_VERSION}.sh ${CUR_DIR}/../../dashboard/exporter-config.yaml
-  echo 'Monitoring Exporter web application is built'
   
   cd $CUR_DIR 
   cp $PRJ_ROOT/wls-exporter.war \
