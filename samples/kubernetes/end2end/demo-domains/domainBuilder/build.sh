@@ -5,7 +5,7 @@
 set -e  # Exit immediately if a command exits with a non-zero status.
 
 WDT_VERSION=0.24
-MONITORING_EXPORTER_VERSION=1.1.0
+MONITORING_EXPORTER_VERSION=1.1.1
 
 CUR_DIR="$(dirname "$(readlink -f "$0")")" # get the absolute path of this file's folder
 PRJ_ROOT=${CUR_DIR}/../../../../..
