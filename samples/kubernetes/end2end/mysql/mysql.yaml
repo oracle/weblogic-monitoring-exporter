@@ -18,21 +18,24 @@ spec:
         app: mysql
     spec:
       containers:
-      - image: mysql:5.6
-        name: mysql
-        env:
-        - name: MYSQL_ROOT_PASSWORD
-          value: "123456"
-        ports:
-        - containerPort: 3306
+        - image: mysql:5.6
           name: mysql
-        volumeMounts:
-        - name: mysql-persistent-storage
-          mountPath: /var/lib/mysql
+          env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-secret
+                key: root-password
+          ports:
+            - containerPort: 3306
+              name: mysql
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
       volumes:
-      - name: mysql-persistent-storage
-        persistentVolumeClaim:
-          claimName: pvc-mysql
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: pvc-mysql
 
 ---
 apiVersion: v1
@@ -43,7 +46,21 @@ metadata:
 spec:
   clusterIP: None
   ports:
-  - port: 3306
-    protocol: TCP
+    - port: 3306
+      protocol: TCP
   selector:
     app: mysql
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-secret
+  namespace: default
+  labels:
+    app: mysql
+data:
+  # echo -n "root" | base64
+  root-user: cm9vdA==
+  # echo -n "123456" | base64
+  root-password: MTIzNDU2
