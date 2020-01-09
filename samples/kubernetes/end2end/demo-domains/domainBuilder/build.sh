@@ -16,7 +16,7 @@ function createArchive() {
   mkdir -p ${TMP_DIR}/archive/wlsdeploy/applications
 
   echo 'Build the test webapp...'
-  # Run jar cmd in a docker container to avoid jar dependency to the host machine
+  # Run jar cmd in a docker container to avoid introducing jar cmd dependency to the host machine
   docker run --rm -it -u 0 -v ${PWD}/test-webapp:/tt store/oracle/weblogic:12.2.1.3 bash /tt/build.sh
   cp test-webapp/testwebapp.war ${TMP_DIR}/archive/wlsdeploy/applications/testwebapp.war
 
