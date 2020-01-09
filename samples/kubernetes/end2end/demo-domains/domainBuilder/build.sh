@@ -16,8 +16,8 @@ function createArchive() {
   mkdir -p ${TMP_DIR}/archive/wlsdeploy/applications
 
   echo 'Build the test webapp...'
-  cd test-webapp && mvn clean install && cd ..
-  cp test-webapp/target/testwebapp.war ${TMP_DIR}/archive/wlsdeploy/applications/testwebapp.war
+  cd test-webapp && jar cvf testwebapp.war . && cd ..
+  cp test-webapp/testwebapp.war ${TMP_DIR}/archive/wlsdeploy/applications/testwebapp.war
 
   echo "Download the metrics exporter webapp from ://github.com/oracle/weblogic-monitoring-exporter/releases/download/v${MONITORING_EXPORTER_VERSION}/get${MONITORING_EXPORTER_VERSION}.sh..."
 
@@ -37,7 +37,7 @@ function createArchive() {
 }
 
 function cleanTmpDir() {
-  rm -rf ${CUR_DIR}/test-webapp/target
+  rm -rf ${CUR_DIR}/test-webapp/testwebapp.war
   rm -rf ${PRJ_ROOT}/wls-exporter.war
   rm -rf ${TMP_DIR}
 }
