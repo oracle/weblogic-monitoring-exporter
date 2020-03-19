@@ -1,4 +1,4 @@
-// Copyright 2019, Oracle Corporation and/or its affiliates.  All rights reserved.
+// Copyright 2019, 2020 Oracle Corporation and/or its affiliates.  All rights reserved.
 // Licensed under the Universal Permissive License v 1.0 as shown at
 // http://oss.oracle.com/licenses/upl.
 
@@ -14,6 +14,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import static io.prometheus.wls.rest.ServletConstants.MESSAGES_PAGE;
 
@@ -25,7 +26,7 @@ public class MessagesServlet extends HttpServlet {
     static final int MAX_EXCHANGES = 5;
     private static final String TEMPLATE = "REQUEST:%n%s%nREPLY:%n%s%n";
 
-    private static Queue<String> messages = new ArrayDeque<>();
+    private static Queue<String> messages = new ConcurrentLinkedDeque<>();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
