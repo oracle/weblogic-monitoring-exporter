@@ -1,9 +1,13 @@
 package io.prometheus.wls.rest.domain;
 /*
- * Copyright (c) 2017, 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle Corporation and/or its affiliates. All rights reserved.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -12,13 +16,19 @@ import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static io.prometheus.wls.rest.domain.ExporterConfigTest.QueryHierarchyMatcher.hasQueryFor;
 import static io.prometheus.wls.rest.domain.MetricMatcher.hasMetric;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.arrayWithSize;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.emptyArray;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.sameInstance;
 
 /**
  * @author Russell Gold
@@ -500,13 +510,30 @@ public class ExporterConfigTest {
     public void afterScrapingMetricsIncludeDomainNameQualifier() {
         ExporterConfig exporterConfig = loadFromString(DOMAIN_QUALIFIER_CONFIG);
 
-        Map<String, Object> metrics = new HashMap<>();
-        metrics.putAll(exporterConfig.scrapeMetrics(exporterConfig.getEffectiveQueries()[0], getJsonResponse(CONFIG_RESPONSE)));
-        metrics.putAll(exporterConfig.scrapeMetrics(exporterConfig.getEffectiveQueries()[1], getJsonResponse(WORK_MANAGER_RESPONSE)));
+        Map<String, Object> metrics = getMetrics(exporterConfig);
 
         assertThat(metrics, hasMetric("workmanager_pendingRequests{domain=\"mydomain\",applicationName=\"thisOne\"}", 2));
         assertThat(metrics, hasMetric("workmanager_completedRequests{domain=\"mydomain\",applicationName=\"thisOne\"}", 15));
         assertThat(metrics, hasMetric("workmanager_stuckThreadCount{domain=\"mydomain\",applicationName=\"thisOne\"}", 3));
+    }
+
+    private Map<String, Object> getMetrics(ExporterConfig exporterConfig) {
+        Map<String, Object> metrics = new HashMap<>();
+        Arrays.stream(exporterConfig.getEffectiveQueries())
+              .forEach(q -> metrics.putAll(exporterConfig.scrapeMetrics(q, getJsonResponse(getResponse(q)))));
+        return metrics;
+    }
+
+    private String getResponse(MBeanSelector selector) {
+        return selector.acceptsStrings() ? CONFIG_RESPONSE : WORK_MANAGER_RESPONSE;
+    }
+
+    @Test
+    public void secondScrapeWithDomainQualifierDoesNotAddStringMetric() {
+        ExporterConfig exporterConfig = loadFromString(DOMAIN_QUALIFIER_CONFIG);
+        getMetrics(exporterConfig);
+
+        assertThat(getMetrics(exporterConfig).values().stream().anyMatch(v -> v instanceof String), is(false));
     }
 
     private static final String DOMAIN_QUALIFIER_CONFIG =
