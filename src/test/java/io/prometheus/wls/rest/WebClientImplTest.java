@@ -15,7 +15,6 @@ import com.meterware.pseudoserver.HttpUserAgentTest;
 import com.meterware.pseudoserver.PseudoServlet;
 import com.meterware.pseudoserver.WebResource;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static io.prometheus.wls.rest.ServletConstants.AUTHENTICATION_HEADER;
@@ -34,7 +33,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
     private static final char QUOTE = '"';
 
     /** A URL with a host guaranteed not to exist. */
-    private static final String UNDEFINED_HOST_URL = "http://seriously-this-should-not-exist/";
+    private static final String UNDEFINED_HOST_URL = "http://undefined.invalid";
 
     /** A URL on a known host with a port on which no server is listening. */
     private static final String UNDEFINED_PORT_URL = "http://localhost:59236";
@@ -52,7 +51,6 @@ public class WebClientImplTest extends HttpUserAgentTest {
         sentHeaders.clear();
     }
 
-    @Ignore("The client seems to find something on some platforms??")
     @Test(expected = WebClientException.class)
     public void whenUnableToReachHost_throwException() throws Exception {
         factory.createClient().withUrl(UNDEFINED_HOST_URL).doGetRequest();
