@@ -1,16 +1,22 @@
 package io.prometheus.wls.rest.domain;
 /*
- * Copyright (c) 2017, 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle Corporation and/or its affiliates. All rights reserved.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
+
 import com.google.gson.JsonObject;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.scanner.ScannerException;
-
-import java.io.InputStream;
-import java.util.*;
-import java.util.stream.Stream;
 
 /**
  * This class represents the configuration for the exporter, created by parsing YAML.
@@ -115,7 +121,7 @@ public class ExporterConfig {
     }
 
     private Stream<MBeanSelector> withPossibleDomainNameQuery(Stream<MBeanSelector> stream) {
-        return useDomainQualifier ? Stream.concat(Stream.of(MBeanSelector.DOMAIN_NAME_SELECTOR), stream) : stream;
+        return useDomainQualifier() ? Stream.concat(Stream.of(MBeanSelector.DOMAIN_NAME_SELECTOR), stream) : stream;
     }
 
     public static ExporterConfig loadConfig(Map<String, Object> yamlConfig) {
@@ -219,10 +225,10 @@ public class ExporterConfig {
     }
 
     private boolean isArrayOfMaps(Object object) {
-        return List.class.isAssignableFrom(object.getClass()) && emptyOrContainsMaps((List) object);
+        return List.class.isAssignableFrom(object.getClass()) && emptyOrContainsMaps((List<?>) object);
     }
 
-    private boolean emptyOrContainsMaps(List list) {
+    private boolean emptyOrContainsMaps(List<?> list) {
         return list.isEmpty() || list.get(0) instanceof Map;
     }
 
@@ -255,7 +261,7 @@ public class ExporterConfig {
      * @return true if the qualifier should be added
      */
     boolean useDomainQualifier() {
-        return useDomainQualifier;
+        return useDomainQualifier && (domainName == null);
     }
 
     String getDomainName() {
@@ -281,6 +287,7 @@ public class ExporterConfig {
         this.useDomainQualifier = config2.useDomainQualifier;
         MBeanSelector[] newQueries = config2.getQueries();
         this.queries = Arrays.copyOf(newQueries, newQueries.length);
+        this.domainName = null;
     }
 
     @Override
