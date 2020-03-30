@@ -1,9 +1,7 @@
+// Copyright 2017, 2020, Oracle Corporation and/or its affiliates.
+// Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+
 package io.prometheus.wls.rest;
-/*
- * Copyright (c) 2017, 2020, Oracle Corporation and/or its affiliates.
- *
- * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
- */
 
 import java.io.IOException;
 import java.net.SocketException;
@@ -14,6 +12,12 @@ import com.google.common.base.Strings;
 import com.meterware.pseudoserver.HttpUserAgentTest;
 import com.meterware.pseudoserver.PseudoServlet;
 import com.meterware.pseudoserver.WebResource;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_GATEWAY;
+import static javax.servlet.http.HttpServletResponse.SC_GATEWAY_TIMEOUT;
+import static javax.servlet.http.HttpServletResponse.SC_HTTP_VERSION_NOT_SUPPORTED;
+import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_IMPLEMENTED;
+import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -233,6 +237,78 @@ public class WebClientImplTest extends HttpUserAgentTest {
         } catch (AuthenticationChallengeException e) {
             assertThat(extractRealm(e.getChallenge()), equalTo("REST Realm"));
         }
+    }
+
+    @Test(expected = ServerErrorException.class)
+    public void when500StatusReceived_throwsServerErrorException() throws Exception {
+        defineResource("500Query", new PseudoServlet() {
+            @Override
+            public WebResource getPostResponse() {
+                return new WebResource("internal server error", "text/plain", SC_INTERNAL_SERVER_ERROR);
+            }
+        });
+
+        factory.createClient().withUrl(getHostPath() + "/500Query").doPostRequest("abced");
+    }
+
+    @Test(expected = ServerErrorException.class)
+    public void when501StatusReceived_throwsServerErrorException() throws Exception {
+        defineResource("501Query", new PseudoServlet() {
+            @Override
+            public WebResource getPostResponse() {
+                return new WebResource("not implemented", "text/plain", SC_NOT_IMPLEMENTED);
+            }
+        });
+
+        factory.createClient().withUrl(getHostPath() + "/501Query").doPostRequest("abced");
+    }
+
+    @Test(expected = ServerErrorException.class)
+    public void when502StatusReceived_throwsServerErrorException() throws Exception {
+        defineResource("502Query", new PseudoServlet() {
+            @Override
+            public WebResource getPostResponse() {
+                return new WebResource("bad gateway", "text/plain", SC_BAD_GATEWAY);
+            }
+        });
+
+        factory.createClient().withUrl(getHostPath() + "/502Query").doPostRequest("abced");
+    }
+
+    @Test(expected = ServerErrorException.class)
+    public void when503StatusReceived_throwsServerErrorException() throws Exception {
+        defineResource("503Query", new PseudoServlet() {
+            @Override
+            public WebResource getPostResponse() {
+                return new WebResource("service unavailable", "text/plain", SC_SERVICE_UNAVAILABLE);
+            }
+        });
+
+        factory.createClient().withUrl(getHostPath() + "/503Query").doPostRequest("abced");
+    }
+
+    @Test(expected = ServerErrorException.class)
+    public void when504StatusReceived_throwsServerErrorException() throws Exception {
+        defineResource("504Query", new PseudoServlet() {
+            @Override
+            public WebResource getPostResponse() {
+                return new WebResource("gateway timeout", "text/plain", SC_GATEWAY_TIMEOUT);
+            }
+        });
+
+        factory.createClient().withUrl(getHostPath() + "/504Query").doPostRequest("abced");
+    }
+
+    @Test(expected = ServerErrorException.class)
+    public void when505StatusReceived_throwsServerErrorException() throws Exception {
+        defineResource("505Query", new PseudoServlet() {
+            @Override
+            public WebResource getPostResponse() {
+                return new WebResource("HTTP version not supported", "text/plain", SC_HTTP_VERSION_NOT_SUPPORTED);
+            }
+        });
+
+        factory.createClient().withUrl(getHostPath() + "/505Query").doPostRequest("abced");
     }
 
     // the value should be of the form <Basic realm="<realm-name>" and we want to extract the realm name
