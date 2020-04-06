@@ -1,9 +1,7 @@
+// Copyright 2017, 2020, Oracle Corporation and/or its affiliates.
+// Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+
 package io.prometheus.wls.rest;
-/*
- * Copyright (c) 2017, 2019, Oracle Corporation and/or its affiliates. All rights reserved.
- *
- * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
- */
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -137,6 +135,13 @@ public class WebClientImpl extends WebClient {
                 throw createAuthenticationChallengeException(response);
             case SC_FORBIDDEN:
                 throw new ForbiddenException();
+            case SC_INTERNAL_SERVER_ERROR:
+            case SC_NOT_IMPLEMENTED:
+            case SC_BAD_GATEWAY:
+            case SC_SERVICE_UNAVAILABLE:
+            case SC_GATEWAY_TIMEOUT:
+            case SC_HTTP_VERSION_NOT_SUPPORTED:
+                throw new ServerErrorException(response.getStatusLine().getStatusCode());
             case SC_OK:
                 String setCookieHeader = extractSessionSetCookieHeader(response);
                 if (setCookieHeader != null) {
