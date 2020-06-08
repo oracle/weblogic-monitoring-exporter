@@ -20,6 +20,7 @@ import io.prometheus.wls.rest.domain.ExporterConfig;
 import io.prometheus.wls.rest.domain.MBeanSelector;
 import io.prometheus.wls.rest.domain.Protocol;
 import io.prometheus.wls.rest.domain.QuerySyncConfiguration;
+import io.prometheus.wls.rest.domain.QueryType;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -34,7 +35,6 @@ class LiveConfiguration {
     /** The address used to access WLS (cannot use the address found in the request due to potential server-side request forgery. */
     static final String WLS_HOST;
     
-    private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
     private static ExporterConfig config;
     private static String serverName;
     private static int serverPort;
@@ -81,9 +81,10 @@ class LiveConfiguration {
     /**
      * Returns the URL used to query the management services
      * @return a url built for the configured server
+     * @param protocol the protocol used to authenticate a configuration change
      */
-    static String getAuthenticationUrl() {
-        return String.format(URL_PATTERN, WLS_HOST, getRestPort());
+    static String getAuthenticationUrl(Protocol protocol) {
+        return protocol.format(QueryType.RUNTIME_URL_PATTERN, WLS_HOST, getRestPort());
     }
 
     /**

@@ -10,7 +10,7 @@ import javax.servlet.ServletRequest;
 public enum Protocol {
   HTTP, HTTPS;
 
-  String format(String urlPattern, String host, int port) {
+  public String format(String urlPattern, String host, int port) {
       return String.format(urlPattern, toString().toLowerCase(), host, port);
   }
 

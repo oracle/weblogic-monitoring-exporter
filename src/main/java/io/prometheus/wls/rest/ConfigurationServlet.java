@@ -1,9 +1,18 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017, 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle Corporation and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import io.prometheus.wls.rest.domain.ConfigurationException;
 import io.prometheus.wls.rest.domain.ExporterConfig;
 import org.apache.commons.fileupload.FileItem;
@@ -11,16 +20,10 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
-import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-
-import static io.prometheus.wls.rest.ServletConstants.*;
+import static io.prometheus.wls.rest.ServletConstants.APPEND_ACTION;
+import static io.prometheus.wls.rest.ServletConstants.DEFAULT_ACTION;
+import static io.prometheus.wls.rest.ServletConstants.MAIN_PAGE;
+import static io.prometheus.wls.rest.ServletConstants.REPLACE_ACTION;
 
 /**
  * A servlet which handles updates to the exporter configuration.
@@ -45,7 +48,7 @@ public class ConfigurationServlet extends PassThroughAuthenticationServlet {
     }
 
     private void updateConfiguration(WebClient webClient, HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        authenticate(webClient.withUrl(LiveConfiguration.getAuthenticationUrl()));
+        authenticate(webClient.withUrl(LiveConfiguration.getAuthenticationUrl(getProtocol())));
         try {
             if (!ServletFileUpload.isMultipartContent(req)) throw new ServletException("Must be a multi-part request");
 
