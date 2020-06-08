@@ -4,18 +4,26 @@ package io.prometheus.wls.rest.domain;
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
-import org.junit.Test;
-
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
+import org.junit.Test;
+
 import static io.prometheus.wls.rest.domain.JsonPathMatcher.hasJsonPath;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.aMapWithSize;
+import static org.hamcrest.Matchers.anEmptyMap;
+import static org.hamcrest.Matchers.arrayContaining;
+import static org.hamcrest.Matchers.both;
+import static org.hamcrest.Matchers.emptyArray;
+import static org.hamcrest.Matchers.emptyOrNullString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.is;
 
 /**
  * @author Russell Gold
@@ -33,8 +41,8 @@ public class MBeanSelectorTest {
     public void byDefault_useRuntimeRestUrl() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
 
-        assertThat(selector.getUrl("myhost", 1234),
-                   equalTo(String.format(QueryType.RUNTIME_URL_PATTERN, "myhost", 1234)));
+        assertThat(selector.getUrl(Protocol.HTTP, "myhost", 1234),
+                   equalTo(String.format(QueryType.RUNTIME_URL_PATTERN, "http", "myhost", 1234)));
     }
 
     @Test
@@ -42,8 +50,8 @@ public class MBeanSelectorTest {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
         selector.setQueryType(QueryType.CONFIGURATION);
 
-        assertThat(selector.getUrl("myhost", 1234),
-                   equalTo(String.format(QueryType.CONFIGURATION_URL_PATTERN, "myhost", 1234)));
+        assertThat(selector.getUrl(Protocol.HTTP, "myhost", 1234),
+                   equalTo(String.format(QueryType.CONFIGURATION_URL_PATTERN, "http", "myhost", 1234)));
     }
 
     @Test
@@ -320,8 +328,8 @@ public class MBeanSelectorTest {
 
     @Test
     public void domainNameSelector_selectsConfigurationUrl() {
-        assertThat(MBeanSelector.DOMAIN_NAME_SELECTOR.getUrl("myhost", 1234),
-                   equalTo(String.format(QueryType.CONFIGURATION_URL_PATTERN, "myhost", 1234)));
+        assertThat(MBeanSelector.DOMAIN_NAME_SELECTOR.getUrl(Protocol.HTTP, "myhost", 1234),
+                   equalTo(String.format(QueryType.CONFIGURATION_URL_PATTERN, "http", "myhost", 1234)));
     }
 
     @Test

@@ -1,13 +1,10 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017, 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle Corporation and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
 
-import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
-
-import io.prometheus.wls.rest.domain.MBeanSelector;
 import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
@@ -16,6 +13,10 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import io.prometheus.wls.rest.domain.MBeanSelector;
+
+import static io.prometheus.wls.rest.domain.MapUtils.isNullOrEmptyString;
 
 /**
  * The servlet which produces the exported metrics.
@@ -35,7 +36,7 @@ public class ExporterServlet extends PassThroughAuthenticationServlet {
     }
 
     @Override
-    public void init(ServletConfig servletConfig) throws ServletException {
+    public void init(ServletConfig servletConfig) {
         LiveConfiguration.init(servletConfig);
     }
 
@@ -88,7 +89,7 @@ public class ExporterServlet extends PassThroughAuthenticationServlet {
 
     private Map<String, Object> getMetrics(WebClient webClient, MBeanSelector selector) throws IOException {
         String request = selector.getRequest();
-        String jsonResponse = webClient.withUrl(LiveConfiguration.getUrl(selector)).doPostRequest(request);
+        String jsonResponse = webClient.withUrl(LiveConfiguration.getUrl(getProtocol(), selector)).doPostRequest(request);
         MessagesServlet.addExchange(request, jsonResponse);
         if (isNullOrEmptyString(jsonResponse)) return null;
 

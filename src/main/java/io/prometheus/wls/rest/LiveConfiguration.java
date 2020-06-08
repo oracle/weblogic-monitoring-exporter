@@ -1,25 +1,26 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017, 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle Corporation and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import io.prometheus.wls.rest.domain.ExporterConfig;
-import io.prometheus.wls.rest.domain.MBeanSelector;
-import io.prometheus.wls.rest.domain.QuerySyncConfiguration;
-import org.yaml.snakeyaml.Yaml;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Optional;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import io.prometheus.wls.rest.domain.ExporterConfig;
+import io.prometheus.wls.rest.domain.MBeanSelector;
+import io.prometheus.wls.rest.domain.Protocol;
+import io.prometheus.wls.rest.domain.QuerySyncConfiguration;
+import org.yaml.snakeyaml.Yaml;
 
 /**
  * The repository for the current exporter configuration.
@@ -87,11 +88,13 @@ class LiveConfiguration {
 
     /**
      * Returns the URL used to query the management services
+     *
+     * @param protocol the protocol to use
      * @param selector the selector which will define the query
      * @return a url built for the configured server
      */
-    static String getUrl(MBeanSelector selector) {
-        return selector.getUrl(WLS_HOST, getRestPort());
+    static String getUrl(Protocol protocol, MBeanSelector selector) {
+        return selector.getUrl(protocol, WLS_HOST, getRestPort());
     }
 
     private static int getRestPort() {

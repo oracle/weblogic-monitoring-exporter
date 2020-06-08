@@ -1,9 +1,33 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017, 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle Corporation and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import javax.servlet.ServletException;
+import javax.servlet.ServletInputStream;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
+import org.apache.http.HttpHost;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
 import static io.prometheus.wls.rest.HttpServletRequestStub.createGetRequest;
@@ -32,34 +56,12 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import javax.servlet.ServletException;
-import javax.servlet.ServletInputStream;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import org.apache.http.HttpHost;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 /**
  * @author Russell Gold
  */
 public class ExporterServletTest {
     private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
+    private static final String SECURE_URL_PATTERN = "https://%s:%d/management/weblogic/latest/serverRuntime/search";
     private static final String ONE_VALUE_CONFIG = "queries:\n- groups:\n    key: name\n    values: testSample1";
     private static final String TWO_VALUE_CONFIG = "queries:" +
             "\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]";
@@ -68,10 +70,10 @@ public class ExporterServletTest {
     private static final String MULTI_QUERY_CONFIG = "queries:" +
             "\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]" +
             "\n- colors:                         \n    key: hue \n    values: wavelength";
-    private WebClientFactoryStub factory = new WebClientFactoryStub();
-    private ExporterServlet servlet = new ExporterServlet(factory);
-    private HttpServletRequestStub request = createGetRequest();
-    private HttpServletResponseStub response = createServletResponse();
+    private final WebClientFactoryStub factory = new WebClientFactoryStub();
+    private final ExporterServlet servlet = new ExporterServlet(factory);
+    private final HttpServletRequestStub request = createGetRequest();
+    private final HttpServletResponseStub response = createServletResponse();
     private Locale locale;
 
     @Before
@@ -137,13 +139,24 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void onGet_defineConnectionUrlFromContext() throws Exception {
+    public void onPlaintextGet_defineConnectionUrlFromContext() throws Exception {
         initServlet(ONE_VALUE_CONFIG);
 
         servlet.doGet(request, response);
         
         assertThat(factory.getClientUrl(),
                    equalTo(String.format(URL_PATTERN, LiveConfiguration.WLS_HOST, HttpServletRequestStub.PORT)));
+    }
+
+    @Test //@Ignore("FIX ME in ExporterServletTest")
+    public void onSecurePlaintextGet_defineConnectionUrlFromContext() throws Exception {
+        initServlet(ONE_VALUE_CONFIG);
+        request.setSecure(true);
+
+        servlet.doGet(request, response);
+
+        assertThat(factory.getClientUrl(),
+                   equalTo(String.format(SECURE_URL_PATTERN, LiveConfiguration.WLS_HOST, HttpServletRequestStub.PORT)));
     }
 
     @Test

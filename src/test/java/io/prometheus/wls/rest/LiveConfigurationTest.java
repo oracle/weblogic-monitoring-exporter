@@ -5,6 +5,10 @@ package io.prometheus.wls.rest;
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
 
+import java.io.ByteArrayInputStream;
+import java.net.InetAddress;
+import java.net.URL;
+
 import com.google.common.collect.ImmutableMap;
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
@@ -14,13 +18,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
-import java.net.InetAddress;
-import java.net.URL;
-
 import static io.prometheus.wls.rest.InMemoryFileSystem.withNoParams;
+import static io.prometheus.wls.rest.domain.Protocol.HTTP;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 
 /**
  * @author Russell Gold
@@ -133,7 +137,7 @@ public class LiveConfigurationTest {
         LiveConfiguration.setServer("fakeHost", 800);
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
 
-        assertThat(new URL(LiveConfiguration.getUrl(selector)).getHost(),
+        assertThat(new URL(LiveConfiguration.getUrl(HTTP, selector)).getHost(),
                    equalTo(InetAddress.getLocalHost().getHostName()));
     }
 
@@ -143,7 +147,7 @@ public class LiveConfigurationTest {
         LiveConfiguration.setServer("fakeHost", 800);
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
 
-        assertThat(new URL(LiveConfiguration.getUrl(selector)).getPort(),
+        assertThat(new URL(LiveConfiguration.getUrl(HTTP, selector)).getPort(),
                    equalTo(800));
     }
 
@@ -153,7 +157,7 @@ public class LiveConfigurationTest {
         LiveConfiguration.setServer("fakeHost", 800);
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
 
-        assertThat(new URL(LiveConfiguration.getUrl(selector)).getPort(),
+        assertThat(new URL(LiveConfiguration.getUrl(HTTP, selector)).getPort(),
                    equalTo(7001));
     }
 

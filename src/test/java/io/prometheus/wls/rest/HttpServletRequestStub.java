@@ -1,13 +1,10 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017, 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle Corporation and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
 
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Collections;
@@ -15,6 +12,9 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
 
@@ -27,14 +27,15 @@ abstract class HttpServletRequestStub implements HttpServletRequest {
     final static int PORT = 7654;
 
     private final static String DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded";
-    private Map<String,String> headers = new HashMap<>();
-    private String method;
+    private final Map<String,String> headers = new HashMap<>();
+    private final String method;
     private String contentType = DEFAULT_CONTENT_TYPE;
     private String contents;
     private ServletInputStream inputStream;
     private String contextPath;
     private String servletPath = "";
     private HttpSessionStub session;
+    private boolean secure;
 
     static HttpServletRequestStub createGetRequest() {
         return createStrictStub(HttpServletRequestStub.class, "GET");
@@ -63,6 +64,10 @@ abstract class HttpServletRequestStub implements HttpServletRequest {
 
     void setServletPath(String servletPath) {
         this.servletPath = servletPath;
+    }
+
+    void setSecure(boolean secure) {
+        this.secure = secure;
     }
 
     @Override
@@ -134,6 +139,11 @@ abstract class HttpServletRequestStub implements HttpServletRequest {
         if (create && session == null)
             session = createStrictStub(HttpSessionStub.class);
         return session;
+    }
+
+    @Override
+    public boolean isSecure() {
+        return secure;
     }
 
     boolean hasInvalidatedSession() {
