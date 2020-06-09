@@ -57,7 +57,8 @@ public class WebClientImplTest extends HttpUserAgentTest {
         sentHeaders.clear();
     }
 
-    @Test(expected = WebClientException.class) @Ignore("Appears not to be reliable")
+    @Ignore("seems to be unreliable on some machines")
+    @Test(expected = WebClientException.class)
     public void whenUnableToReachHost_throwException() throws Exception {
         factory.createClient().withUrl(UNDEFINED_HOST_URL).doGetRequest();
     }

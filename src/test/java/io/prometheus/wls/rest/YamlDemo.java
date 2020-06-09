@@ -4,22 +4,28 @@ package io.prometheus.wls.rest;
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.prometheus.wls.rest.domain.ExporterConfig;
 import io.prometheus.wls.rest.domain.MBeanSelector;
 
-import java.io.ByteArrayInputStream;
-
-import static io.prometheus.wls.rest.DemoInputs.*;
+import static io.prometheus.wls.rest.DemoInputs.RESPONSE;
+import static io.prometheus.wls.rest.DemoInputs.compressedJsonForm;
 
 /**
  * @author Russell Gold
  */
 public class YamlDemo {
 
-    public static void main(String... args) {
-        String yamlString = YAML_STRING3;
+    public static void main(String... args) throws IOException {
+        String yamlString = String.join("\n", Files.readAllLines(Paths.get("/Users/rgold/Desktop/mohit.yml")));
+//        String yamlString = YAML_STRING3;
         System.out.println("The following configuration:\n" + yamlString);
         ExporterConfig exporterConfig = ExporterConfig.loadConfig(new ByteArrayInputStream(yamlString.getBytes()));
 
