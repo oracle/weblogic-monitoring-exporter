@@ -4,17 +4,16 @@
 
 package io.prometheus.wls.rest;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedDeque;
 
 import static io.prometheus.wls.rest.ServletConstants.MESSAGES_PAGE;
 
@@ -24,7 +23,7 @@ import static io.prometheus.wls.rest.ServletConstants.MESSAGES_PAGE;
 @WebServlet("/" + MESSAGES_PAGE)
 public class MessagesServlet extends HttpServlet {
     static final int MAX_EXCHANGES = 5;
-    private static final String TEMPLATE = "REQUEST:%n%s%nREPLY:%n%s%n";
+    private static final String TEMPLATE = "REQUEST to %s:%n%s%nREPLY:%n%s%n";
 
     private static Queue<String> messages = new ConcurrentLinkedDeque<>();
 
@@ -40,8 +39,8 @@ public class MessagesServlet extends HttpServlet {
         messages.clear();
     }
 
-    static void addExchange(String request, String response) {
-        messages.add(String.format(TEMPLATE, request, response));
+    static void addExchange(String url, String request, String response) {
+        messages.add(String.format(TEMPLATE, url, request, response));
         if (messages.size() > MAX_EXCHANGES) messages.remove();
     }
 
