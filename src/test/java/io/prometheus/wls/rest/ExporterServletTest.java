@@ -148,7 +148,7 @@ public class ExporterServletTest {
                    equalTo(String.format(URL_PATTERN, LiveConfiguration.WLS_HOST, HttpServletRequestStub.PORT)));
     }
 
-    @Test //@Ignore("FIX ME in ExporterServletTest")
+    @Test
     public void onSecurePlaintextGet_defineConnectionUrlFromContext() throws Exception {
         initServlet(ONE_VALUE_CONFIG);
         request.setSecure(true);
