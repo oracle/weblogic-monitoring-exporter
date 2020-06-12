@@ -1,12 +1,9 @@
 package io.prometheus.wls.rest.domain;
 /*
- * Copyright (c) 2017, 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle Corporation and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,6 +14,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * A description of an mbean to be selected by the generated JSON query and captured from the result.
@@ -283,8 +283,8 @@ public class MBeanSelector {
         return nestedSelectors.get(selectorKey).mayMergeWith(other.nestedSelectors.get(selectorKey));
     }
 
-    public String getUrl(String myhost, int port) {
-        return String.format(queryType.getUrlPattern(), myhost, port);
+    public String getUrl(Protocol protocol, String host, int port) {
+        return protocol.format(queryType.getUrlPattern(), host, port);
     }
 
     @SuppressWarnings("SameParameterValue")

@@ -1,25 +1,32 @@
-// Copyright 2017, 2020, Oracle Corporation and/or its affiliates.
-// Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
-
 package io.prometheus.wls.rest;
+/*
+ * Copyright (c) 2017, 2020, Oracle Corporation and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+ */
 
+import java.io.IOException;
+import java.util.Enumeration;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.IOException;
-import java.util.Enumeration;
 
-import static javax.servlet.http.HttpServletResponse.*;
+import io.prometheus.wls.rest.domain.Protocol;
+
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 /**
  * An abstract servlet which performs authentication by forwarding all pertinent headers between the client
  * and the WLS RESTful Management services, thus using that service's security.
  */
 abstract public class PassThroughAuthenticationServlet extends HttpServlet {
-    private WebClientFactory webClientFactory;
+    private final WebClientFactory webClientFactory;
+    private Protocol protocol;
 
     PassThroughAuthenticationServlet(WebClientFactory webClientFactory) {
         this.webClientFactory = webClientFactory;
@@ -31,6 +38,7 @@ abstract public class PassThroughAuthenticationServlet extends HttpServlet {
         webClient.addHeader("X-Requested-By", "rest-exporter");
 
         forwardRequestHeaders(req, webClient);
+        protocol = Protocol.getProtocol(req);
         return webClient;
     }
 
@@ -79,6 +87,10 @@ abstract public class PassThroughAuthenticationServlet extends HttpServlet {
             final HttpSession session = req.getSession(false);
             if (session != null) session.invalidate();
         }
+    }
+
+    protected Protocol getProtocol() {
+        return protocol;
     }
 
     private void reportUnableToContactRestApi(HttpServletResponse resp, String uri) throws IOException {

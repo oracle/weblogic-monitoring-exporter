@@ -44,12 +44,12 @@ public enum QueryType {
     /**
      * The pattern for a URL to which runtime REST queries are made.
      */
-    public static final String RUNTIME_URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
+    public static final String RUNTIME_URL_PATTERN = "%s://%s:%d/management/weblogic/latest/serverRuntime/search";
 
     /**
      * The pattern for a URL to which configuration REST queries are made.
      */
-    public static final String CONFIGURATION_URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverConfig/search";
+    public static final String CONFIGURATION_URL_PATTERN = "%s://%s:%d/management/weblogic/latest/serverConfig/search";
     static final String DOMAIN_KEY = "domainName";
 
     /**

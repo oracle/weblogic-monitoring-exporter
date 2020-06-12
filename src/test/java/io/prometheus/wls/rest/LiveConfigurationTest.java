@@ -1,26 +1,31 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017, 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle Corporation and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+
+import java.io.ByteArrayInputStream;
+import java.net.InetAddress;
+import java.net.URL;
 
 import com.google.common.collect.ImmutableMap;
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
 import io.prometheus.wls.rest.domain.ExporterConfig;
 import io.prometheus.wls.rest.domain.MBeanSelector;
+import io.prometheus.wls.rest.domain.Protocol;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
-import java.net.InetAddress;
-import java.net.URL;
-
 import static io.prometheus.wls.rest.InMemoryFileSystem.withNoParams;
+import static io.prometheus.wls.rest.domain.Protocol.HTTP;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 
 /**
  * @author Russell Gold
@@ -133,7 +138,7 @@ public class LiveConfigurationTest {
         LiveConfiguration.setServer("fakeHost", 800);
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
 
-        assertThat(new URL(LiveConfiguration.getUrl(selector)).getHost(),
+        assertThat(new URL(LiveConfiguration.getUrl(HTTP, selector)).getHost(),
                    equalTo(InetAddress.getLocalHost().getHostName()));
     }
 
@@ -143,7 +148,7 @@ public class LiveConfigurationTest {
         LiveConfiguration.setServer("fakeHost", 800);
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
 
-        assertThat(new URL(LiveConfiguration.getUrl(selector)).getPort(),
+        assertThat(new URL(LiveConfiguration.getUrl(HTTP, selector)).getPort(),
                    equalTo(800));
     }
 
@@ -153,7 +158,7 @@ public class LiveConfigurationTest {
         LiveConfiguration.setServer("fakeHost", 800);
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
 
-        assertThat(new URL(LiveConfiguration.getUrl(selector)).getPort(),
+        assertThat(new URL(LiveConfiguration.getUrl(HTTP, selector)).getPort(),
                    equalTo(7001));
     }
 
@@ -163,7 +168,7 @@ public class LiveConfigurationTest {
         LiveConfiguration.setServer("fakeHost", 800);
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
 
-        assertThat(new URL(LiveConfiguration.getAuthenticationUrl()).getPort(), equalTo(800));
+        assertThat(new URL(LiveConfiguration.getAuthenticationUrl(Protocol.HTTP)).getPort(), equalTo(800));
     }
 
     @Test
@@ -172,7 +177,7 @@ public class LiveConfigurationTest {
         LiveConfiguration.setServer("fakeHost", 800);
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
 
-        assertThat(new URL(LiveConfiguration.getAuthenticationUrl()).getPort(), equalTo(7001));
+        assertThat(new URL(LiveConfiguration.getAuthenticationUrl(Protocol.HTTP)).getPort(), equalTo(7001));
     }
 
     @Test

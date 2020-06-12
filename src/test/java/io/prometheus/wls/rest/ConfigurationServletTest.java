@@ -1,22 +1,23 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017, 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle Corporation and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+
 import io.prometheus.wls.rest.domain.ConfigurationException;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
 import static io.prometheus.wls.rest.HttpServletRequestStub.createPostRequest;
@@ -25,7 +26,11 @@ import static io.prometheus.wls.rest.ServletConstants.CONFIGURATION_PAGE;
 import static io.prometheus.wls.rest.matchers.ResponseHeaderMatcher.containsHeader;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.arrayContaining;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
 
 /**
@@ -34,9 +39,9 @@ import static org.hamcrest.junit.MatcherAssert.assertThat;
 public class ConfigurationServletTest {
 
     private final WebClientFactoryStub factory = createStrictStub(WebClientFactoryStub.class);
-    private ConfigurationServlet servlet = new ConfigurationServlet(factory);
+    private final ConfigurationServlet servlet = new ConfigurationServlet(factory);
+    private final HttpServletResponseStub response = createServletResponse();
     private HttpServletRequestStub request;
-    private HttpServletResponseStub response = createServletResponse();
 
     @Before
     public void setUp() throws Exception {
@@ -96,6 +101,22 @@ public class ConfigurationServletTest {
     @Test(expected = ServletException.class)
     public void whenPostWithoutFile_reportFailure() throws Exception {
         servlet.doPost(createPostRequest(), response);
+    }
+
+    @Test
+    public void whenRequestUsesHttp_authenticateWithHttp() throws Exception {
+        servlet.doPost(createUploadRequest(createEncodedForm("replace", CONFIGURATION)), response);
+
+        assertThat(factory.getClientURL(), Matchers.startsWith("http:"));
+    }
+
+    @Test
+    public void whenRequestUsesHttps_authenticateWithHttps() throws Exception {
+        HttpServletRequestStub request = createUploadRequest(createEncodedForm("replace", CONFIGURATION));
+        request.setSecure(true);
+        servlet.doPost(request, response);
+
+        assertThat(factory.getClientURL(), Matchers.startsWith("https:"));
     }
 
     @Test
