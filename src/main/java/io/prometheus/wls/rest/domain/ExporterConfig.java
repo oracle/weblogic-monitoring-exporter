@@ -285,6 +285,7 @@ public class ExporterConfig {
     public void replace(ExporterConfig config2) {
         this.metricsNameSnakeCase = config2.metricsNameSnakeCase;
         this.useDomainQualifier = config2.useDomainQualifier;
+        this.restPort = config2.restPort;
         MBeanSelector[] newQueries = config2.getQueries();
         this.queries = Arrays.copyOf(newQueries, newQueries.length);
         this.domainName = null;
