@@ -99,7 +99,7 @@ public class ConfigurationServlet extends PassThroughAuthenticationServlet {
         }
     }
 
-    private class PostAction {
+    private static class PostAction {
         // The action to take. May be either "replace" or "append"
         private String effect = DEFAULT_ACTION;
         private ExporterConfig uploadedConfig;

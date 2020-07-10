@@ -38,6 +38,8 @@ import static org.hamcrest.junit.MatcherAssert.assertThat;
  */
 public class ConfigurationServletTest {
 
+    private final static int REST_PORT = 7651;
+
     private final WebClientFactoryStub factory = createStrictStub(WebClientFactoryStub.class);
     private final ConfigurationServlet servlet = new ConfigurationServlet(factory);
     private final HttpServletResponseStub response = createServletResponse();
@@ -71,6 +73,16 @@ public class ConfigurationServletTest {
     private static final String CONFIGURATION = 
             "host: " + HttpServletRequestStub.HOST + "\n" +
             "port: " + HttpServletRequestStub.PORT + "\n" +
+            "queries:\n" + "" +
+            "- groups:\n" +
+            "    prefix: new_\n" +
+            "    key: name\n" +
+            "    values: [sample1, sample2]\n";
+
+    private static final String CONFIGURATION_WITH_REST_PORT =
+            "host: " + HttpServletRequestStub.HOST + "\n" +
+            "port: " + HttpServletRequestStub.PORT + "\n" +
+            "restPort: " + REST_PORT + "\n" +
             "queries:\n" + "" +
             "- groups:\n" +
             "    prefix: new_\n" +
@@ -156,6 +168,20 @@ public class ConfigurationServletTest {
         return new String(result);
     }
 
+    @Test
+    public void afterUploadWithNewRestPort_useItInQueryUrl() throws Exception {
+        servlet.doPost(createUploadRequest(createEncodedForm("replace", CONFIGURATION_WITH_REST_PORT)), response);
+
+        assertThat(LiveConfiguration.getAuthenticationUrl(), containsString(Integer.toString(REST_PORT)));
+    }
+
+    @Test
+    public void afterUsingRestPortAndReplaceWithoutIt_queryUrlUsesDefaultPort() throws Exception {
+        servlet.doPost(createUploadRequest(createEncodedForm("replace", CONFIGURATION_WITH_REST_PORT)), response);
+        servlet.doPost(createUploadRequest(createEncodedForm("replace", CONFIGURATION)), response);
+
+        assertThat(LiveConfiguration.getAuthenticationUrl(), containsString(Integer.toString(HttpServletRequestStub.PORT)));
+    }
 
     @Test
     public void afterUploadWithAppend_useBothConfiguration() throws Exception {

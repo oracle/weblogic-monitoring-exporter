@@ -247,6 +247,23 @@ public class ExporterConfigTest {
             "      values: [pendingRequests, completedRequests, stuckThreadCount]\n";
 
     @Test
+    public void includeRestPortSettingInToString() {
+        ExporterConfig config = loadFromString(REST_PORT_CONFIG);
+
+        assertThat(config.toString(), equalToIgnoringWhiteSpace(REST_PORT_CONFIG));
+    }
+
+    private static final String REST_PORT_CONFIG =
+            "restPort: 1234\n" +
+            "queries:\n" +
+            "- applicationRuntimes:\n" +
+            "    key: name\n" +
+            "    workManagerRuntimes:\n" +
+            "      prefix: workmanager_\n" +
+            "      key: applicationName\n" +
+            "      values: [pendingRequests, completedRequests, stuckThreadCount]\n";
+
+    @Test
     public void afterAppend_configHasOriginalDestination() {
         ExporterConfig config = getAppendedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG);
 
@@ -277,6 +294,12 @@ public class ExporterConfigTest {
     public void afterAppend_configHasOriginalSnakeCase() {
         assertThat(getAppendedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG).getMetricsNameSnakeCase(), is(false));
         assertThat(getAppendedConfiguration(WORK_MANAGER_CONFIG, SERVLET_CONFIG).getMetricsNameSnakeCase(), is(true));
+     }
+
+    @Test
+    public void afterAppend_configHasOriginalRestPort() {
+        assertThat(getAppendedConfiguration(SERVLET_CONFIG, REST_PORT_CONFIG).getRestPort(), nullValue());
+        assertThat(getAppendedConfiguration(REST_PORT_CONFIG, SERVLET_CONFIG).getRestPort(), equalTo(1234));
      }
 
     @Test
@@ -326,6 +349,12 @@ public class ExporterConfigTest {
     public void afterReplace_configHasChangedSnakeCase() {
         assertThat(getReplacedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG).getMetricsNameSnakeCase(), is(true));
         assertThat(getReplacedConfiguration(WORK_MANAGER_CONFIG, SERVLET_CONFIG).getMetricsNameSnakeCase(), is(false));
+     }
+
+    @Test
+    public void afterReplace_configHasChangedRestPort() {
+        assertThat(getReplacedConfiguration(SERVLET_CONFIG, REST_PORT_CONFIG).getRestPort(), equalTo(1234));
+        assertThat(getReplacedConfiguration(REST_PORT_CONFIG, SERVLET_CONFIG).getRestPort(), nullValue());
      }
 
     @Test
@@ -568,7 +597,7 @@ public class ExporterConfigTest {
 
     @SuppressWarnings("unused")
     static class QueryHierarchyMatcher extends TypeSafeDiagnosingMatcher<ExporterConfig> {
-        private String[] selectorKeys;
+        private final String[] selectorKeys;
 
         private QueryHierarchyMatcher(String[] selectorKeys) {
             this.selectorKeys = selectorKeys;
