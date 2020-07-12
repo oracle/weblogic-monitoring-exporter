@@ -12,6 +12,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 
 import io.prometheus.wls.rest.domain.ConfigurationException;
+import io.prometheus.wls.rest.domain.Protocol;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -172,7 +173,7 @@ public class ConfigurationServletTest {
     public void afterUploadWithNewRestPort_useItInQueryUrl() throws Exception {
         servlet.doPost(createUploadRequest(createEncodedForm("replace", CONFIGURATION_WITH_REST_PORT)), response);
 
-        assertThat(LiveConfiguration.getAuthenticationUrl(), containsString(Integer.toString(REST_PORT)));
+        assertThat(LiveConfiguration.getAuthenticationUrl(Protocol.HTTP), containsString(Integer.toString(REST_PORT)));
     }
 
     @Test
@@ -180,7 +181,7 @@ public class ConfigurationServletTest {
         servlet.doPost(createUploadRequest(createEncodedForm("replace", CONFIGURATION_WITH_REST_PORT)), response);
         servlet.doPost(createUploadRequest(createEncodedForm("replace", CONFIGURATION)), response);
 
-        assertThat(LiveConfiguration.getAuthenticationUrl(), containsString(Integer.toString(HttpServletRequestStub.PORT)));
+        assertThat(LiveConfiguration.getAuthenticationUrl(Protocol.HTTP), containsString(Integer.toString(HttpServletRequestStub.PORT)));
     }
 
     @Test
