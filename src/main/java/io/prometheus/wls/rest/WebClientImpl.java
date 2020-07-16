@@ -3,6 +3,18 @@
 
 package io.prometheus.wls.rest;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.ConnectException;
+import java.net.UnknownHostException;
+import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import javax.net.ssl.SSLContext;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -10,26 +22,34 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpHostConnectException;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.ConnectException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import org.apache.http.ssl.SSLContexts;
+import org.apache.http.ssl.TrustStrategy;
 
 import static io.prometheus.wls.rest.ServletConstants.AUTHENTICATION_HEADER;
 import static io.prometheus.wls.rest.ServletConstants.COOKIE_HEADER;
-import static javax.servlet.http.HttpServletResponse.*;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_GATEWAY;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.servlet.http.HttpServletResponse.SC_GATEWAY_TIMEOUT;
+import static javax.servlet.http.HttpServletResponse.SC_HTTP_VERSION_NOT_SUPPORTED;
+import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_IMPLEMENTED;
+import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
+import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 /**
  * A production implementation of the web client interface that uses Apache HttpClient code.
@@ -38,8 +58,8 @@ import static javax.servlet.http.HttpServletResponse.*;
  */
 public class WebClientImpl extends WebClient {
     private String url;
-    private List<BasicHeader> addedHeaders = new ArrayList<>();
-    private List<BasicHeader> sessionHeaders = new ArrayList<>();
+    private final List<BasicHeader> addedHeaders = new ArrayList<>();
+    private final List<BasicHeader> sessionHeaders = new ArrayList<>();
     private String setCookieHeader;
 
     @Override
@@ -64,7 +84,7 @@ public class WebClientImpl extends WebClient {
             return getReply(httpClient, request);
         } catch (HttpHostConnectException e) {
             throw new RestPortConnectionException(e.getHost());
-        } catch (UnknownHostException | ConnectException e) {
+        } catch (UnknownHostException | ConnectException | GeneralSecurityException e) {
             throw new WebClientException(e, "Unable to execute %s request to %s", request.getMethod(), request.getURI());
         }
     }
@@ -172,9 +192,12 @@ public class WebClientImpl extends WebClient {
         return ExporterSession.getSessionCookie(setCookieHeaderValue);
     }
 
-    private CloseableHttpClient createHttpClient() {
+    private CloseableHttpClient createHttpClient() throws GeneralSecurityException {
+        SelfSignedCertificateAcceptor acceptor = new SelfSignedCertificateAcceptor();
         return HttpClientBuilder.create()
                 .setDefaultHeaders(getDefaultHeaders())
+                .setSSLSocketFactory(acceptor.getSslConnectionSocketFactory())
+                .setConnectionManager(acceptor.getConnectionManager())
                 .build();
     }
 
@@ -182,5 +205,45 @@ public class WebClientImpl extends WebClient {
         List<Header> headers = new ArrayList<>(addedHeaders);
         headers.addAll(sessionHeaders);
         return headers;
+    }
+
+    static class SelfSignedCertificateAcceptor {
+        private final SSLConnectionSocketFactory sslConnectionSocketFactory;
+        private final Registry<ConnectionSocketFactory> socketFactoryRegistry;
+
+        SelfSignedCertificateAcceptor() throws GeneralSecurityException {
+            sslConnectionSocketFactory = createSSLConnectionSocketFactory();
+            socketFactoryRegistry = createSocketFactoryRegistry();
+        }
+
+        BasicHttpClientConnectionManager getConnectionManager() {
+            return new BasicHttpClientConnectionManager(socketFactoryRegistry);
+        }
+
+        SSLConnectionSocketFactory getSslConnectionSocketFactory() {
+            return sslConnectionSocketFactory;
+        }
+
+        private SSLConnectionSocketFactory createSSLConnectionSocketFactory() throws GeneralSecurityException {
+            return new SSLConnectionSocketFactory(createSSLContext(), NoopHostnameVerifier.INSTANCE);
+        }
+
+        private SSLContext createSSLContext() throws GeneralSecurityException {
+            return SSLContexts.custom()
+                .loadTrustMaterial(null, createAcceptingTrustStrategy())
+                .build();
+        }
+
+        private TrustStrategy createAcceptingTrustStrategy() {
+            return (cert, authType) -> true;
+        }
+
+        private Registry<ConnectionSocketFactory> createSocketFactoryRegistry() {
+            return RegistryBuilder.<ConnectionSocketFactory> create()
+                  .register("http", new PlainConnectionSocketFactory())
+                  .register("https", sslConnectionSocketFactory)
+                  .build();
+        }
+
     }
 }
