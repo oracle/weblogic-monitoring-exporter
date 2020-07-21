@@ -6,19 +6,19 @@
 
 package io.prometheus.wls.rest;
 
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 import javax.servlet.http.HttpServletRequest;
 
 import io.prometheus.wls.rest.domain.Protocol;
 
 public class UrlBuilder {
 
-  private static final List<Integer> successes = new ArrayList<>();
+  private static final Set<Integer> successes = new ConcurrentSkipListSet<>();
 
   private final String host;
   private final Protocol protocol;
