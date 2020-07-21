@@ -25,6 +25,7 @@ import static com.meterware.simplestub.Stub.createStrictStub;
 abstract class HttpServletRequestStub implements HttpServletRequest {
     final static String HOST = "myhost";
     final static int PORT = 7654;
+    final static int LOCAL_PORT = 7631;
 
     private final static String DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded";
     private final Map<String,String> headers = new HashMap<>();
@@ -36,6 +37,8 @@ abstract class HttpServletRequestStub implements HttpServletRequest {
     private String servletPath = "";
     private HttpSessionStub session;
     private boolean secure;
+    private String host = HOST;
+    private int port = PORT;
 
     static HttpServletRequestStub createGetRequest() {
         return createStrictStub(HttpServletRequestStub.class, "GET");
@@ -43,6 +46,16 @@ abstract class HttpServletRequestStub implements HttpServletRequest {
 
     static HttpServletRequestStub createPostRequest() {
         return createStrictStub(HttpServletRequestStub.class, "POST");
+    }
+
+    HttpServletRequestStub withHost(String host) {
+        this.host = host;
+        return this;
+    }
+
+    HttpServletRequestStub withPort(int port) {
+        this.port = port;
+        return this;
     }
 
     HttpServletRequestStub(String method) {
@@ -109,12 +122,22 @@ abstract class HttpServletRequestStub implements HttpServletRequest {
 
     @Override
     public String getServerName() {
-        return HOST;
+        return host;
     }
 
     @Override
     public int getServerPort() {
-        return PORT;
+        return port;
+    }
+
+    @Override
+    public String getLocalName() {
+        return "localhost";
+    }
+
+    @Override
+    public int getLocalPort() {
+        return LOCAL_PORT;
     }
 
     @Override

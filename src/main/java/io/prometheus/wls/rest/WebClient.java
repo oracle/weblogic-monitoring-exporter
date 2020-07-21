@@ -1,12 +1,12 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017, 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle Corporation and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Objects;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * A client for sending http requests.
@@ -17,6 +17,7 @@ abstract class WebClient {
 
     private String authentication;
     private String sessionCookie;
+    private boolean retryNeeded;
 
     /**
      * Defines the authentication header to be sent on every request.
@@ -71,6 +72,22 @@ abstract class WebClient {
         if (getSetCookieHeader() != null) {
             resp.setHeader("Set-Cookie", getSetCookieHeader());
             cacheSessionCookie();
+        }
+    }
+
+    void setRetryNeeded(boolean retryNeeded) {
+        this.retryNeeded = retryNeeded;
+    }
+
+    /**
+     * Returns true of the 'retry needed' flag was set. Rests the flag on exit.
+     * @return true if a retry was requested
+     */
+    boolean isRetryNeeded() {
+        try {
+            return retryNeeded;
+        } finally {
+            retryNeeded = false;
         }
     }
 

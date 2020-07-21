@@ -14,7 +14,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import io.prometheus.wls.rest.domain.Protocol;
+import io.prometheus.wls.rest.domain.MBeanSelector;
+import io.prometheus.wls.rest.domain.QueryType;
 
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
@@ -26,19 +27,31 @@ import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
  */
 abstract public class PassThroughAuthenticationServlet extends HttpServlet {
     private final WebClientFactory webClientFactory;
-    private Protocol protocol;
+    private UrlBuilder urlBuilder;
 
     PassThroughAuthenticationServlet(WebClientFactory webClientFactory) {
         this.webClientFactory = webClientFactory;
     }
 
-    private WebClient createWebClient(HttpServletRequest req) {
-        LiveConfiguration.setServer(req.getServerName(), req.getServerPort());
+    String getAuthenticationUrl() {
+        return urlBuilder.createUrl(QueryType.RUNTIME_URL_PATTERN);
+    }
+
+    String getQueryUrl(MBeanSelector selector) {
+        return urlBuilder.createUrl(selector.getQueryType().getUrlPattern());
+    }
+
+    void reportFailure(RestPortConnectionException e) {
+        urlBuilder.reportFailure(e);
+    }
+
+    WebClient createWebClient(HttpServletRequest req) {
+        LiveConfiguration.setServer(req);
+        urlBuilder = LiveConfiguration.createUrlBuilder(req);
         final WebClient webClient = webClientFactory.createClient();
         webClient.addHeader("X-Requested-By", "rest-exporter");
 
         forwardRequestHeaders(req, webClient);
-        protocol = Protocol.getProtocol(req);
         return webClient;
     }
 
@@ -71,8 +84,8 @@ abstract public class PassThroughAuthenticationServlet extends HttpServlet {
     void doWithAuthentication(HttpServletRequest req, HttpServletResponse resp, AuthenticatedService authenticatedService) throws IOException, ServletException {
         try {
             WebClient webClient = createWebClient(req);
-            authenticatedService.execute(webClient, req, resp);
-            webClient.forwardResponseHeaders(resp);
+            performRequest(webClient, req, resp, authenticatedService);
+            urlBuilder.reportSuccess();
         } catch (ForbiddenException e) {
             resp.sendError(SC_FORBIDDEN, "Not authorized");
         } catch (AuthenticationChallengeException e) {
@@ -89,8 +102,11 @@ abstract public class PassThroughAuthenticationServlet extends HttpServlet {
         }
     }
 
-    protected Protocol getProtocol() {
-        return protocol;
+    private void performRequest(WebClient webClient, HttpServletRequest req, HttpServletResponse resp, AuthenticatedService authenticatedService) throws IOException, ServletException {
+        do {
+            authenticatedService.execute(webClient, req, resp);
+            webClient.forwardResponseHeaders(resp);
+        } while (webClient.isRetryNeeded());
     }
 
     private void reportUnableToContactRestApi(HttpServletResponse resp, String uri) throws IOException {

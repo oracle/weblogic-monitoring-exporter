@@ -287,6 +287,10 @@ public class MBeanSelector {
         return protocol.format(queryType.getUrlPattern(), host, port);
     }
 
+    public QueryType getQueryType() {
+        return queryType;
+    }
+
     @SuppressWarnings("SameParameterValue")
     void setQueryType(QueryType queryType) {
         this.queryType = queryType;

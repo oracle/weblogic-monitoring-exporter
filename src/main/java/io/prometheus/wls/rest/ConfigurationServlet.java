@@ -48,12 +48,15 @@ public class ConfigurationServlet extends PassThroughAuthenticationServlet {
     }
 
     private void updateConfiguration(WebClient webClient, HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        authenticate(webClient.withUrl(LiveConfiguration.getAuthenticationUrl(getProtocol())));
         try {
+            authenticate(webClient.withUrl(getAuthenticationUrl()));
             if (!ServletFileUpload.isMultipartContent(req)) throw new ServletException("Must be a multi-part request");
 
             createPostAction(req).perform();
             reportUpdatedConfiguration(resp);
+        } catch (RestPortConnectionException e) {
+            reportFailure(e);
+            webClient.setRetryNeeded(true);
         } catch (ConfigurationException e) {
             reportUnableToUpdateConfiguration(req, resp.getOutputStream(), e);
         }

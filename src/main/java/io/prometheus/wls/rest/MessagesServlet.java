@@ -18,14 +18,14 @@ import javax.servlet.http.HttpServletResponse;
 import static io.prometheus.wls.rest.ServletConstants.MESSAGES_PAGE;
 
 /**
- * A collector of REST requests and replies, that can be viewed to diagnose problems.List<String
+ * A collector of REST requests and replies, that can be viewed to diagnose problems.
  */
 @WebServlet("/" + MESSAGES_PAGE)
 public class MessagesServlet extends HttpServlet {
     static final int MAX_EXCHANGES = 5;
     private static final String TEMPLATE = "REQUEST to %s:%n%s%nREPLY:%n%s%n";
 
-    private static Queue<String> messages = new ConcurrentLinkedDeque<>();
+    private static final Queue<String> messages = new ConcurrentLinkedDeque<>();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {

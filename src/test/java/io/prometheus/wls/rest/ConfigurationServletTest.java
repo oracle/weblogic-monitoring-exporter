@@ -12,7 +12,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 
 import io.prometheus.wls.rest.domain.ConfigurationException;
-import io.prometheus.wls.rest.domain.Protocol;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -20,7 +19,7 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.meterware.simplestub.Stub.createStrictStub;
+import static io.prometheus.wls.rest.HttpServletRequestStub.LOCAL_PORT;
 import static io.prometheus.wls.rest.HttpServletRequestStub.createPostRequest;
 import static io.prometheus.wls.rest.HttpServletResponseStub.createServletResponse;
 import static io.prometheus.wls.rest.ServletConstants.CONFIGURATION_PAGE;
@@ -41,7 +40,7 @@ public class ConfigurationServletTest {
 
     private final static int REST_PORT = 7651;
 
-    private final WebClientFactoryStub factory = createStrictStub(WebClientFactoryStub.class);
+    private final WebClientFactoryStub factory = new WebClientFactoryStub();
     private final ConfigurationServlet servlet = new ConfigurationServlet(factory);
     private final HttpServletResponseStub response = createServletResponse();
     private HttpServletRequestStub request;
@@ -49,8 +48,8 @@ public class ConfigurationServletTest {
     @Before
     public void setUp() throws Exception {
         LiveConfiguration.loadFromString("");
-        LiveConfiguration.setServer(HttpServletRequestStub.HOST, HttpServletRequestStub.PORT);
         request = createUploadRequest(createEncodedForm("replace", CONFIGURATION));
+        UrlBuilder.clearHistory();
     }
 
     @Test
@@ -120,7 +119,7 @@ public class ConfigurationServletTest {
     public void whenRequestUsesHttp_authenticateWithHttp() throws Exception {
         servlet.doPost(createUploadRequest(createEncodedForm("replace", CONFIGURATION)), response);
 
-        assertThat(factory.getClientURL(), Matchers.startsWith("http:"));
+        assertThat(factory.getClientUrl(), Matchers.startsWith("http:"));
     }
 
     @Test
@@ -129,7 +128,7 @@ public class ConfigurationServletTest {
         request.setSecure(true);
         servlet.doPost(request, response);
 
-        assertThat(factory.getClientURL(), Matchers.startsWith("https:"));
+        assertThat(factory.getClientUrl(), Matchers.startsWith("https:"));
     }
 
     @Test
@@ -170,18 +169,18 @@ public class ConfigurationServletTest {
     }
 
     @Test
-    public void afterUploadWithNewRestPort_useItInQueryUrl() throws Exception {
+    public void whenRestPortInaccessible_switchToLocalPort() throws Exception {
+        LiveConfiguration.loadFromString(CONFIGURATION_WITH_REST_PORT);
+        factory.throwConnectionFailure("localhost", REST_PORT);
+
         servlet.doPost(createUploadRequest(createEncodedForm("replace", CONFIGURATION_WITH_REST_PORT)), response);
 
-        assertThat(LiveConfiguration.getAuthenticationUrl(Protocol.HTTP), containsString(Integer.toString(REST_PORT)));
+        assertThat(createAuthenticationUrl(), containsString(Integer.toString(LOCAL_PORT)));
     }
 
-    @Test
-    public void afterUsingRestPortAndReplaceWithoutIt_queryUrlUsesDefaultPort() throws Exception {
-        servlet.doPost(createUploadRequest(createEncodedForm("replace", CONFIGURATION_WITH_REST_PORT)), response);
-        servlet.doPost(createUploadRequest(createEncodedForm("replace", CONFIGURATION)), response);
-
-        assertThat(LiveConfiguration.getAuthenticationUrl(Protocol.HTTP), containsString(Integer.toString(HttpServletRequestStub.PORT)));
+    private String createAuthenticationUrl() {
+        servlet.createWebClient(HttpServletRequestStub.createGetRequest());
+        return servlet.getAuthenticationUrl();
     }
 
     @Test
@@ -241,7 +240,7 @@ public class ConfigurationServletTest {
 
     @Test
     public void whenServerSends403StatusOnGet_returnToClient() throws Exception {
-        factory.setException(new ForbiddenException());
+        factory.reportNotAuthorized();
         servlet.doPost(request, response);
 
         assertThat(response.getStatus(), equalTo(SC_FORBIDDEN));
@@ -249,7 +248,7 @@ public class ConfigurationServletTest {
 
     @Test
     public void whenServerSends401StatusOnGet_returnToClient() throws Exception {
-        factory.setException(new AuthenticationChallengeException("Basic realm=\"Test-Realm\""));
+        factory.reportAuthenticationRequired("Test-Realm");
         servlet.doPost(request, response);
 
         assertThat(response.getStatus(), equalTo(SC_UNAUTHORIZED));
