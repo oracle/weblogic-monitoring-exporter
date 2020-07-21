@@ -1,16 +1,9 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017, 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle Corporation and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
-
-import com.meterware.simplestub.Memento;
-import com.meterware.simplestub.StaticStubSupport;
-import com.meterware.simplestub.SystemPropertySupport;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -19,9 +12,17 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.meterware.simplestub.Memento;
+import com.meterware.simplestub.StaticStubSupport;
+import com.meterware.simplestub.SystemPropertySupport;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import static io.prometheus.wls.rest.matchers.PrometheusMetricsMatcher.followsPrometheusRules;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItems;
 
 /**
  * @author Russell Gold
@@ -30,22 +31,23 @@ public class MetricsStreamTest {
     private static final long NANOSEC_PER_SECONDS = 1000000000;
     private static final String LINE_SEPARATOR = "line.separator";
     private static final String WINDOWS_LINE_SEPARATOR = "\r\n";
-    private PerformanceProbeStub performanceProbe = new PerformanceProbeStub();
+    private final PerformanceProbeStub performanceProbe = new PerformanceProbeStub();
+    private final HttpServletRequestStub postRequest = HttpServletRequestStub.createPostRequest().withHost("wlshost").withPort(7201);
     private ByteArrayOutputStream baos;
     private MetricsStream metrics;
-    private List<Memento> mementos = new ArrayList<>();
+    private final List<Memento> mementos = new ArrayList<>();
 
     @Before
     public void setUp() throws NoSuchFieldException {
         initMetricsStream();
-        LiveConfiguration.setServer("localhost", 7001);
+        LiveConfiguration.setServer(postRequest);
         mementos.add(SystemPropertySupport.preserve(LINE_SEPARATOR));
         mementos.add(StaticStubSupport.preserve(System.class, "lineSeparator"));
     }
 
     private void initMetricsStream() {
         baos = new ByteArrayOutputStream();
-        metrics = new MetricsStream(new PrintStream(baos), performanceProbe);
+        metrics = new MetricsStream(postRequest, new PrintStream(baos), performanceProbe);
     }
 
     @After
@@ -56,7 +58,7 @@ public class MetricsStreamTest {
     @Test
     public void whenNoMetricsScraped_reportNoneScraped() {
         assertThat(getPrintedMetrics(),
-                containsString("wls_scrape_mbeans_count_total{instance=\"localhost:7001\"} 0"));
+                containsString("wls_scrape_mbeans_count_total{instance=\"wlshost:7201\"} 0"));
     }
 
     private String getPrintedMetrics() {
@@ -101,7 +103,7 @@ public class MetricsStreamTest {
         metrics.printMetric("c", 0);
 
         assertThat(getPrintedMetrics(),
-                containsString("wls_scrape_mbeans_count_total{instance=\"localhost:7001\"} 3"));
+                containsString("wls_scrape_mbeans_count_total{instance=\"wlshost:7201\"} 3"));
     }
 
     @Test
@@ -109,7 +111,7 @@ public class MetricsStreamTest {
         performanceProbe.incrementElapsedTime(12.4);
 
         assertThat(getPrintedMetrics(),
-                containsString("wls_scrape_duration_seconds{instance=\"localhost:7001\"} 12.40"));
+                containsString("wls_scrape_duration_seconds{instance=\"wlshost:7201\"} 12.40"));
     }
 
     @Test
@@ -117,7 +119,7 @@ public class MetricsStreamTest {
         performanceProbe.incrementCpuTime(3.2);
 
         assertThat(getPrintedMetrics(),
-                containsString("wls_scrape_cpu_seconds{instance=\"localhost:7001\"} 3.20"));
+                containsString("wls_scrape_cpu_seconds{instance=\"wlshost:7201\"} 3.20"));
     }
 
     @Test

@@ -1,15 +1,15 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017, 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle Corporation and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
 
-import org.junit.Before;
-import org.junit.Test;
-
 import java.time.Clock;
 import java.time.Instant;
+
+import org.junit.Before;
+import org.junit.Test;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
 import static io.prometheus.wls.rest.domain.JsonPathMatcher.hasJsonPath;
@@ -36,30 +36,30 @@ public class ConfigurationUpdaterImplTest {
              "}";
     private static final int REFRESH_INTERVAL = 10;
 
-    private WebClientFactoryStub factory = createStrictStub(WebClientFactoryStub.class);
-    private ClockStub clock = createStrictStub(ClockStub.class);
-    private ConfigurationUpdaterImpl impl = new ConfigurationUpdaterImpl(clock, factory);
-    private ErrorLog errorLog = new ErrorLog();
+    private final WebClientFactoryStub factory = new WebClientFactoryStub();
+    private final ClockStub clock = createStrictStub(ClockStub.class);
+    private final ConfigurationUpdaterImpl impl = new ConfigurationUpdaterImpl(clock, factory);
+    private final ErrorLog errorLog = new ErrorLog();
 
     private static String quoted(String aString) {
         return '"' + aString + '"';
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         impl.configure("url", REFRESH_INTERVAL);
     }
 
     @Test
-    public void whenUnableToReachServer_returnedTimestampIsZero() throws Exception {
-        factory.setException(new WebClientException());
+    public void whenUnableToReachServer_returnedTimestampIsZero() {
+        factory.throwWebClientException(new WebClientException());
 
         assertThat(impl.getLatestConfigurationTimestamp(), equalTo(0L));
     }
 
     @Test
     public void whenUnableToReachServer_addReasonToLog() {
-        factory.setException(new WebClientException("Unable to reach server"));
+        factory.throwWebClientException(new WebClientException("Unable to reach server"));
         impl.setErrorLog(errorLog);
 
         impl.getLatestConfigurationTimestamp();
@@ -68,70 +68,70 @@ public class ConfigurationUpdaterImplTest {
     }
 
     @Test
-    public void extractTimestampFromReply() throws Exception {
-        factory.setResponse(RESPONSE_1);
+    public void extractTimestampFromReply() {
+        factory.addJsonResponse(RESPONSE_1);
 
         assertThat(impl.getLatestConfigurationTimestamp(), equalTo(TIMESTAMP_1));
     }
 
     @Test
-    public void whenUpdateFetched_specifyConfiguredUrl() throws Exception {
+    public void whenUpdateFetched_specifyConfiguredUrl() {
         impl.configure("http://repeater/", 0);
 
         impl.getLatestConfigurationTimestamp();
 
-        assertThat(factory.getClientURL(), equalTo("http://repeater/"));
+        assertThat(factory.getClientUrl(), equalTo("http://repeater/"));
     }
 
     @Test
-    public void whenAskedForConfigurationWithinUpdateInterval_returnCachedValue() throws Exception {
+    public void whenAskedForConfigurationWithinUpdateInterval_returnCachedValue() {
         clock.setCurrentMsec(0);
-        factory.setResponse(RESPONSE_1);
+        factory.addJsonResponse(RESPONSE_1);
         impl.getLatestConfigurationTimestamp();
 
         clock.incrementSeconds(REFRESH_INTERVAL / 2);
-        factory.setResponse(RESPONSE_2);
+        factory.addJsonResponse(RESPONSE_2);
 
         assertThat(impl.getLatestConfigurationTimestamp(), equalTo(TIMESTAMP_1));
     }
 
     @Test
-    public void whenAskedForConfigurationAfterUpdateInterval_returnNewValue() throws Exception {
+    public void whenAskedForConfigurationAfterUpdateInterval_returnNewValue() {
         clock.setCurrentMsec(0);
-        factory.setResponse(RESPONSE_1);
+        factory.addJsonResponse(RESPONSE_1);
         impl.getLatestConfigurationTimestamp();
 
         clock.incrementSeconds(REFRESH_INTERVAL);
-        factory.setResponse(RESPONSE_2);
+        factory.addJsonResponse(RESPONSE_2);
 
         assertThat(impl.getLatestConfigurationTimestamp(), equalTo(TIMESTAMP_2));
     }
 
     @Test
-    public void afterRetrieveUpdate_returnIt() throws Exception {
-        factory.setResponse(RESPONSE_1);
+    public void afterRetrieveUpdate_returnIt() {
+        factory.addJsonResponse(RESPONSE_1);
 
         assertThat(impl.getUpdate().getConfiguration(), equalTo(CONFIGURATION_1));
     }
 
     @Test
-    public void onShareConfiguration_connectToConfiguredUrl() throws Exception {
+    public void onShareConfiguration_connectToConfiguredUrl() {
         impl.configure("http://posttarget", 0);
 
         impl.shareConfiguration(CONFIGURATION_1);
 
-        assertThat(factory.getClientURL(), equalTo("http://posttarget"));
+        assertThat(factory.getClientUrl(), equalTo("http://posttarget"));
     }
 
     @Test
-    public void onShareConfiguration_sendsConfigurationInJsonObject() throws Exception {
+    public void onShareConfiguration_sendsConfigurationInJsonObject() {
         impl.shareConfiguration(CONFIGURATION_1);
 
         assertThat(factory.getPostedString(), hasJsonPath("$.configuration").withValue(CONFIGURATION_1));
     }
 
     @Test
-    public void onShareConfiguration_sendsTimestampInJsonObject() throws Exception {
+    public void onShareConfiguration_sendsTimestampInJsonObject() {
         clock.setCurrentMsec(23);
 
         impl.shareConfiguration(CONFIGURATION_1);
@@ -141,7 +141,7 @@ public class ConfigurationUpdaterImplTest {
 
     @Test
     public void whenUnableToShareConfiguration_logProblem() {
-        factory.setException(new WebClientException("Unable to reach server"));
+        factory.throwWebClientException(new WebClientException("Unable to reach server"));
         impl.setErrorLog(errorLog);
 
         impl.shareConfiguration(CONFIGURATION_1);

@@ -1,17 +1,18 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017, 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle Corporation and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
-import com.sun.management.OperatingSystemMXBean;
-
-import javax.management.MBeanServerConnection;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.util.Locale;
+import javax.management.MBeanServerConnection;
+import javax.servlet.http.HttpServletRequest;
+
+import com.sun.management.OperatingSystemMXBean;
 
 /**
  * A PrintStream that computes metrics for the performance of the exporter itself. It does so by tracking the
@@ -22,6 +23,7 @@ import java.util.Locale;
 class MetricsStream extends PrintStream {
     private static final double NANOSEC_PER_SECONDS = 1000000000;
 
+    private final HttpServletRequest request;
     private final PerformanceProbe performanceProbe;
     private final long startTime;
     private final long startCpu;
@@ -30,20 +32,23 @@ class MetricsStream extends PrintStream {
 
     /**
      * Constructs a metrics stream object, installer a performance probe that access system data.
+     * @param request the request for the metrics
      * @param outputStream the parent output stream
      * @throws IOException if some error occurs while creating the performance probe
      */
-    MetricsStream(OutputStream outputStream) throws IOException {
-        this(outputStream, new PlatformPeformanceProbe());
+    MetricsStream(HttpServletRequest request, OutputStream outputStream) throws IOException {
+        this(request, outputStream, new PlatformPeformanceProbe());
     }
 
     /**
      * A constructor for unit testing, allowing the specification of a test version of the performance probe.
+     * @param request the request for the metrics
      * @param outputStream the parent output stream
      * @param performanceProbe an object which can return performance data
      */
-    MetricsStream(OutputStream outputStream, PerformanceProbe performanceProbe) {
+    MetricsStream(HttpServletRequest request, OutputStream outputStream, PerformanceProbe performanceProbe) {
         super(outputStream);
+        this.request = request;
         this.performanceProbe = performanceProbe;
         startTime = performanceProbe.getCurrentTime();
         startCpu = performanceProbe.getCurrentCpu();
@@ -69,15 +74,23 @@ class MetricsStream extends PrintStream {
     }
 
     private String getDurationName() {
-        return "wls_scrape_duration_seconds" + LiveConfiguration.getPerformanceQualifier();
+        return "wls_scrape_duration_seconds" + getPerformanceQualifier();
+    }
+
+    /**
+     * Returns the qualifiers to add to the performance metrics, specifying the configured server
+     * @return a metrics qualifier string
+     */
+    private String getPerformanceQualifier() {
+        return String.format("{instance=\"%s:%d\"}", request.getServerName(), request.getServerPort());
     }
 
     private String getCpuUsageName() {
-        return "wls_scrape_cpu_seconds" + LiveConfiguration.getPerformanceQualifier();
+        return "wls_scrape_cpu_seconds" + getPerformanceQualifier();
     }
 
     private String getCountName() {
-        return "wls_scrape_mbeans_count_total" + LiveConfiguration.getPerformanceQualifier();
+        return "wls_scrape_mbeans_count_total" + getPerformanceQualifier();
     }
 
     private long getElapsedTime() {

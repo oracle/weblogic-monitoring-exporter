@@ -1,19 +1,22 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017, 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle Corporation and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-
 import static io.prometheus.wls.rest.InMemoryFileSystem.withNoParams;
 import static io.prometheus.wls.rest.ServletConstants.CONFIGURATION_PAGE;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.arrayContaining;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
 
 /**
@@ -21,9 +24,9 @@ import static org.hamcrest.junit.MatcherAssert.assertThat;
  */
 public class MainServletTest {
 
-    private MainServlet servlet = new MainServlet();
-    private HttpServletRequestStub request = HttpServletRequestStub.createGetRequest();
-    private HttpServletResponseStub response = HttpServletResponseStub.createServletResponse();
+    private final MainServlet servlet = new MainServlet();
+    private final HttpServletRequestStub request = HttpServletRequestStub.createGetRequest();
+    private final HttpServletResponseStub response = HttpServletResponseStub.createServletResponse();
 
     @Before
     public void setUp() throws Exception {
