@@ -6,6 +6,8 @@ package io.prometheus.wls.rest;
  */
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.servlet.ServletConfig;
@@ -48,19 +50,23 @@ public class ExporterServlet extends PassThroughAuthenticationServlet {
     @SuppressWarnings("unused") // The req parameter is not used, but is required by 'doWithAuthentication'
     private void displayMetrics(WebClient webClient, HttpServletRequest req, HttpServletResponse resp) throws IOException {
         LiveConfiguration.updateConfiguration();
-        try (MetricsStream metricsStream = new MetricsStream(resp.getOutputStream())) {
+        try (MetricsStream metricsStream = new MetricsStream(req, resp.getOutputStream())) {
             if (!LiveConfiguration.hasQueries())
                 metricsStream.println("# No configuration defined.");
             else
                 printMetrics(webClient, metricsStream);
-
         }
     }
 
     private void printMetrics(WebClient webClient, MetricsStream metricsStream) throws IOException {
-        for (MBeanSelector selector : LiveConfiguration.getQueries())
-            displayMetrics(webClient, metricsStream, selector);
-        metricsStream.printPerformanceMetrics();
+        try {
+            for (MBeanSelector selector : LiveConfiguration.getQueries())
+                displayMetrics(webClient, metricsStream, selector);
+            metricsStream.printPerformanceMetrics();
+        } catch (RestPortConnectionException e) {
+            reportFailure(e);
+            webClient.setRetryNeeded(true);
+        }
     }
 
     private void displayMetrics(WebClient webClient, MetricsStream metricsStream, MBeanSelector selector) throws IOException {
@@ -73,7 +79,18 @@ public class ExporterServlet extends PassThroughAuthenticationServlet {
                   withCommentMarkers("REST service was unable to handle this query\n"
                       + selector.getPrintableRequest() + '\n'
                       + "exception: " + e.getMessage()));
+        }  catch (IOException | RuntimeException | Error e) {
+            MessagesServlet.addExchange(getQueryUrl(selector), selector.getRequest(), toStackTrace(e));
+            throw e;
         }
+    }
+
+    private String toStackTrace(Throwable e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        pw.close();
+        return sw.toString();
     }
 
     private String withCommentMarkers(String string) {
@@ -95,7 +112,7 @@ public class ExporterServlet extends PassThroughAuthenticationServlet {
     }
 
     private String requestMetrics(WebClient webClient, MBeanSelector selector) throws IOException {
-        String url = LiveConfiguration.getUrl(getProtocol(), selector);
+        String url = getQueryUrl(selector);
         String jsonResponse = webClient.withUrl(url).doPostRequest(selector.getRequest());
         MessagesServlet.addExchange(url, selector.getRequest(), jsonResponse);
         return jsonResponse;

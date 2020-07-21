@@ -1,19 +1,22 @@
 package io.prometheus.wls.rest;
 /*
- * Copyright (c) 2017, 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle Corporation and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
+import java.io.IOException;
+import java.io.PrintStream;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintStream;
 
-import static io.prometheus.wls.rest.ServletConstants.*;
+import static io.prometheus.wls.rest.ServletConstants.APPEND_ACTION;
+import static io.prometheus.wls.rest.ServletConstants.CONFIGURATION_PAGE;
+import static io.prometheus.wls.rest.ServletConstants.EFFECT_OPTION;
+import static io.prometheus.wls.rest.ServletConstants.REPLACE_ACTION;
 
 /**
  * This servlet represents the 'landing page' for the exporter.
@@ -30,8 +33,8 @@ public class MainServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        LiveConfiguration.setServer(req.getServerName(), req.getServerPort());
         LiveConfiguration.updateConfiguration();
+        LiveConfiguration.setServer(req);
         resp.getOutputStream().println(ServletConstants.PAGE_HEADER);
         displayMetricsLink(req, resp.getOutputStream());
         displayForm(req, resp.getOutputStream());

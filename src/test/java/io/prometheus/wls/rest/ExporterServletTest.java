@@ -10,11 +10,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import javax.servlet.ServletException;
@@ -23,13 +19,11 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
-import org.apache.http.HttpHost;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.meterware.simplestub.Stub.createStrictStub;
+import static io.prometheus.wls.rest.HttpServletRequestStub.LOCAL_PORT;
 import static io.prometheus.wls.rest.HttpServletRequestStub.createGetRequest;
 import static io.prometheus.wls.rest.HttpServletResponseStub.createServletResponse;
 import static io.prometheus.wls.rest.InMemoryFileSystem.withNoParams;
@@ -40,9 +34,7 @@ import static io.prometheus.wls.rest.matchers.CommentsOnlyMatcher.containsOnlyCo
 import static io.prometheus.wls.rest.matchers.MetricsNamesSnakeCaseMatcher.usesSnakeCase;
 import static io.prometheus.wls.rest.matchers.PrometheusMetricsMatcher.followsPrometheusRules;
 import static io.prometheus.wls.rest.matchers.ResponseHeaderMatcher.containsHeader;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.arrayContaining;
@@ -60,11 +52,14 @@ import static org.hamcrest.junit.MatcherAssert.assertThat;
  * @author Russell Gold
  */
 public class ExporterServletTest {
+    private static final int REST_PORT = 7654;
     private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
     private static final String SECURE_URL_PATTERN = "https://%s:%d/management/weblogic/latest/serverRuntime/search";
     private static final String ONE_VALUE_CONFIG = "queries:\n- groups:\n    key: name\n    values: testSample1";
     private static final String TWO_VALUE_CONFIG = "queries:" +
             "\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]";
+    private static final String REST_PORT_CONFIG = "restPort: " + REST_PORT +
+                                                   "\nqueries:\n- groups:\n    key: name\n    values: testSample1";
     private static final String CONFIG_WITH_CATEGORY_VALUE = "queries:" +
             "\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1, testSample2, bogus]";
     private static final String MULTI_QUERY_CONFIG = "queries:" +
@@ -82,9 +77,9 @@ public class ExporterServletTest {
         InMemoryFileSystem.install();
         ConfigurationUpdaterStub.install();
         LiveConfiguration.loadFromString("");
-        LiveConfiguration.setServer("localhost", 7001);
         ExporterSession.cacheSession(null, null);
         MessagesServlet.clear();
+        UrlBuilder.clearHistory();
     }
 
     @After
@@ -145,7 +140,7 @@ public class ExporterServletTest {
         servlet.doGet(request, response);
         
         assertThat(factory.getClientUrl(),
-                   equalTo(String.format(URL_PATTERN, LiveConfiguration.WLS_HOST, HttpServletRequestStub.PORT)));
+                   equalTo(String.format(URL_PATTERN, request.getLocalName(), HttpServletRequestStub.LOCAL_PORT)));
     }
 
     @Test
@@ -156,7 +151,28 @@ public class ExporterServletTest {
         servlet.doGet(request, response);
 
         assertThat(factory.getClientUrl(),
-                   equalTo(String.format(SECURE_URL_PATTERN, LiveConfiguration.WLS_HOST, HttpServletRequestStub.PORT)));
+                   equalTo(String.format(SECURE_URL_PATTERN, request.getLocalName(), HttpServletRequestStub.LOCAL_PORT)));
+    }
+
+    @Test
+    public void whenRestPortDefined_connectionUrlUsesRestPort() throws ServletException, IOException {
+        initServlet(REST_PORT_CONFIG);
+
+        servlet.doGet(request, response);
+
+        assertThat(factory.getClientUrl(),  equalTo(String.format(URL_PATTERN, request.getLocalName(), REST_PORT)));
+    }
+
+
+    @Test
+    public void whenRestPortAccessFails_switchToLocalPort() throws ServletException, IOException {
+        initServlet(REST_PORT_CONFIG);
+        factory.throwConnectionFailure("localhost", REST_PORT);
+        factory.addJsonResponse(new HashMap<>());
+
+        servlet.doGet(request, response);
+
+        assertThat(factory.getClientUrl(),  equalTo(String.format(URL_PATTERN, request.getLocalName(), LOCAL_PORT)));
     }
 
     @Test
@@ -267,7 +283,7 @@ public class ExporterServletTest {
                    hasJsonPath("$.children.groups.fields").withValues("name", "testSample1"));
     }
 
-    private void initServlet(String configuration) throws ServletException {
+    private void initServlet(String configuration) {
         InMemoryFileSystem.defineResource(LiveConfiguration.CONFIG_YML, configuration);
         servlet.init(withNoParams());
     }
@@ -306,7 +322,7 @@ public class ExporterServletTest {
         return response.getHtml();
     }
 
-    private Map getGroupResponseMap() {
+    private Map<String,Object> getGroupResponseMap() {
         return ImmutableMap.of("groups", new ItemHolder(
                     ImmutableMap.of("name", "first", "testSample1", 12, "testSample2", 12.3, "bogus", "red"),
                     ImmutableMap.of("name", "second", "testSample1", -3, "testSample2", 71.0),
@@ -391,7 +407,7 @@ public class ExporterServletTest {
         assertThat(toHtml(this.response), containsString("wavelength{hue=\"green\"} 540"));
     }
 
-    private Map getColorResponseMap() {
+    private Map<String,Object> getColorResponseMap() {
         return ImmutableMap.of("colors", new ItemHolder(
                     ImmutableMap.of("hue", "red", "wavelength", 700),
                     ImmutableMap.of("hue", "green", "wavelength", 540),
@@ -445,138 +461,11 @@ public class ExporterServletTest {
         assertThat(request.hasInvalidatedSession(), is(true));
     }
 
-    static class WebClientFactoryStub implements WebClientFactory {
-        private WebClientStub webClient = createStrictStub(WebClientStub.class);
 
-        @Override
-        public WebClient createClient() {
-            return webClient;
-        }
-
-        private void addJsonResponse(Map responseMap) {
-            webClient.addJsonResponse(responseMap);
-        }
-
-
-        private void setSetCookieResponseHeader(String setCookieHeader) {
-            webClient.setCookieHeader = setCookieHeader;
-        }
-
-
-        private String getSentQuery() {
-            return webClient.jsonQuery;
-        }
-
-
-        Map<String,String> getSentHeaders() {
-            return webClient.sentHeaders;
-        }
-
-        private String getSentAuthentication() {
-            return webClient.getAuthentication();
-        }
-
-        private String getSentSessionCookie() {
-            return webClient.getSessionCookie();
-        }
-
-        private String getClientUrl() {
-            return webClient.url;
-        }
-
-        private void reportNotAuthorized() {
-            webClient.reportForbidden();
-        }
-
-        private void reportBadQuery() {
-            webClient.reportBadQuery();
-        }
-
-        @SuppressWarnings("SameParameterValue")
-        private void reportAuthenticationRequired(String basicRealmName) {
-            webClient.reportAuthenticationRequired(basicRealmName);
-        }
-
-        @SuppressWarnings("SameParameterValue")
-        void throwConnectionFailure(String host, int port) {
-            webClient.throwConnectionFailure(host, port);
-        }
-    }
-
-    static abstract class WebClientStub extends WebClient {
-
-        private String url;
-        private String jsonQuery;
-        private int status = SC_OK;
-        private WebClientException webClientException;
-        private String setCookieHeader;
-        private List<String> responseList = new ArrayList<>();
-        private Iterator<String> responses;
-        private Map<String, String> addedHeaders = new HashMap<>();
-        private Map<String, String> sentHeaders;
-
-        private void addJsonResponse(Map responseMap) {
-            responseList.add(new Gson().toJson(responseMap));
-        }
-
-        void reportForbidden() {
-            status = SC_FORBIDDEN;
-        }
-
-        void reportBadQuery() {
-            status = SC_BAD_REQUEST;
-        }
-
-        @SuppressWarnings("SameParameterValue")
-        void reportAuthenticationRequired(String basicRealmName) {
-            webClientException = new AuthenticationChallengeException(String.format("Basic realm=\"%s\"", basicRealmName));
-        }
-
-        void throwConnectionFailure(String host, int port) {
-            webClientException = new RestPortConnectionException(new HttpHost(host, port));
-        }
-
-        @Override
-        WebClient withUrl(String url) {
-            this.url = url;
-            return this;
-        }
-
-        @Override
-        void addHeader(String name, String value) {
-            addedHeaders.put(name, value);
-        }
-
-        @Override
-        public String doPostRequest(String postBody) {
-            if (url == null) throw new NullPointerException("No URL specified");
-            if (status == SC_FORBIDDEN) throw new ForbiddenException();
-            if (status == SC_BAD_REQUEST) throw new RestQueryException();
-            if (webClientException != null) throw webClientException;
-
-            sentHeaders = Collections.unmodifiableMap(addedHeaders);
-            this.jsonQuery = postBody;
-            if (setCookieHeader != null)
-                setSessionCookie(ExporterSession.getSessionCookie(setCookieHeader));
-            return nextJsonResponse();
-        }
-
-        @Override
-        public String getSetCookieHeader() {
-            return setCookieHeader;
-        }
-
-        private String nextJsonResponse() {
-            if (responses == null)
-                responses = responseList.iterator();
-
-            return responses.hasNext() ? responses.next() : null;
-        }
-    }
 
 
     abstract static class ServletInputStreamStub extends ServletInputStream {
-        private InputStream inputStream;
+        private final InputStream inputStream;
 
         public ServletInputStreamStub(String contents) {
             inputStream = new ByteArrayInputStream(contents.getBytes());

@@ -13,14 +13,13 @@ import java.util.Map;
 import java.util.Optional;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.prometheus.wls.rest.domain.ExporterConfig;
 import io.prometheus.wls.rest.domain.MBeanSelector;
-import io.prometheus.wls.rest.domain.Protocol;
 import io.prometheus.wls.rest.domain.QuerySyncConfiguration;
-import io.prometheus.wls.rest.domain.QueryType;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -79,35 +78,25 @@ class LiveConfiguration {
     }
 
     /**
-     * Returns the URL used to query the management services
-     * @return a url built for the configured server
-     * @param protocol the protocol used to authenticate a configuration change
-     */
-    static String getAuthenticationUrl(Protocol protocol) {
-        return protocol.format(QueryType.RUNTIME_URL_PATTERN, WLS_HOST, getRestPort());
-    }
-
-    /**
-     * Returns the URL used to query the management services
+     * Specifies the server on which to contact the Management RESTful services.
      *
-     * @param protocol the protocol to use
-     * @param selector the selector which will define the query
-     * @return a url built for the configured server
+     * @param req the incoming request
      */
-    static String getUrl(Protocol protocol, MBeanSelector selector) {
-        return selector.getUrl(protocol, WLS_HOST, getRestPort());
-    }
-
-    private static int getRestPort() {
-        return Optional.ofNullable(config.getRestPort()).orElse(serverPort);
+    static void setServer(HttpServletRequest req) {
+        LiveConfiguration.setServer(req.getServerName(), req.getServerPort());
     }
 
     /**
-     * Returns the qualifiers to add to the performance metrics, specifying the configured server
-     * @return a metrics qualifier string
+     * Creates a builder for URLs that can handle retries to alternative ports.
+     * @param request the active servlet request
+     * @return the new builder
      */
-    static String getPerformanceQualifier() {
-        return String.format("{instance=\"%s:%d\"}", serverName, serverPort);
+    static UrlBuilder createUrlBuilder(HttpServletRequest request) {
+        return new UrlBuilder(request, getConfiguredRestPort());
+    }
+
+    static Integer getConfiguredRestPort() {
+        return Optional.ofNullable(config).map(ExporterConfig::getRestPort).orElse(null);
     }
 
     /**
