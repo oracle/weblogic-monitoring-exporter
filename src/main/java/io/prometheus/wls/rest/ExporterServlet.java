@@ -80,7 +80,7 @@ public class ExporterServlet extends PassThroughAuthenticationServlet {
                       + selector.getPrintableRequest() + '\n'
                       + "exception: " + e.getMessage()));
         }  catch (IOException | RuntimeException | Error e) {
-            MessagesServlet.addExchange(selector.getRequest(), toStackTrace(e));
+            MessagesServlet.addExchange(getQueryUrl(selector), selector.getRequest(), toStackTrace(e));
             throw e;
         }
     }
@@ -105,12 +105,17 @@ public class ExporterServlet extends PassThroughAuthenticationServlet {
     }
 
     private Map<String, Object> getMetrics(WebClient webClient, MBeanSelector selector) throws IOException {
-        String request = selector.getRequest();
-        String jsonResponse = webClient.withUrl(getQueryUrl(selector)).doPostRequest(request);
-        MessagesServlet.addExchange(request, jsonResponse);
+        String jsonResponse = requestMetrics(webClient, selector);
         if (isNullOrEmptyString(jsonResponse)) return null;
 
         return LiveConfiguration.scrapeMetrics(selector, jsonResponse);
+    }
+
+    private String requestMetrics(WebClient webClient, MBeanSelector selector) throws IOException {
+        String url = getQueryUrl(selector);
+        String jsonResponse = webClient.withUrl(url).doPostRequest(selector.getRequest());
+        MessagesServlet.addExchange(url, selector.getRequest(), jsonResponse);
+        return jsonResponse;
     }
 
 }

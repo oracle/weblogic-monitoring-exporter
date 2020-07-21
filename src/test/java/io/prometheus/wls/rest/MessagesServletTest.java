@@ -4,25 +4,33 @@
 
 package io.prometheus.wls.rest;
 
+import java.io.IOException;
+import java.lang.reflect.Modifier;
+import java.util.stream.IntStream;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+
 import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import java.io.IOException;
-import java.lang.reflect.Modifier;
-import java.util.stream.IntStream;
-
-import static io.prometheus.wls.rest.MessagesServlet.MAX_EXCHANGES;
 import static io.prometheus.wls.rest.HttpServletRequestStub.createGetRequest;
 import static io.prometheus.wls.rest.HttpServletResponseStub.createServletResponse;
-import static org.hamcrest.Matchers.*;
+import static io.prometheus.wls.rest.MessagesServlet.MAX_EXCHANGES;
+import static org.hamcrest.Matchers.arrayContaining;
+import static org.hamcrest.Matchers.both;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
 
 public class MessagesServletTest {
     private static final int EXCESS_EXCHANGES = 3;
+    private static final String URL = "http://localhost:7001";
     private MessagesServlet servlet = new MessagesServlet();
     private HttpServletRequestStub request = createGetRequest();
     private HttpServletResponseStub response = createServletResponse();
@@ -56,7 +64,7 @@ public class MessagesServletTest {
 
     @Test
     public void afterExchangeAdded_retrieveExchange() {
-        MessagesServlet.addExchange("request 1", "response1");
+        MessagesServlet.addExchange(URL, "request 1", "response1");
 
         assertThat(MessagesServlet.getMessages(), hasItem(both(containsString("request 1")).and(containsString("response1"))));
     }
@@ -69,7 +77,7 @@ public class MessagesServletTest {
     }
 
     private void addTestExchange(int i) {
-        MessagesServlet.addExchange("request " + i, "response " + i);
+        MessagesServlet.addExchange(URL, "request " + i, "response " + i);
     }
 
     @SuppressWarnings("unchecked")
