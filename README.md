@@ -17,10 +17,11 @@ bash getXXX.sh <your-config-file>
 
 ## Building from source
 
-Use `mvn install` to build the web application. This will create `monitoring-exporter-<version>`, where <version> 
-is the Maven-assigned version number. This can be deployed to WLS.
+Use `mvn install` to build the web application. This will create `wls-exporter-<version>`, where <version> 
+is the Maven-assigned version number, It is intended for release to Maven Central.
 
-Adding `-Dconfiguration=<some-config-file>` will insert the specified configuration as its default.
+Adding `-Dconfiguration=<some-config-file>` will insert the specified configuration as its default and remove
+the version number to simplify deployment to WebLogic Server.
 
 ## Configuration
 Here is an example `yaml` configuration:
