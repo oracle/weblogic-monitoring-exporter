@@ -75,8 +75,10 @@ public class ExporterServlet extends PassThroughAuthenticationServlet {
         } catch (RestQueryException e) {
             metricsStream.println(
                   withCommentMarkers("REST service was unable to handle this query\n"
-                      + selector.getPrintableRequest() + '\n'
-                      + "exception: " + e.getMessage()));
+                        + selector.getPrintableRequest() + '\n'
+                        + "exception: " + e.getMessage()));
+        } catch (AuthenticationChallengeException e) {  // don't add a message for this case
+            throw e;
         }  catch (IOException | RuntimeException | Error e) {
             MessagesServlet.addExchange(getQueryUrl(selector), selector.getRequest(), toStackTrace(e));
             throw e;
