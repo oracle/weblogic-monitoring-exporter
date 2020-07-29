@@ -63,7 +63,7 @@ public class ExporterServlet extends PassThroughAuthenticationServlet {
             metricsStream.printPerformanceMetrics();
         } catch (RestPortConnectionException e) {
             reportFailure(e);
-            webClient.setRetryNeeded(true);
+            webClient.setRetryNeeded();
         }
     }
 

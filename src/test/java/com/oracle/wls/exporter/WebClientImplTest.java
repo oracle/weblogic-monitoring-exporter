@@ -3,19 +3,33 @@
 
 package com.oracle.wls.exporter;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.SocketException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
 
 import com.google.common.base.Strings;
 import com.meterware.pseudoserver.HttpUserAgentTest;
 import com.meterware.pseudoserver.PseudoServlet;
 import com.meterware.pseudoserver.WebResource;
+import org.apache.http.HttpEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import static com.oracle.wls.exporter.ServletConstants.AUTHENTICATION_HEADER;
+import static com.oracle.wls.exporter.ServletConstants.COOKIE_HEADER;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_GATEWAY;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
@@ -25,11 +39,9 @@ import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_IMPLEMENTED;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
-
-import static com.oracle.wls.exporter.ServletConstants.AUTHENTICATION_HEADER;
-import static com.oracle.wls.exporter.ServletConstants.COOKIE_HEADER;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
 
 /**
@@ -37,6 +49,7 @@ import static org.hamcrest.junit.MatcherAssert.assertThat;
  */
 public class WebClientImplTest extends HttpUserAgentTest {
     private static final char QUOTE = '"';
+    private final static String BOUNDARY = "ASDF12234LKBNM<";
 
     /** A URL with a host guaranteed not to exist. */
     private static final String UNDEFINED_HOST_URL = "http://undefined.invalid";
@@ -454,5 +467,84 @@ public class WebClientImplTest extends HttpUserAgentTest {
         webClient.doPostRequest("abced");
 
         assertThat(sentHeaders, hasEntry(COOKIE_HEADER, COOKIE));
+    }
+
+    @Test(expected = ServletException.class)
+    public void whenMultipartRequestNotParseable_throwException() throws ServletException {
+        HttpServletRequest request = HttpServletRequestStub.createPostRequest();
+
+        factory.createClient().parse(request);
+    }
+
+    @Test
+    public void whenMultipartRequestContainsFormFields_allAreMarkedAsFormFields() throws IOException, ServletException {
+        HttpEntity httpEntity = MultipartEntityBuilder.create()
+              .setBoundary(BOUNDARY)
+              .addTextBody("field1", "value1")
+              .addTextBody("field2", "value2")
+              .build();
+
+        assertThat(toRequestStream(httpEntity).allMatch(MultipartItem::isFormField), is(true));
+    }
+
+    protected Stream<MultipartItem> toRequestStream(HttpEntity httpEntity) throws IOException, ServletException {
+        HttpServletRequest request = toPostRequest(httpEntity);
+        return factory.createClient().parse(request).stream();
+    }
+
+    protected static HttpServletRequestStub toPostRequest(HttpEntity httpEntity) throws IOException {
+        return HttpServletRequestStub.createPostRequest()
+              .withMultipartContent(MultipartTestUtils.asString(httpEntity), BOUNDARY);
+    }
+
+    @Test
+    public void whenMultipartRequestContainsFormFields_retrieveThem() throws IOException, ServletException {
+        HttpEntity httpEntity = MultipartEntityBuilder.create()
+              .setBoundary(BOUNDARY)
+              .addTextBody("field1", "value1")
+              .addTextBody("field2", "value2")
+              .build();
+
+        final Map<String, String> entries = toRequestStream(httpEntity)
+              .collect(Collectors.toMap(MultipartItem::getFieldName, MultipartItem::getString));
+
+        assertThat(entries, Matchers.allOf(hasEntry("field1", "value1"), hasEntry("field2", "value2")));
+    }
+
+    @Test
+    public void whenMultipartRequestContainsBinaryEntries_nonAreMarkedAsFormFields() throws IOException, ServletException {
+        HttpEntity httpEntity = MultipartEntityBuilder.create()
+              .setBoundary(BOUNDARY)
+              .addBinaryBody("file1", "value1".getBytes(), ContentType.DEFAULT_BINARY, "/path/to/file1.txt")
+              .addBinaryBody("file2", "value2".getBytes(), ContentType.DEFAULT_BINARY, "/path/to/file2.txt")
+              .build();
+
+        assertThat(toRequestStream(httpEntity).noneMatch(MultipartItem::isFormField), is(true));
+    }
+
+    @Test
+    public void whenMultipartRequestContainsBinaryEntries_retrieveThem() throws IOException, ServletException {
+        HttpEntity httpEntity = MultipartEntityBuilder.create()
+              .setBoundary(BOUNDARY)
+              .addBinaryBody("file1", "value1".getBytes(UTF_8), ContentType.DEFAULT_BINARY, "/path/to/file1.txt")
+              .addBinaryBody("file2", "value2".getBytes(UTF_8), ContentType.DEFAULT_BINARY, "/path/to/file2.txt")
+              .build();
+
+        final Map<String, String> entries = toRequestStream(httpEntity)
+              .collect(Collectors.toMap(MultipartItem::getFieldName, this::getInputStreamAsString));
+
+
+        assertThat(entries, Matchers.allOf(hasEntry("file1", "value1"), hasEntry("file2", "value2")));
+    }
+
+    private String getInputStreamAsString(MultipartItem item) {
+        try {
+            return new BufferedReader(
+              new InputStreamReader(item.getInputStream(), StandardCharsets.UTF_8))
+                .lines()
+                .collect(Collectors.joining("\n"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

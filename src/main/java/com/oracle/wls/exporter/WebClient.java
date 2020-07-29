@@ -4,134 +4,98 @@
 package com.oracle.wls.exporter;
 
 import java.io.IOException;
-import java.util.Objects;
+import java.util.List;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * A client for sending http requests.
+ * An interface for an object responsible for sending requests from exporter web application to
+ * web servers.
  *
  * @author Russell Gold
  */
-abstract class WebClient {
+public interface WebClient {
 
-    private String authentication;
-    private String sessionCookie;
-    private boolean retryNeeded;
+  /**
+   * Sets the url to which this client will send requests.
+   * @param url a URL for requests
+   * @return this instance
+   */
+  WebClient withUrl(String url);
 
-    /**
-     * Defines the authentication header to be sent on every request.
-     * @param authentication the requestor authentication information
-     */
-    void setAuthentication(String authentication) {
-        this.authentication = authentication;
-    }
+  List<MultipartItem> parse(HttpServletRequest request) throws ServletException;
 
-    /**
-     * Returns the authentication header to be sent on every request.
-     * @return an authentication string
-     */
-    String getAuthentication() {
-        return authentication;
-    }
+  /**
+   * Sends a plain GET request to the defined URL without parameters
+   * @return the body of the response
+   */
+  String doGetRequest() throws IOException;
 
-    /**
-     * Defines the fixed session cookie to be used by the client.
-     * @param sessionCookie a cookie representing the session on the REST API
-     */
-    void setSessionCookie(String sessionCookie) {
-        this.sessionCookie = sessionCookie;
-    }
+  /**
+   * Sends a POST query to the server and returns the reply.
+   * @param postBody query data
+   * @return the body of the response
+   */
+  String doPostRequest(String postBody) throws IOException;
 
-    /**
-     * Returns the cookie representing the session on the REST API
-     * @return a string consisting of the name and value of a session cookie
-     */
-    String getSessionCookie() {
-        return sessionCookie;
-    }
+  /**
+   * Sends a PUT query to the server and returns the reply.
+   * @param putBody query data
+   * @return the body of the response
+   */
+  @SuppressWarnings("UnusedReturnValue")
+  String doPutRequest(String putBody) throws IOException;
 
-    /**
-     * Establish the session headers to be used for all requests
-     * @param authentication the client's authentication information
-     * @param sessionCookie the session cookie from the client, if any.
-     */
-    void establishSession(String authentication, String sessionCookie) {
-        setAuthentication(authentication);
-        if (sessionCookie != null)
-            setSessionCookie(sessionCookie);
-        else if (Objects.equals(getAuthentication(), ExporterSession.getAuthentication()))
-            setSessionCookie(ExporterSession.getSessionCookie());
-    }
+  /**
+   * Adds a header to be sent on every query.
+   * @param name the header name
+   * @param value the header value
+   */
+  void addHeader(String name, String value);
 
-    /**
-     * Adds relevant headers to the response for the client
-     * @param resp the response returned to the client
-     */
-    void forwardResponseHeaders(HttpServletResponse resp) {
-        if (getSetCookieHeader() != null) {
-            resp.setHeader("Set-Cookie", getSetCookieHeader());
-            cacheSessionCookie();
-        }
-    }
+  /**
+   * Sets the user credentials to be sent to the server.
+   * @param authentication the encoded user credentials
+   */
+  void setAuthentication(String authentication);
 
-    void setRetryNeeded(boolean retryNeeded) {
-        this.retryNeeded = retryNeeded;
-    }
+  /**
+   * Returns the user credentials defined for this web client.
+   */
+  String getAuthentication();
 
-    /**
-     * Returns true of the 'retry needed' flag was set. Rests the flag on exit.
-     * @return true if a retry was requested
-     */
-    boolean isRetryNeeded() {
-        try {
-            return retryNeeded;
-        } finally {
-            retryNeeded = false;
-        }
-    }
+  /**
+   * Sets the credential session cookie to be sent on each request
+   * @param sessionCookie the encoded cookie
+   */
+  void setSessionCookie(String sessionCookie);
 
-    /**
-     * Records the session information for future REST requests
-     */
-    private void cacheSessionCookie() {
-        ExporterSession.cacheSession(authentication, getSessionCookie());
-    }
+  /**
+   * Returns the credential session cookie defined for this web client.
+   */
+  String getSessionCookie();
 
-    /**
-     * Sets the url to which this client will send requests.
-     * @param url a URL for requests
-     */
-    abstract WebClient withUrl(String url);
+  /**
+   * Returns the value of the set-cookie header from the server, indicating that a session cookie should be cached.
+   */
+  String getSetCookieHeader();
 
-    /**
-     * Adds a header to be sent on every query.
-     * @param name the header name
-     * @param value the header value
-     */
-    abstract void addHeader(String name, String value);
+  /**
+   * Populates the specified response with the response headers recorded in this web client,
+   * sending them back to the external client. This is generally a web browser or Prometheus client.
+   * @param resp the servlet response sent to the external client
+   */
+  void forwardResponseHeaders(HttpServletResponse resp);
 
-    /**
-     * Sends a plain GET request to the defined URL without parameters
-     * @return the body of the response
-     */
-    abstract String doGetRequest() throws IOException;
+  /**
+   * Set a flag to indicate that a retry of the request will be needed. Typically this means that the previous
+   * request did not reach a server, and new port should be tried.
+   */
+  void setRetryNeeded();
 
-    /**
-     * Sends a POST query to the server and returns the reply.
-     * @param postBody query data
-     * @return the body of the response
-     */
-    abstract String doPostRequest(String postBody) throws IOException;
-
-    /**
-     * Sends a PUT query to the server and returns the reply.
-     * @param putBody query data
-     * @return the body of the response
-     */
-    abstract String doPutRequest(String putBody) throws IOException;
-
-    /**
-     * Returns the set-cookie header received from the server, if any
-     */
-    abstract String getSetCookieHeader();
+  /**
+   * Returns true if this client has been marked to retry the last request.
+   */
+  boolean isRetryNeeded();
 }

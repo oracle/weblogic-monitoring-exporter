@@ -9,9 +9,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
 
 import com.google.gson.Gson;
-import org.apache.http.HttpHost;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
 
@@ -20,7 +21,7 @@ class WebClientFactoryStub implements WebClientFactory {
 
     @Override
     public WebClient createClient() {
-        webClient.setRetryNeeded(false);
+        webClient.clearRetryNeeded();
         return webClient;
     }
 
@@ -84,7 +85,7 @@ class WebClientFactoryStub implements WebClientFactory {
         webClient.addExceptionResponse(e);
     }
 
-    static abstract class WebClientStub extends WebClient {
+    static abstract class WebClientStub extends WebClientCommon {
 
         private String url;
         private String jsonQuery;
@@ -131,17 +132,17 @@ class WebClientFactoryStub implements WebClientFactory {
         }
 
         void throwConnectionFailure(String host, int port) {
-            addExceptionResponse(new RestPortConnectionException(new HttpHost(host, port)));
+            addExceptionResponse(new RestPortConnectionException(String.format("http://%s:%d", host, port)));
         }
 
         @Override
-        WebClient withUrl(String url) {
+        public WebClientCommon withUrl(String url) {
             this.url = url;
             return this;
         }
 
         @Override
-        void addHeader(String name, String value) {
+        public void addHeader(String name, String value) {
             addedHeaders.put(name, value);
         }
 
@@ -151,20 +152,20 @@ class WebClientFactoryStub implements WebClientFactory {
             sentHeaders = Collections.unmodifiableMap(addedHeaders);
             this.jsonQuery = postBody;
             if (setCookieHeader != null)
-                setSessionCookie(ExporterSession.getSessionCookie(setCookieHeader));
+                setSessionCookie(extractSessionCookie(setCookieHeader));
 
             return getResult(getNextResponse());
         }
 
         @Override
-        String doGetRequest() {
+        public String doGetRequest() {
             if (url == null) throw new NullPointerException("No URL specified");
 
             return getResult(getNextResponse());
         }
 
         @Override
-        String doPutRequest(String putBody) {
+        public String doPutRequest(String putBody) {
             if (url == null) throw new NullPointerException("No URL specified");
             postedString = putBody;
 
@@ -184,6 +185,11 @@ class WebClientFactoryStub implements WebClientFactory {
         @Override
         public String getSetCookieHeader() {
             return setCookieHeader;
+        }
+
+        @Override
+        public List<MultipartItem> parse(HttpServletRequest request) throws ServletException {
+            return WebClientImpl.doParse(request);
         }
     }
 

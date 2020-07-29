@@ -3,17 +3,11 @@
 
 package com.oracle.wls.exporter;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 
 import com.oracle.wls.exporter.domain.ConfigurationException;
-import org.apache.http.HttpEntity;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,6 +15,8 @@ import org.junit.Test;
 import static com.oracle.wls.exporter.HttpServletRequestStub.LOCAL_PORT;
 import static com.oracle.wls.exporter.HttpServletRequestStub.createPostRequest;
 import static com.oracle.wls.exporter.HttpServletResponseStub.createServletResponse;
+import static com.oracle.wls.exporter.MultipartTestUtils.createEncodedForm;
+import static com.oracle.wls.exporter.MultipartTestUtils.createUploadRequest;
 import static com.oracle.wls.exporter.ServletConstants.CONFIGURATION_PAGE;
 import static com.oracle.wls.exporter.matchers.ResponseHeaderMatcher.containsHeader;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
@@ -68,8 +64,7 @@ public class ConfigurationServletTest {
         assertThat(annotation.value(), arrayContaining("/" + CONFIGURATION_PAGE));
     }
 
-    private final static String BOUNDARY = "C3n5NKoslNBKj4wBHR8kCX6OtVYEqeFYNjorlBP";
-    private static final String CONFIGURATION = 
+    private static final String CONFIGURATION =
             "host: " + HttpServletRequestStub.HOST + "\n" +
             "port: " + HttpServletRequestStub.PORT + "\n" +
             "queries:\n" + "" +
@@ -142,29 +137,6 @@ public class ConfigurationServletTest {
         servlet.doPost(createUploadRequest(createEncodedForm("replace", CONFIGURATION)), response);
 
         assertThat(response.getRedirectLocation(), equalTo(""));
-    }
-
-    private HttpServletRequestStub createUploadRequest(String contents) {
-        HttpServletRequestStub postRequest = createPostRequest();
-        postRequest.setMultipartContent(contents, BOUNDARY);
-        return postRequest;
-    }
-
-    private String createEncodedForm(String effect, String configuration) throws IOException {
-        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-        builder.setBoundary(BOUNDARY);
-        builder.addTextBody("effect", effect);
-        builder.addBinaryBody("configuration", configuration.getBytes(), ContentType.create("text/plain", Charset.defaultCharset()), "newconfig.yml");
-        HttpEntity entity = builder.build();
-        return asString(entity);
-    }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private String asString(HttpEntity entity) throws IOException {
-        byte[] result = new byte[(int) entity.getContentLength()];
-        InputStream inputStream = entity.getContent();
-        inputStream.read(result);
-        return new String(result);
     }
 
     @Test

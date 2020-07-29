@@ -5,6 +5,7 @@ package com.oracle.wls.exporter;
 
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.Objects;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
@@ -54,7 +55,12 @@ abstract public class PassThroughAuthenticationServlet extends HttpServlet {
     }
 
     private void forwardRequestHeaders(HttpServletRequest req, WebClient webClient) {
-        webClient.establishSession(req.getHeader(ServletConstants.AUTHENTICATION_HEADER), getSessionCookie(req));
+        webClient.setAuthentication(req.getHeader(ServletConstants.AUTHENTICATION_HEADER));
+        final String sessionCookie = getSessionCookie(req);
+        if (sessionCookie != null)
+            webClient.setSessionCookie(sessionCookie);
+        else if (Objects.equals(webClient.getAuthentication(), ExporterSession.getAuthentication()))
+            webClient.setSessionCookie(ExporterSession.getSessionCookie());
      }
 
     private String getSessionCookie(HttpServletRequest req) {
