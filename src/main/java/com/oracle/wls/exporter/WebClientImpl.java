@@ -3,25 +3,31 @@
 
 package com.oracle.wls.exporter;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.ConnectException;
-import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.net.ssl.SSLContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpHostConnectException;
@@ -38,168 +44,179 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.ssl.TrustStrategy;
 
-import static com.oracle.wls.exporter.ServletConstants.AUTHENTICATION_HEADER;
-import static com.oracle.wls.exporter.ServletConstants.COOKIE_HEADER;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_GATEWAY;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_GATEWAY_TIMEOUT;
-import static javax.servlet.http.HttpServletResponse.SC_HTTP_VERSION_NOT_SUPPORTED;
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_IMPLEMENTED;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
-import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
-import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
-
 /**
  * A production implementation of the web client interface that uses Apache HttpClient code.
  *
  * @author Russell Gold
  */
-public class WebClientImpl extends WebClient {
-    private String url;
+public class WebClientImpl extends WebClientCommon {
+
     private final List<BasicHeader> addedHeaders = new ArrayList<>();
     private final List<BasicHeader> sessionHeaders = new ArrayList<>();
-    private String setCookieHeader;
 
     @Override
-    WebClient withUrl(String url) {
-        this.url = url;
-        return this;
-    }
-
-    @Override
-    void addHeader(String name, String value) {
+    public void addHeader(String name, String value) {
         addedHeaders.add(new BasicHeader(name, value));
     }
 
     @Override
-    String doGetRequest() throws IOException {
-        addSessionHeaders();
-        return sendRequest(new HttpGet(url));
+    protected HttpGetRequest createGetRequest(String url) {
+        return new HttpGetRequest(url);
     }
 
-    private String sendRequest(HttpRequestBase request) throws IOException {
-        try (CloseableHttpClient httpClient = createHttpClient()) {
-            return getReply(httpClient, request);
-        } catch (HttpHostConnectException e) {
-            throw new RestPortConnectionException(e.getHost());
-        } catch (UnknownHostException | ConnectException | GeneralSecurityException e) {
-            throw new WebClientException(e, "Unable to execute %s request to %s", request.getMethod(), request.getURI());
-        }
-    }
-
-    private String getReply(CloseableHttpClient httpClient, HttpRequestBase request) throws IOException {
-        CloseableHttpResponse response = httpClient.execute(request);
-        processStatusCode(response);
-        return response.getEntity() == null ? null : getContentAsString(response.getEntity());
-    }
-
-    private String getContentAsString(HttpEntity responseEntity) throws IOException {
-        try (InputStream inputStream = responseEntity.getContent()) {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            byte[] buffer = new byte[4096];
-            int numBytes = 0;
-            while (numBytes >= 0) {
-                baos.write(buffer, 0, numBytes);
-                numBytes = inputStream.read(buffer);
-            }
-            return baos.toString("UTF-8");
+    public static List<MultipartItem> doParse(HttpServletRequest request) throws ServletException {
+        try {
+            ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
+            return upload.parseRequest(request).stream().map(ApacheMultipartItem::new).collect(Collectors.toList());
+        } catch (FileUploadException e) {
+            throw new ServletException("unable to parse post body", e);
         }
     }
 
     @Override
-    public String doPostRequest(String postBody) throws IOException {
-        addSessionHeaders();
-        return sendRequest(createPostRequest(postBody));
+    public List<MultipartItem> parse(HttpServletRequest request) throws ServletException {
+        return doParse(request);
     }
 
-    private HttpPost createPostRequest(String postBody) {
-        HttpPost query = new HttpPost(url);
+    static class HttpGetRequest extends HttpGet implements WebRequest {
+        public HttpGetRequest(String uri) {
+            super(uri);
+        }
+    }
+
+    @Override
+    protected WebRequest createPostRequest(String url, String postBody) {
+        HttpPostRequest query = new HttpPostRequest(url);
         query.setEntity(new StringEntity(postBody, ContentType.APPLICATION_JSON));
         return query;
     }
 
-    private void addSessionHeaders() {
-        sessionHeaders.clear();
-        if (getAuthentication() != null) putSessionHeader(AUTHENTICATION_HEADER, getAuthentication());
-        if (getSessionCookie() != null) putSessionHeader(COOKIE_HEADER, getSessionCookie());
-    }
-
-    private void putSessionHeader(String key, String value) {
-        sessionHeaders.add(new BasicHeader(key, value));
+    static class HttpPostRequest extends HttpPost implements WebRequest {
+        public HttpPostRequest(String uri) {
+            super(uri);
+        }
     }
 
     @Override
-    String doPutRequest(String putBody) throws IOException {
-        addSessionHeaders();
-        return sendRequest(createPutRequest(putBody));
-    }
-
-    private HttpPut createPutRequest(String putBody) {
-        HttpPut query = new HttpPut(url);
+    protected WebRequest createPutRequest(String url, String putBody) {
+        HttpPutRequest query = new HttpPutRequest(url);
         query.setEntity(new StringEntity(putBody, ContentType.APPLICATION_JSON));
         return query;
     }
 
+    static class HttpPutRequest extends HttpPut implements WebRequest {
+        public HttpPutRequest(String uri) {
+            super(uri);
+        }
+    }
+
+    static class ApacheMultipartItem implements MultipartItem {
+        private final FileItem fileItem;
+
+        ApacheMultipartItem(FileItem fileItem) {
+            this.fileItem = fileItem;
+        }
+
+        @Override
+        public boolean isFormField() {
+            return fileItem.isFormField();
+        }
+
+        @Override
+        public String getFieldName() {
+            return fileItem.getFieldName();
+        }
+
+        @Override
+        public String getString() {
+            return fileItem.getString();
+        }
+
+        @Override
+        public InputStream getInputStream() throws IOException {
+            return fileItem.getInputStream();
+        }
+    }
+
+    static class HttpResponseImpl implements WebResponse {
+        private final CloseableHttpResponse response;
+
+        public HttpResponseImpl(CloseableHttpResponse response) {
+            this.response = response;
+        }
+
+        @Override
+        public InputStream getContents() {
+            return Optional.ofNullable(response.getEntity())
+                  .map(this::getContentsAsStream)
+                  .orElse(new EmptyInputStream());
+        }
+
+        private InputStream getContentsAsStream(HttpEntity entity) {
+            try {
+                return entity.getContent();
+            } catch (IOException e) {
+                throw new WebClientException("Unable to retrieve response contents");
+            }
+        }
+
+        @Override
+        public int getResponseCode() {
+            return response.getStatusLine().getStatusCode();
+        }
+
+        @Override
+        public Stream<String> getHeadersAsStream(String headerName) {
+            return Arrays.stream(response.getHeaders(headerName)).map(Header::getValue);
+        }
+
+        @Override
+        public void close() throws IOException {
+            response.close();
+        }
+    }
+
     @Override
-    public String getSetCookieHeader() {
-        return setCookieHeader;
+    HttpClientExec createClientExec() throws GeneralSecurityException {
+        return new ApacheHttpClient();
     }
 
-    private void processStatusCode(CloseableHttpResponse response) throws RestQueryException {
-        switch (response.getStatusLine().getStatusCode()) {
-            case SC_BAD_REQUEST:
-                throw new RestQueryException();
-            case SC_UNAUTHORIZED:
-                throw createAuthenticationChallengeException(response);
-            case SC_FORBIDDEN:
-                throw new ForbiddenException();
-            case SC_INTERNAL_SERVER_ERROR:
-            case SC_NOT_IMPLEMENTED:
-            case SC_BAD_GATEWAY:
-            case SC_SERVICE_UNAVAILABLE:
-            case SC_GATEWAY_TIMEOUT:
-            case SC_HTTP_VERSION_NOT_SUPPORTED:
-                throw new ServerErrorException(response.getStatusLine().getStatusCode());
-            case SC_OK:
-                String setCookieHeader = extractSessionSetCookieHeader(response);
-                if (setCookieHeader != null) {
-                    this.setCookieHeader = setCookieHeader;
-                    setSessionCookie(extractSessionCookie(setCookieHeader));
-                }
+    class ApacheHttpClient implements HttpClientExec {
+        private final CloseableHttpClient client;
+        public ApacheHttpClient() throws GeneralSecurityException {
+            SelfSignedCertificateAcceptor acceptor = new SelfSignedCertificateAcceptor();
+            client = HttpClientBuilder.create()
+                  .setDefaultHeaders(getDefaultHeaders())
+                  .setSSLSocketFactory(acceptor.getSslConnectionSocketFactory())
+                  .setConnectionManager(acceptor.getConnectionManager())
+                  .build();
+        }
+
+        @Override
+        public WebResponse send(WebRequest request) throws IOException {
+            try {
+                return new HttpResponseImpl(client.execute((HttpUriRequest) request));
+            } catch (HttpHostConnectException e) {
+                throw new RestPortConnectionException(e.getHost().toURI());
+            }
+        }
+
+        @Override
+        public void close() throws IOException {
+            client.close();
         }
     }
 
-    private AuthenticationChallengeException createAuthenticationChallengeException(CloseableHttpResponse response) {
-        return new AuthenticationChallengeException(getAuthenticationHeader(response));
+    @Override
+    void clearSessionHeaders() {
+        sessionHeaders.clear();
     }
 
-    private String getAuthenticationHeader(CloseableHttpResponse response) {
-        Header header = response.getFirstHeader("WWW-Authenticate");
-        return Optional.ofNullable(header).map(Header::getValue).orElse("");
+    @Override
+    void putSessionHeader(String key, String value) {
+        sessionHeaders.add(new BasicHeader(key, value));
     }
 
-    private String extractSessionSetCookieHeader(CloseableHttpResponse response) {
-        for (Header header : response.getHeaders("Set-Cookie")) {
-            String sessionCookie = ExporterSession.getSessionCookie(header.getValue());
-            if (sessionCookie != null) return header.getValue();
-        }
-        return null;
-    }
-
-    private String extractSessionCookie(String setCookieHeaderValue) {
-        return ExporterSession.getSessionCookie(setCookieHeaderValue);
-    }
-
-    private CloseableHttpClient createHttpClient() throws GeneralSecurityException {
-        SelfSignedCertificateAcceptor acceptor = new SelfSignedCertificateAcceptor();
-        return HttpClientBuilder.create()
-                .setDefaultHeaders(getDefaultHeaders())
-                .setSSLSocketFactory(acceptor.getSslConnectionSocketFactory())
-                .setConnectionManager(acceptor.getConnectionManager())
-                .build();
-    }
 
     private Collection<? extends Header> getDefaultHeaders() {
         List<Header> headers = new ArrayList<>(addedHeaders);

@@ -63,9 +63,10 @@ abstract class HttpServletRequestStub implements HttpServletRequest {
         headers.put(headerName, headerValue);
     }
 
-    void setMultipartContent(String contents, String boundary) {
+    HttpServletRequestStub withMultipartContent(String contents, String boundary) {
         this.contentType = "multipart/form-data; boundary=" + boundary;
         this.contents = contents;
+        return this;
     }
 
     void setContextPath(String contextPath) {

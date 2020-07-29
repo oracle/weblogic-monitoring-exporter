@@ -3,8 +3,6 @@
 
 package com.oracle.wls.exporter;
 
-import org.apache.http.HttpHost;
-
 /**
  * An exception indicating that the client could not connect to the REST port.
  */
@@ -12,8 +10,8 @@ class RestPortConnectionException extends WebClientException {
 
     private final String uri;
 
-    RestPortConnectionException(HttpHost host) {
-        uri = host.toURI();
+    RestPortConnectionException(String uri) {
+        this.uri = uri;
     }
 
     String getUri() {

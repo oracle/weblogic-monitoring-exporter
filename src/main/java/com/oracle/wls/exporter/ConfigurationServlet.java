@@ -7,6 +7,7 @@ package com.oracle.wls.exporter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Locale;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
@@ -15,10 +16,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.oracle.wls.exporter.domain.ConfigurationException;
 import com.oracle.wls.exporter.domain.ExporterConfig;
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 import static com.oracle.wls.exporter.ServletConstants.APPEND_ACTION;
 import static com.oracle.wls.exporter.ServletConstants.DEFAULT_ACTION;
@@ -50,13 +47,13 @@ public class ConfigurationServlet extends PassThroughAuthenticationServlet {
     private void updateConfiguration(WebClient webClient, HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             authenticate(webClient.withUrl(getAuthenticationUrl()));
-            if (!ServletFileUpload.isMultipartContent(req)) throw new ServletException("Must be a multi-part request");
+            if (!isMultipartContent(req)) throw new ServletException("Must be a multi-part request");
 
-            createPostAction(req).perform();
+            createPostAction(webClient, req).perform();
             reportUpdatedConfiguration(resp);
         } catch (RestPortConnectionException e) {
             reportFailure(e);
-            webClient.setRetryNeeded(true);
+            webClient.setRetryNeeded();
         } catch (ConfigurationException e) {
             reportUnableToUpdateConfiguration(req, resp.getOutputStream(), e);
         }
@@ -65,6 +62,10 @@ public class ConfigurationServlet extends PassThroughAuthenticationServlet {
     // Authenticates by attempting to send a request to the Management RESTful API.
     private void authenticate(WebClient webClient) throws IOException {
         webClient.doGetRequest();
+    }
+
+    private boolean isMultipartContent(HttpServletRequest request) {
+        return request.getContentType().toLowerCase(Locale.ENGLISH).startsWith("multipart/");
     }
 
     private void reportUpdatedConfiguration(HttpServletResponse response) throws IOException {
@@ -82,19 +83,14 @@ public class ConfigurationServlet extends PassThroughAuthenticationServlet {
         out.close();
     }
 
-    private PostAction createPostAction(HttpServletRequest request) throws IOException, ServletException {
+    private PostAction createPostAction(WebClient webClient, HttpServletRequest request) throws IOException, ServletException {
         PostAction postAction = new PostAction();
-        try {
-            ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
-            configure(postAction, upload.parseRequest(request));
-        } catch (FileUploadException e) {
-            throw new ServletException("unable to parse post body", e);
-        }
+        configure(postAction, webClient.parse(request));
         return postAction;
     }
 
-    private void configure(PostAction postAction, List<FileItem> fileItems) throws IOException, ServletException {
-        for (FileItem item : fileItems) {
+    private void configure(PostAction postAction, List<MultipartItem> fileItems) throws IOException, ServletException {
+        for (MultipartItem item : fileItems) {
             if (!item.isFormField()) {
                 postAction.defineUploadedFile(item.getInputStream());
             } else if (item.getFieldName().equals(ServletConstants.EFFECT_OPTION))

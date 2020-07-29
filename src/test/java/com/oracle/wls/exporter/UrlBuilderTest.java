@@ -6,7 +6,6 @@ package com.oracle.wls.exporter;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.http.HttpHost;
 import org.junit.Test;
 
 import static com.oracle.wls.exporter.HttpServletRequestStub.LOCAL_PORT;
@@ -17,8 +16,7 @@ public class UrlBuilderTest {
   private final static String URL_PATTERN = "%s://%s:%d/path";
   private final static int REST_PORT = 7010;
   private final HttpServletRequest request = HttpServletRequestStub.createGetRequest();
-  private final HttpHost httpHost = new HttpHost("localhost");
-  private final RestPortConnectionException connectionException = new RestPortConnectionException(httpHost);
+  private final RestPortConnectionException connectionException = new RestPortConnectionException("http://localhost:7010");
 
   @Test
   public void whenNoRestPortDefined_generateUrl() {
