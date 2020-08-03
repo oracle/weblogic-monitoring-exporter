@@ -189,7 +189,7 @@ class WebClientFactoryStub implements WebClientFactory {
 
         @Override
         public List<MultipartItem> parse(HttpServletRequest request) throws ServletException {
-            return WebClientImpl.doParse(request);
+            return MultipartContentParser.parse(request);
         }
     }
 

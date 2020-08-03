@@ -492,7 +492,7 @@ public class WebClientImplTest extends HttpUserAgentTest {
         return factory.createClient().parse(request).stream();
     }
 
-    protected static HttpServletRequestStub toPostRequest(HttpEntity httpEntity) throws IOException {
+    protected static HttpServletRequest toPostRequest(HttpEntity httpEntity) throws IOException {
         return HttpServletRequestStub.createPostRequest()
               .withMultipartContent(MultipartTestUtils.asString(httpEntity), BOUNDARY);
     }

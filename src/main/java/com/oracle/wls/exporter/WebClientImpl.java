@@ -1,266 +1,169 @@
-// Copyright 2017, 2020, Oracle Corporation and/or its affiliates.
-// Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+// Copyright (c) 2020, Oracle Corporation and/or its affiliates.
+// Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.GeneralSecurityException;
+import java.io.InputStreamReader;
+import java.net.ConnectException;
+import java.net.ProxySelector;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 import java.util.stream.Stream;
-import javax.net.ssl.SSLContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.HttpHostConnectException;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.ssl.SSLContexts;
-import org.apache.http.ssl.TrustStrategy;
-
-/**
- * A production implementation of the web client interface that uses Apache HttpClient code.
- *
- * @author Russell Gold
- */
 public class WebClientImpl extends WebClientCommon {
 
-    private final List<BasicHeader> addedHeaders = new ArrayList<>();
-    private final List<BasicHeader> sessionHeaders = new ArrayList<>();
+  static class Header {
+
+    private final String name;
+    private final String value;
+
+    Header(String name, String value) {
+      this.name = name;
+      this.value = value;
+    }
+  }
+
+  private final List<Header> defaultHeaders = new ArrayList<>();
+  private final List<Header> sessionHeaders = new ArrayList<>();
+
+  @Override
+  void clearSessionHeaders() {
+    sessionHeaders.clear();
+  }
+
+  @Override
+  void putSessionHeader(String key, String value) {
+    sessionHeaders.add(new Header(key, value));
+  }
+
+  class Java11HttpClientExec implements HttpClientExec {
+
+    private final HttpClient httpClient
+          = HttpClient.newBuilder()
+          .version(HttpClient.Version.HTTP_2)
+          .followRedirects(HttpClient.Redirect.NORMAL)
+          .proxy(ProxySelector.getDefault())
+          .build();
 
     @Override
-    public void addHeader(String name, String value) {
-        addedHeaders.add(new BasicHeader(name, value));
-    }
-
-    @Override
-    protected HttpGetRequest createGetRequest(String url) {
-        return new HttpGetRequest(url);
-    }
-
-    public static List<MultipartItem> doParse(HttpServletRequest request) throws ServletException {
-        try {
-            ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
-            return upload.parseRequest(request).stream().map(ApacheMultipartItem::new).collect(Collectors.toList());
-        } catch (FileUploadException e) {
-            throw new ServletException("unable to parse post body", e);
-        }
-    }
-
-    @Override
-    public List<MultipartItem> parse(HttpServletRequest request) throws ServletException {
-        return doParse(request);
-    }
-
-    static class HttpGetRequest extends HttpGet implements WebRequest {
-        public HttpGetRequest(String uri) {
-            super(uri);
-        }
-    }
-
-    @Override
-    protected WebRequest createPostRequest(String url, String postBody) {
-        HttpPostRequest query = new HttpPostRequest(url);
-        query.setEntity(new StringEntity(postBody, ContentType.APPLICATION_JSON));
-        return query;
-    }
-
-    static class HttpPostRequest extends HttpPost implements WebRequest {
-        public HttpPostRequest(String uri) {
-            super(uri);
-        }
-    }
-
-    @Override
-    protected WebRequest createPutRequest(String url, String putBody) {
-        HttpPutRequest query = new HttpPutRequest(url);
-        query.setEntity(new StringEntity(putBody, ContentType.APPLICATION_JSON));
-        return query;
-    }
-
-    static class HttpPutRequest extends HttpPut implements WebRequest {
-        public HttpPutRequest(String uri) {
-            super(uri);
-        }
-    }
-
-    static class ApacheMultipartItem implements MultipartItem {
-        private final FileItem fileItem;
-
-        ApacheMultipartItem(FileItem fileItem) {
-            this.fileItem = fileItem;
-        }
-
-        @Override
-        public boolean isFormField() {
-            return fileItem.isFormField();
-        }
-
-        @Override
-        public String getFieldName() {
-            return fileItem.getFieldName();
-        }
-
-        @Override
-        public String getString() {
-            return fileItem.getString();
-        }
-
-        @Override
-        public InputStream getInputStream() throws IOException {
-            return fileItem.getInputStream();
-        }
-    }
-
-    static class HttpResponseImpl implements WebResponse {
-        private final CloseableHttpResponse response;
-
-        public HttpResponseImpl(CloseableHttpResponse response) {
-            this.response = response;
-        }
-
-        @Override
-        public InputStream getContents() {
-            return Optional.ofNullable(response.getEntity())
-                  .map(this::getContentsAsStream)
-                  .orElse(new EmptyInputStream());
-        }
-
-        private InputStream getContentsAsStream(HttpEntity entity) {
-            try {
-                return entity.getContent();
-            } catch (IOException e) {
-                throw new WebClientException("Unable to retrieve response contents");
-            }
-        }
-
-        @Override
-        public int getResponseCode() {
-            return response.getStatusLine().getStatusCode();
-        }
-
-        @Override
-        public Stream<String> getHeadersAsStream(String headerName) {
-            return Arrays.stream(response.getHeaders(headerName)).map(Header::getValue);
-        }
-
-        @Override
-        public void close() throws IOException {
-            response.close();
-        }
+    public WebResponse send(WebRequest request) throws IOException {
+      try {
+        Java11WebRequest webRequest = (Java11WebRequest) request;
+        return new Java11WebResponse(httpClient.send(webRequest.getRequest(), BodyHandlers.ofInputStream()));
+      } catch (ConnectException e) {
+        throw new RestPortConnectionException(request.getURI().toString());
+      } catch (InterruptedException e) {
+        throw new IOException(e);
+      }
     }
 
     @Override
-    HttpClientExec createClientExec() throws GeneralSecurityException {
-        return new ApacheHttpClient();
+    public void close() {
+    }
+  }
+
+  @Override
+  HttpClientExec createClientExec() {
+    return new Java11HttpClientExec();
+  }
+
+  @Override
+  public List<MultipartItem> parse(HttpServletRequest request) throws ServletException {
+    MultipartContentParser parser = new MultipartContentParser(request.getContentType());
+    try (BufferedReader br = createBodyReader(request)) {
+      br.lines().forEach(parser::process);
+    } catch (IOException e) {
+      throw new ServletException("Unable to parse request", e);
+    }
+    return parser.getItems();
+  }
+
+  protected BufferedReader createBodyReader(HttpServletRequest request) throws IOException {
+    return new BufferedReader(new InputStreamReader(request.getInputStream(), request.getCharacterEncoding()));
+  }
+
+  class Java11WebRequest implements WebRequest {
+
+    private final HttpRequest request;
+
+    Java11WebRequest(Function<HttpRequest.Builder, HttpRequest.Builder> requestType) {
+      final HttpRequest.Builder builder = HttpRequest.newBuilder().uri(URI.create(getUrl()));
+      defaultHeaders.forEach(h -> builder.header(h.name, h.value));
+      sessionHeaders.forEach(h -> builder.header(h.name, h.value));
+      request = requestType.apply(builder).build();
     }
 
-    class ApacheHttpClient implements HttpClientExec {
-        private final CloseableHttpClient client;
-        public ApacheHttpClient() throws GeneralSecurityException {
-            SelfSignedCertificateAcceptor acceptor = new SelfSignedCertificateAcceptor();
-            client = HttpClientBuilder.create()
-                  .setDefaultHeaders(getDefaultHeaders())
-                  .setSSLSocketFactory(acceptor.getSslConnectionSocketFactory())
-                  .setConnectionManager(acceptor.getConnectionManager())
-                  .build();
-        }
-
-        @Override
-        public WebResponse send(WebRequest request) throws IOException {
-            try {
-                return new HttpResponseImpl(client.execute((HttpUriRequest) request));
-            } catch (HttpHostConnectException e) {
-                throw new RestPortConnectionException(e.getHost().toURI());
-            }
-        }
-
-        @Override
-        public void close() throws IOException {
-            client.close();
-        }
+    HttpRequest getRequest() {
+      return request;
     }
 
     @Override
-    void clearSessionHeaders() {
-        sessionHeaders.clear();
+    public String getMethod() {
+      return request.method();
     }
 
     @Override
-    void putSessionHeader(String key, String value) {
-        sessionHeaders.add(new BasicHeader(key, value));
+    public URI getURI() {
+      return request.uri();
+    }
+  }
+
+  static class Java11WebResponse implements WebResponse {
+
+    private final HttpResponse<InputStream> httpResponse;
+
+    Java11WebResponse(HttpResponse<InputStream> httpResponse) {
+      this.httpResponse = httpResponse;
     }
 
-
-    private Collection<? extends Header> getDefaultHeaders() {
-        List<Header> headers = new ArrayList<>(addedHeaders);
-        headers.addAll(sessionHeaders);
-        return headers;
+    @Override
+    public InputStream getContents() {
+      return httpResponse.body();
     }
 
-    static class SelfSignedCertificateAcceptor {
-        private final SSLConnectionSocketFactory sslConnectionSocketFactory;
-        private final Registry<ConnectionSocketFactory> socketFactoryRegistry;
-
-        SelfSignedCertificateAcceptor() throws GeneralSecurityException {
-            sslConnectionSocketFactory = createSSLConnectionSocketFactory();
-            socketFactoryRegistry = createSocketFactoryRegistry();
-        }
-
-        BasicHttpClientConnectionManager getConnectionManager() {
-            return new BasicHttpClientConnectionManager(socketFactoryRegistry);
-        }
-
-        SSLConnectionSocketFactory getSslConnectionSocketFactory() {
-            return sslConnectionSocketFactory;
-        }
-
-        private SSLConnectionSocketFactory createSSLConnectionSocketFactory() throws GeneralSecurityException {
-            return new SSLConnectionSocketFactory(createSSLContext(), NoopHostnameVerifier.INSTANCE);
-        }
-
-        private SSLContext createSSLContext() throws GeneralSecurityException {
-            return SSLContexts.custom()
-                .loadTrustMaterial(null, createAcceptingTrustStrategy())
-                .build();
-        }
-
-        private TrustStrategy createAcceptingTrustStrategy() {
-            return (cert, authType) -> true;
-        }
-
-        private Registry<ConnectionSocketFactory> createSocketFactoryRegistry() {
-            return RegistryBuilder.<ConnectionSocketFactory> create()
-                  .register("http", new PlainConnectionSocketFactory())
-                  .register("https", sslConnectionSocketFactory)
-                  .build();
-        }
-
+    @Override
+    public int getResponseCode() {
+      return httpResponse.statusCode();
     }
+
+    @Override
+    public Stream<String> getHeadersAsStream(String headerName) {
+      return httpResponse.headers().allValues(headerName).stream();
+    }
+
+    @Override
+    public void close() {
+    }
+  }
+
+  @Override
+  WebRequest createGetRequest(String url) {
+    return new Java11WebRequest(HttpRequest.Builder::GET);
+  }
+
+  @Override
+  WebRequest createPostRequest(String url, String postBody) {
+    return new Java11WebRequest(b -> b.POST(HttpRequest.BodyPublishers.ofString(postBody)));
+  }
+
+  @Override
+  WebRequest createPutRequest(String url, String putBody) {
+    return new Java11WebRequest(b -> b.PUT(HttpRequest.BodyPublishers.ofString(putBody)));
+  }
+
+  @Override
+  public void addHeader(String name, String value) {
+    defaultHeaders.add(new Header(name, value));
+  }
 }
