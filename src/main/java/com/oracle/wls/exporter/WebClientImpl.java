@@ -3,10 +3,8 @@
 
 package com.oracle.wls.exporter;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.ConnectException;
 import java.net.ProxySelector;
 import java.net.URI;
@@ -80,17 +78,7 @@ public class WebClientImpl extends WebClientCommon {
 
   @Override
   public List<MultipartItem> parse(HttpServletRequest request) throws ServletException {
-    MultipartContentParser parser = new MultipartContentParser(request.getContentType());
-    try (BufferedReader br = createBodyReader(request)) {
-      br.lines().forEach(parser::process);
-    } catch (IOException e) {
-      throw new ServletException("Unable to parse request", e);
-    }
-    return parser.getItems();
-  }
-
-  protected BufferedReader createBodyReader(HttpServletRequest request) throws IOException {
-    return new BufferedReader(new InputStreamReader(request.getInputStream(), request.getCharacterEncoding()));
+    return MultipartContentParser.parse(request);
   }
 
   class Java11WebRequest implements WebRequest {

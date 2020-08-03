@@ -8,13 +8,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
@@ -117,7 +127,7 @@ public class MultipartContentParserTest {
     return parser.getItems().stream().filter(i -> i.getFieldName().equals(name)).findFirst().orElse(null);
   }
 
-  private String readInputStream(InputStream is) throws IOException {
+  private String readInputStream(InputStream is) {
     return new BufferedReader(new InputStreamReader(is)).lines().collect(Collectors.joining(System.lineSeparator()));
   }
 
@@ -140,4 +150,86 @@ public class MultipartContentParserTest {
               "<!DOCTYPE html><title>Content of a.html.</title>\n" +
               "\n" +
               "--" + BOUNDARY + "--";
+
+
+
+
+  @Test(expected = ServletException.class)
+  public void whenMultipartRequestNotParseable_throwException() throws ServletException {
+      HttpServletRequest request = HttpServletRequestStub.createPostRequest();
+
+      MultipartContentParser.parse(request);
+  }
+
+  @Test
+  public void whenMultipartRequestContainsFormFields_allAreMarkedAsFormFields() throws IOException, ServletException {
+      HttpEntity httpEntity = MultipartEntityBuilder.create()
+            .setBoundary(BOUNDARY)
+            .addTextBody("field1", "value1")
+            .addTextBody("field2", "value2")
+            .build();
+
+      assertThat(toRequestStream(httpEntity).allMatch(MultipartItem::isFormField), is(true));
+  }
+
+  protected Stream<MultipartItem> toRequestStream(HttpEntity httpEntity) throws IOException, ServletException {
+      HttpServletRequest request = toPostRequest(httpEntity);
+      return MultipartContentParser.parse(request).stream();
+  }
+
+  protected static HttpServletRequest toPostRequest(HttpEntity httpEntity) throws IOException {
+      return HttpServletRequestStub.createPostRequest()
+            .withMultipartContent(MultipartTestUtils.asString(httpEntity), BOUNDARY);
+  }
+
+  @Test
+  public void whenMultipartRequestContainsFormFields_retrieveThem() throws IOException, ServletException {
+      HttpEntity httpEntity = MultipartEntityBuilder.create()
+            .setBoundary(BOUNDARY)
+            .addTextBody("field1", "value1")
+            .addTextBody("field2", "value2")
+            .build();
+
+      final Map<String, String> entries = toRequestStream(httpEntity)
+            .collect(Collectors.toMap(MultipartItem::getFieldName, MultipartItem::getString));
+
+      assertThat(entries, Matchers.allOf(hasEntry("field1", "value1"), hasEntry("field2", "value2")));
+  }
+
+  @Test
+  public void whenMultipartRequestContainsBinaryEntries_nonAreMarkedAsFormFields() throws IOException, ServletException {
+      HttpEntity httpEntity = MultipartEntityBuilder.create()
+            .setBoundary(BOUNDARY)
+            .addBinaryBody("file1", "value1".getBytes(), ContentType.DEFAULT_BINARY, "/path/to/file1.txt")
+            .addBinaryBody("file2", "value2".getBytes(), ContentType.DEFAULT_BINARY, "/path/to/file2.txt")
+            .build();
+
+      assertThat(toRequestStream(httpEntity).noneMatch(MultipartItem::isFormField), is(true));
+  }
+
+  @Test
+  public void whenMultipartRequestContainsBinaryEntries_retrieveThem() throws IOException, ServletException {
+      HttpEntity httpEntity = MultipartEntityBuilder.create()
+            .setBoundary(BOUNDARY)
+            .addBinaryBody("file1", "value1".getBytes(UTF_8), ContentType.DEFAULT_BINARY, "/path/to/file1.txt")
+            .addBinaryBody("file2", "value2".getBytes(UTF_8), ContentType.DEFAULT_BINARY, "/path/to/file2.txt")
+            .build();
+
+      final Map<String, String> entries = toRequestStream(httpEntity)
+            .collect(Collectors.toMap(MultipartItem::getFieldName, this::getInputStreamAsString));
+
+
+      assertThat(entries, Matchers.allOf(hasEntry("file1", "value1"), hasEntry("file2", "value2")));
+  }
+
+  private String getInputStreamAsString(MultipartItem item) {
+      try {
+          return new BufferedReader(
+            new InputStreamReader(item.getInputStream(), StandardCharsets.UTF_8))
+              .lines()
+              .collect(Collectors.joining("\n"));
+      } catch (IOException e) {
+          throw new RuntimeException(e);
+      }
+  }
 }

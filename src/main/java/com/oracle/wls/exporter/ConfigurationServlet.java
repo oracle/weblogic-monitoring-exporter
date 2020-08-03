@@ -49,7 +49,7 @@ public class ConfigurationServlet extends PassThroughAuthenticationServlet {
             authenticate(webClient.withUrl(getAuthenticationUrl()));
             if (!isMultipartContent(req)) throw new ServletException("Must be a multi-part request");
 
-            createPostAction(webClient, req).perform();
+            createPostAction(req).perform();
             reportUpdatedConfiguration(resp);
         } catch (RestPortConnectionException e) {
             reportFailure(e);
@@ -83,9 +83,9 @@ public class ConfigurationServlet extends PassThroughAuthenticationServlet {
         out.close();
     }
 
-    private PostAction createPostAction(WebClient webClient, HttpServletRequest request) throws IOException, ServletException {
+    private PostAction createPostAction(HttpServletRequest request) throws IOException, ServletException {
         PostAction postAction = new PostAction();
-        configure(postAction, webClient.parse(request));
+        configure(postAction, MultipartContentParser.parse(request));
         return postAction;
     }
 
