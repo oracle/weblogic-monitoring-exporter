@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright (c) 2020, Oracle Corporation and/or its affiliates.
+    Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>wls-exporter-parent</artifactId>
+        <groupId>com.oracle.wls.exporter</groupId>
+        <version>1.2.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>wls-exporter-war</artifactId>
+    <packaging>war</packaging>
+
+    <properties>
+        <configuration.directory>${project.build.directory}/configuration</configuration.directory>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>wls-exporter-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>fluent-hc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-fileupload</groupId>
+            <artifactId>commons-fileupload</artifactId>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>initial-configuration</id>
+            <activation>
+                <property>
+                    <name>configuration</name>
+                </property>
+            </activation>
+            <build>
+                <finalName>wls-exporter</finalName>
+                <plugins>
+                    <plugin>
+                        <groupId>${project.groupId}</groupId>
+                        <artifactId>build-helper-mojo</artifactId>
+                        <version>${project.version}</version>
+                        <executions>
+                            <execution>
+                                <id>copy-configuration</id>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
+                                <configuration>
+                                    <sourceFile>${configuration}</sourceFile>
+                                    <targetFile>${configuration.directory}/config.yml</targetFile>
+                                    <userDir>${project.parent.basedir}</userDir>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>copy-war-up</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
+                                <configuration>
+                                    <sourceFile>${project.build.directory}/wls-exporter.war</sourceFile>
+                                    <targetFile>${project.parent.build.directory}/wls-exporter.war</targetFile>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>
