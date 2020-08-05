@@ -1,5 +1,5 @@
 <!--
-    Copyright (c) 2019, Oracle Corporation and/or its affiliates. All rights reserved.
+    Copyright (c) 2019, 2020, Oracle Corporation and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -8,9 +8,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.oracle.wls.exporter</groupId>
-    <artifactId>wls-exporter</artifactId>
+    <artifactId>wls-exporter-parent</artifactId>
     <version>1.2.0-SNAPSHOT</version>
-    <packaging>war</packaging>
+    <modules>
+        <module>wls-exporter-core</module>
+        <module>build-helper-mojo</module>
+        <module>wls-exporter-war</module>
+    </modules>
+    <packaging>pom</packaging>
 
     <name>WebLogic Monitoring Exporter</name>
     <description>A Prometheus exporter that takes advantage of WebLogic Server-specific features.</description>
@@ -32,7 +37,7 @@
     </developers>
 
     <properties>
-        <configuration.directory>${project.build.directory}/configuration</configuration.directory>
+        <apache.http.version>4.5.3</apache.http.version>
     </properties>
 
     <build>
@@ -46,7 +51,7 @@
                         <warSourceDirectory>${configuration.directory}</warSourceDirectory>
                         <webResources>
                             <resource>
-                                <directory>${project.basedir}/src/main/notices</directory>
+                                <directory>${project.basedir}/../src/main/notices</directory>
                             </resource>
                         </webResources>
                     </configuration>
@@ -56,60 +61,91 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.6.1</version>
                     <configuration>
-                        <release>11</release>
+                        <source>1.8</source>
+                        <target>1.8</target>
                     </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
     </build>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>3.1.0</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${apache.http.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>fluent-hc</artifactId>
+                <version>${apache.http.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-fileupload</groupId>
+                <artifactId>commons-fileupload</artifactId>
+                <version>1.3.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>1.19</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>2.8.2</version>
+            </dependency>
+
+            <!-- override transitive dependency to avoid a vulnerability reported in 2.4 -->
+
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>2.6</version>
+            </dependency>
+
+            <!-- unit test dependencies -->
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>29.0-jre</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.jayway.jsonpath</groupId>
+                <artifactId>json-path</artifactId>
+                <version>2.3.0</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-nop</artifactId>
+                <version>1.6.0</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpmime</artifactId>
+                <version>${apache.http.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.httpunit</groupId>
+                <artifactId>httpunit</artifactId>
+                <version>1.7.2</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.3</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>fluent-hc</artifactId>
-            <version>4.5.3</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>commons-fileupload</groupId>
-            <artifactId>commons-fileupload</artifactId>
-            <version>1.3.3</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>1.19</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.8.2</version>
-        </dependency>
-
-        <!-- override transitive dependency to avoid a vulnerability reported in 2.4 -->
-
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.6</version>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- unit test dependencies -->
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -123,36 +159,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>29.0-jre</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.jayway.jsonpath</groupId>
-            <artifactId>json-path</artifactId>
-            <version>2.3.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-nop</artifactId>
-            <version>1.6.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpmime</artifactId>
-            <version>4.5.3</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.httpunit</groupId>
-            <artifactId>httpunit</artifactId>
-            <version>1.7.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>com.meterware.simplestub</groupId>
             <artifactId>simplestub</artifactId>
             <version>1.2.12</version>
@@ -162,35 +168,13 @@
 
     <profiles>
         <profile>
-            <id>initial-configuration</id>
+            <id>build-operator-exporter</id>
             <activation>
-                <property>
-                    <name>configuration</name>
-                </property>
+                <jdk>[11,)</jdk>
             </activation>
-            <build>
-                <finalName>wls-exporter</finalName>
-                <plugins>
-                    <plugin>
-                        <groupId>com.coderplus.maven.plugins</groupId>
-                        <artifactId>copy-rename-maven-plugin</artifactId>
-                        <version>1.0</version>
-                        <executions>
-                            <execution>
-                                <id>copy-configuration</id>
-                                <phase>generate-resources</phase>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <configuration>
-                                    <sourceFile>${configuration}</sourceFile>
-                                    <destinationFile>${configuration.directory}/config.yml</destinationFile>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
+            <modules>
+                <module>wls-operator-exporter</module>
+            </modules>
         </profile>
     </profiles>
 </project>
