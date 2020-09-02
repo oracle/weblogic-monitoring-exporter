@@ -73,11 +73,6 @@ public class WebClientImpl extends WebClientCommon {
         }
     }
 
-    @Override
-    public List<MultipartItem> parse(HttpServletRequest request) throws ServletException {
-        return doParse(request);
-    }
-
     static class HttpGetRequest extends HttpGet implements WebRequest {
         public HttpGetRequest(String uri) {
             super(uri);

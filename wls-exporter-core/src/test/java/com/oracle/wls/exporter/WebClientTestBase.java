@@ -338,7 +338,7 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
     }
 
     @Test(expected = RestPortConnectionException.class)
-    public void whenUnableToConnection_throwsException() throws IOException {
+    public void whenUnableToConnect_throwsException() throws IOException {
         testSupport.tearDownServer();
 
         for (int attempt = 0; attempt < 20; attempt++)

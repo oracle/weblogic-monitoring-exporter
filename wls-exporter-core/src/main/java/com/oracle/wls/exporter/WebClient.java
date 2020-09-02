@@ -4,9 +4,6 @@
 package com.oracle.wls.exporter;
 
 import java.io.IOException;
-import java.util.List;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -23,8 +20,6 @@ public interface WebClient {
    * @return this instance
    */
   WebClient withUrl(String url);
-
-  List<MultipartItem> parse(HttpServletRequest request) throws ServletException;
 
   /**
    * Sends a plain GET request to the defined URL without parameters

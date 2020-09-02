@@ -128,7 +128,9 @@ abstract class WebClientCommon implements WebClient {
     private String sendRequest(WebRequest request) throws IOException {
         try (HttpClientExec clientExec = createClientExec()) {
             return getReply(clientExec.send(request));
-        } catch (UnknownHostException | ConnectException | GeneralSecurityException e) {
+        } catch (UnknownHostException | ConnectException e) {
+            throw new RestPortConnectionException(request.getURI().toString());
+        } catch (GeneralSecurityException e) {
             throw new WebClientException(e, "Unable to execute %s request to %s", request.getMethod(), request.getURI());
         }
     }
