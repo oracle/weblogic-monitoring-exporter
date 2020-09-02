@@ -13,8 +13,8 @@ import java.lang.reflect.InvocationTargetException;
  */
 public class WebClientFactoryImpl implements WebClientFactory {
 
-  static final String APACHE_BASED_CLIENT = "com.oracle.wls.exporter.WebClient11Impl";
-  static final String JDK_BASED_CLIENT = "com.oracle.wls.exporter.WebClientImpl";
+  static final String APACHE_BASED_CLIENT = "com.oracle.wls.exporter.WebClientImpl";
+  static final String JDK_BASED_CLIENT = "com.oracle.wls.exporter.WebClientImpl8";
   static final String[] CLIENT_CLASS_NAMES = {APACHE_BASED_CLIENT, JDK_BASED_CLIENT};
 
   static Constructor<? extends WebClient> clientConstructor;

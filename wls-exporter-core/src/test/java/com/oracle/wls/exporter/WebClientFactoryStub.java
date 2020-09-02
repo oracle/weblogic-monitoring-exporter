@@ -9,8 +9,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
 
 import com.google.gson.Gson;
 
@@ -187,10 +185,6 @@ class WebClientFactoryStub implements WebClientFactory {
             return setCookieHeader;
         }
 
-        @Override
-        public List<MultipartItem> parse(HttpServletRequest request) throws ServletException {
-            return MultipartContentParser.parse(request);
-        }
     }
 
     interface TestResponse {
