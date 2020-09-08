@@ -16,16 +16,11 @@ import java.util.stream.Stream;
 import javax.servlet.http.HttpServletResponse;
 
 import static com.oracle.wls.exporter.ServletConstants.AUTHENTICATION_HEADER;
+import static com.oracle.wls.exporter.ServletConstants.CONTENT_TYPE_HEADER;
 import static com.oracle.wls.exporter.ServletConstants.COOKIE_HEADER;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_GATEWAY;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_GATEWAY_TIMEOUT;
-import static javax.servlet.http.HttpServletResponse.SC_HTTP_VERSION_NOT_SUPPORTED;
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_IMPLEMENTED;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
-import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 /**
@@ -39,6 +34,7 @@ abstract class WebClientCommon implements WebClient {
     private String authentication;
     private String sessionCookie;
     private boolean retryNeeded;
+    private String contentType;
     private String url;
 
     interface WebRequest {
@@ -102,6 +98,14 @@ abstract class WebClientCommon implements WebClient {
      */
     abstract WebRequest createPutRequest(String url, String putBody);
 
+    protected String getContentType() {
+        return contentType;
+    }
+
+    protected void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
     final String getUrl() {
         return url;
     }
@@ -114,6 +118,7 @@ abstract class WebClientCommon implements WebClient {
 
     @Override
     public String doPostRequest(String postBody) throws IOException {
+        if (contentType == null) contentType = APPLICATION_JSON;
         defineSessionHeaders();
         return sendRequest(createPostRequest(url, postBody));
     }
@@ -148,19 +153,15 @@ abstract class WebClientCommon implements WebClient {
                 throw createAuthenticationChallengeException(response);
             case SC_FORBIDDEN:
                 throw new ForbiddenException();
-            case SC_INTERNAL_SERVER_ERROR:
-            case SC_NOT_IMPLEMENTED:
-            case SC_BAD_GATEWAY:
-            case SC_SERVICE_UNAVAILABLE:
-            case SC_GATEWAY_TIMEOUT:
-            case SC_HTTP_VERSION_NOT_SUPPORTED:
-                throw new ServerErrorException(response.getResponseCode());
             case SC_OK:
                 String setCookieHeader = extractSessionSetCookieHeader(response);
                 if (setCookieHeader != null) {
                     this.setCookieHeader = setCookieHeader;
                     setSessionCookie(extractSessionCookie(setCookieHeader));
                 }
+            default:
+                if (response.getResponseCode() > SC_BAD_REQUEST)
+                    throw new ServerErrorException(response.getResponseCode());
         }
     }
 
@@ -180,6 +181,7 @@ abstract class WebClientCommon implements WebClient {
         clearSessionHeaders();
         if (getAuthentication() != null) putSessionHeader(AUTHENTICATION_HEADER, getAuthentication());
         if (getSessionCookie() != null) putSessionHeader(COOKIE_HEADER, getSessionCookie());
+        if (getContentType() != null) putSessionHeader(CONTENT_TYPE_HEADER, getContentType());
     }
 
     private AuthenticationChallengeException createAuthenticationChallengeException(WebResponse response) {

@@ -14,6 +14,9 @@ import javax.servlet.http.HttpServletResponse;
  */
 public interface WebClient {
 
+  String APPLICATION_JSON = "application/json; charset=UTF-8";
+  String X_REQUESTED_BY_HEADER = "X-Requested-By";
+
   /**
    * Sets the url to which this client will send requests.
    * @param url a URL for requests

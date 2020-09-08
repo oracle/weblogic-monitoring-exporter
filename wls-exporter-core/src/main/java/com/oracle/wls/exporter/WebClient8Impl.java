@@ -135,7 +135,7 @@ public class WebClient8Impl extends WebClientCommon {
       try {
         return connection.getInputStream();
       } catch (IOException e) {
-        throw new RestPortConnectionException(request.getURI().toString());
+        return new EmptyInputStream();
       }
     }
 

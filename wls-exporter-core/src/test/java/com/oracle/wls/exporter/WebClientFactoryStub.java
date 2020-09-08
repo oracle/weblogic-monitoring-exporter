@@ -84,6 +84,7 @@ class WebClientFactoryStub implements WebClientFactory {
     }
 
     static abstract class WebClientStub extends WebClientCommon {
+        private final String WLS_SEARCH_PATH = "/management/weblogic/latest/serverRuntime/search";
 
         private String url;
         private String jsonQuery;
@@ -158,6 +159,7 @@ class WebClientFactoryStub implements WebClientFactory {
         @Override
         public String doGetRequest() {
             if (url == null) throw new NullPointerException("No URL specified");
+            if (url.contains(WLS_SEARCH_PATH)) throw new AssertionError("GET to search paths is not supported");
 
             return getResult(getNextResponse());
         }

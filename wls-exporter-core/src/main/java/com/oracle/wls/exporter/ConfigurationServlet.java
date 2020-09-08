@@ -61,7 +61,7 @@ public class ConfigurationServlet extends PassThroughAuthenticationServlet {
 
     // Authenticates by attempting to send a request to the Management RESTful API.
     private void authenticate(WebClient webClient) throws IOException {
-        webClient.doGetRequest();
+        webClient.doPostRequest("{ 'links':[], 'fields':[], 'children':{} }".replace("'", "\""));
     }
 
     private boolean isMultipartContent(HttpServletRequest request) {

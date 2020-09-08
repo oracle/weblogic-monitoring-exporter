@@ -5,6 +5,7 @@ package com.oracle.wls.exporter;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.function.Function;
 
 /**
  * The production implementation of the web client factory interface.
@@ -14,20 +15,21 @@ import java.lang.reflect.InvocationTargetException;
 public class WebClientFactoryImpl implements WebClientFactory {
 
   static final String APACHE_BASED_CLIENT = "com.oracle.wls.exporter.WebClientImpl";
-  static final String JDK_BASED_CLIENT = "com.oracle.wls.exporter.WebClientImpl8";
+  static final String JDK_BASED_CLIENT = "com.oracle.wls.exporter.WebClient8Impl";
   static final String[] CLIENT_CLASS_NAMES = {APACHE_BASED_CLIENT, JDK_BASED_CLIENT};
 
   static Constructor<? extends WebClient> clientConstructor;
+  static Function<String,Class<? extends WebClient>> loadClientClass = WebClientFactoryImpl::getClientClass;
 
   static {
     clientConstructor = getClientConstructor();
   }
 
-  private static Constructor<? extends WebClient> getClientConstructor() {
+  static Constructor<? extends WebClient> getClientConstructor() {
     for (String className : CLIENT_CLASS_NAMES) {
       try {
         return getClientConstructor(className);
-      } catch (ClassNotFoundException | NoSuchMethodException ignored) {
+      } catch (NoClassDefFoundError | NoSuchMethodException ignored) {
       }
     }
     
@@ -35,13 +37,17 @@ public class WebClientFactoryImpl implements WebClientFactory {
   }
 
   private static Constructor<? extends WebClient> getClientConstructor(String clientClassName)
-        throws ClassNotFoundException, NoSuchMethodException {
-    return getClientClass(clientClassName).getDeclaredConstructor();
+        throws NoSuchMethodException {
+    return loadClientClass.apply(clientClassName).getDeclaredConstructor();
   }
 
   @SuppressWarnings("unchecked")
-  private static Class<? extends WebClient> getClientClass(String clientClassName) throws ClassNotFoundException {
-    return (Class<? extends WebClient>) Class.forName(clientClassName);
+  private static Class<? extends WebClient> getClientClass(String clientClassName) {
+    try {
+      return (Class<? extends WebClient>) Class.forName(clientClassName);
+    } catch (ClassNotFoundException e) {
+      throw new NoClassDefFoundError(e.getMessage());
+    }
   }
 
   private static String getClientClassName() {

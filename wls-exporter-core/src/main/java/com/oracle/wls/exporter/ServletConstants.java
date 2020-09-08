@@ -28,6 +28,9 @@ public interface ServletConstants {
     /** The header used by a web client to send its authentication credentials. **/
     String AUTHENTICATION_HEADER = "Authorization";
 
+    /** The header used by a web client to specify the content type of its data. **/
+    String CONTENT_TYPE_HEADER = "Content-Type";
+
     /** The header used by a web client to send cookies as part of a request. */
     String COOKIE_HEADER = "Cookie";
 
