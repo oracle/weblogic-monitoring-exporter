@@ -18,7 +18,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.oracle.wls.exporter.ServletConstants.AUTHENTICATION_HEADER;
+import static com.oracle.wls.exporter.ServletConstants.CONTENT_TYPE_HEADER;
 import static com.oracle.wls.exporter.ServletConstants.COOKIE_HEADER;
+import static com.oracle.wls.exporter.WebClient.X_REQUESTED_BY_HEADER;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_GATEWAY;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
@@ -30,6 +32,7 @@ import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
 
 /**
@@ -135,6 +138,36 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
         WebClient client = factory.get().withUrl(getHostPath() + "/checkHeader");
         client.addHeader("Added-header", "header_value");
         client.doPostRequest("abced");
+    }
+
+    @Test
+    public void whenPostCreated_defaultContentTypeIsJson() throws IOException {
+        defineResource("headers", new PseudoServlet() {
+            public WebResource getPostResponse() {
+                sentHeaders.put(CONTENT_TYPE_HEADER, getHeader(CONTENT_TYPE_HEADER));
+                return new WebResource("", "text/plain");
+            }
+        });
+
+        WebClient webClient = factory.get().withUrl(getHostPath() + "/headers");
+        webClient.doPostRequest("abced");
+
+        assertThat(sentHeaders, hasEntry(CONTENT_TYPE_HEADER, WebClient.APPLICATION_JSON));
+    }
+
+    @Test
+    public void whenPostCreated_includesXRequestedHeader() throws IOException {
+        defineResource("headers", new PseudoServlet() {
+            public WebResource getPostResponse() {
+                sentHeaders.put(X_REQUESTED_BY_HEADER, getHeader(X_REQUESTED_BY_HEADER));
+                return new WebResource("", "text/plain");
+            }
+        });
+
+        WebClient webClient = factory.get().withUrl(getHostPath() + "/headers");
+        webClient.doPostRequest("abced");
+
+        assertThat(sentHeaders, hasKey(X_REQUESTED_BY_HEADER));
     }
 
     @Test
