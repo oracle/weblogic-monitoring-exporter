@@ -24,7 +24,7 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 /**
- * A client for sending http requests.
+ * A client for sending http requests.  Note that it does not do any cookie management or authentication by itself.
  *
  * @author Russell Gold
  */
@@ -52,6 +52,10 @@ abstract class WebClientCommon implements WebClient {
         WebResponse send(WebRequest request) throws IOException;
     }
 
+    /**
+     * Creates an instance for communications with a specific URL.
+     * @param url a URL for requests
+     */
     @Override
     public WebClientCommon withUrl(String url) {
         this.url = url;
@@ -100,10 +104,6 @@ abstract class WebClientCommon implements WebClient {
 
     protected String getContentType() {
         return contentType;
-    }
-
-    protected void setContentType(String contentType) {
-        this.contentType = contentType;
     }
 
     final String getUrl() {

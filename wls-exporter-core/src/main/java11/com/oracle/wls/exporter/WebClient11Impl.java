@@ -76,11 +76,6 @@ public class WebClient11Impl extends WebClientCommon {
     return new Java11HttpClientExec();
   }
 
-  @Override
-  public List<MultipartItem> parse(HttpServletRequest request) throws ServletException {
-    return MultipartContentParser.parse(request);
-  }
-
   class Java11WebRequest implements WebRequest {
 
     private final HttpRequest request;

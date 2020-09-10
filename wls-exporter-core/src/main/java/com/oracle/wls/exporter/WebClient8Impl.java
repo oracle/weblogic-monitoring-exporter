@@ -16,6 +16,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+/**
+ * A stripped-down web client that uses classes built into Java 1.8.
+ */
 public class WebClient8Impl extends WebClientCommon {
 
   static class Header {

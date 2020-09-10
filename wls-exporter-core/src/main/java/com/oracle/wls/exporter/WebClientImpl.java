@@ -11,16 +11,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.net.ssl.SSLContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -45,7 +38,9 @@ import org.apache.http.ssl.SSLContexts;
 import org.apache.http.ssl.TrustStrategy;
 
 /**
- * A production implementation of the web client interface that uses Apache HttpClient code.
+ * A production implementation of the web client interface that uses Apache HttpClient code. Since it is intended
+ * to invoke the WebLogic REST API from a web application on the same server, it does not do any enforcement
+ * of signed certificates when using https.
  *
  * @author Russell Gold
  */
@@ -62,15 +57,6 @@ public class WebClientImpl extends WebClientCommon {
     @Override
     protected HttpGetRequest createGetRequest(String url) {
         return new HttpGetRequest(url);
-    }
-
-    public static List<MultipartItem> doParse(HttpServletRequest request) throws ServletException {
-        try {
-            ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
-            return upload.parseRequest(request).stream().map(ApacheMultipartItem::new).collect(Collectors.toList());
-        } catch (FileUploadException e) {
-            throw new ServletException("unable to parse post body", e);
-        }
     }
 
     static class HttpGetRequest extends HttpGet implements WebRequest {
@@ -102,34 +88,6 @@ public class WebClientImpl extends WebClientCommon {
     static class HttpPutRequest extends HttpPut implements WebRequest {
         public HttpPutRequest(String uri) {
             super(uri);
-        }
-    }
-
-    static class ApacheMultipartItem implements MultipartItem {
-        private final FileItem fileItem;
-
-        ApacheMultipartItem(FileItem fileItem) {
-            this.fileItem = fileItem;
-        }
-
-        @Override
-        public boolean isFormField() {
-            return fileItem.isFormField();
-        }
-
-        @Override
-        public String getFieldName() {
-            return fileItem.getFieldName();
-        }
-
-        @Override
-        public String getString() {
-            return fileItem.getString();
-        }
-
-        @Override
-        public InputStream getInputStream() throws IOException {
-            return fileItem.getInputStream();
         }
     }
 
