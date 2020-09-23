@@ -252,5 +252,5 @@ data:
           target_label: webapp
 
         basic_auth:
-          username: <a username>
+          username: <a WebLogic username>
           password: <a password>

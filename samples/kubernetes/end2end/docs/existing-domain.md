@@ -11,7 +11,7 @@ First, get the wls-exporter WAR file following the [Downloading the release](htt
 After the wls-exporter is installed successfully, you can check the exported WebLogic runtime metrics from each server. See the detail guide [here](04-wls-domain.md#check-the-weblogic-runtime-metrics).
 
 ### Updating Prometheus Configuration
-Next, we need to configure Prometheus to scrape metrics from the WebLogic domain. The sample value Basically, we need to add a new job to `prometheus.yml`, the configuration file of the Prometheus server. The job is similar to what we added for `domain1` in [values.yaml](../prometheus/values.yaml#L59) of the Prometheus chart. As shown below, lines in red need to be updated properly.
+Next, we need to inform Prometheus server to scrape metric from the WebLogic domain. Basically, we need to add a new job to `prometheus.yml`, the configuration file of the Prometheus server. The job is similar to what we added for `domain1` in [values.yaml](../prometheus/values.yaml#L59) of the Prometheus chart. As shown below, lines in red need to be updated properly.
 
 ![job](images/prometheus-job.png)
 

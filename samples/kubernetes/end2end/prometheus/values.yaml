@@ -84,5 +84,5 @@ extraScrapeConfigs: |
         action: replace
         target_label: pod_name
       basic_auth:
-        username: <specify a user>
+        username: <specify a valid WebLogic user>
         password: <specify a password>
