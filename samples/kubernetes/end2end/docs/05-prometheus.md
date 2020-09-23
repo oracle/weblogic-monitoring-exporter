@@ -8,13 +8,16 @@ kubectl create ns monitoring
 Deploy the PV and PVC YAML files.
 ```
 kubectl apply -f prometheus/persistence.yaml
-kubectl apply -f prometheus/alert-persistence.yaml
-```
+kubectl apply -f prometheus/alert-persistence.yaml  
+``` 
+
+Edit the [Prometheus Helm chart](../prometheus/yaml.yaml)
+
 Install the Prometheus chart.
 ```
 helm install --wait --name prometheus --namespace monitoring --values  prometheus/values.yaml stable/prometheus
 ```
-Note that in the customized `values.yaml` file, we added a new job [wls-domain1](../prometheus/values.yaml#L59) to scrape data from the WebLogic domain created in the previous step.
+Note that in the customized[`values.yaml`](../prometheus/values.yaml#L59)file, we added a new job, `wls-domain1`, to scrape data from the WebLogic domain created in the previous step.
 
 ### Verification
 Wait until all the Prometheus pods are running and ready.

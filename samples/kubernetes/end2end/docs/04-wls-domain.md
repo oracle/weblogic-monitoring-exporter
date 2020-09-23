@@ -24,7 +24,7 @@ usage: ./build.sh domainName adminUser adminPwd mysqlUser mysqlPwd
 Build a domain image.
 ```
 cd demo-domains/domainBuilder
-./build.sh domain1 weblogic welcome1  wluser1 wlpwd123
+./build.sh domain1 <a weblogic admin user> <a weblogic admin password>  <a username> <a password>
 cd ../..
 ```
 A Docker image `domain1-image:1.0` will be created. Note that the database name is the same as the domain name.
@@ -37,8 +37,8 @@ The domain configuration is burned into the image. What's in the domain configur
 Create a secret for the WebLogic administrative credential.
 ```
 kubectl -n default create secret generic domain1-weblogic-credentials \
-      --from-literal=username=weblogic \
-      --from-literal=password=welcome1
+      --from-literal=username=<a weblogic admin user> \
+      --from-literal=password=a weblogic admin password>
 ```
 Deploy the domain resource. The resource is deployed to the `default` namespace.
 ```
@@ -92,11 +92,11 @@ curl   1/1     Running   5          1h
 ```
 Access the metrics of `managed-server-1`.
 ```
-kubectl exec curl -- curl http://weblogic:welcome1@domain1-managed-server-1:8001/wls-exporter/metrics
+kubectl exec curl -- curl http://<user name>:<password>@domain1-managed-server-1:8001/wls-exporter/metrics
 ```
 Access the metrics of `managed-server-2`.
 ```
-kubectl exec curl -- curl http://weblogic:welcome1@domain1-managed-server-2:8001/wls-exporter/metrics
+kubectl exec curl -- curl http://<user name>:<password>@domain1-managed-server-2:8001/wls-exporter/metrics
 ```
 > output
 ```

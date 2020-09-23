@@ -252,5 +252,5 @@ data:
           target_label: webapp
 
         basic_auth:
-          username: weblogic
-          password: welcome1
+          username: <a username>
+          password: <a password>
