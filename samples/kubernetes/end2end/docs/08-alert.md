@@ -1,5 +1,5 @@
 ## Firing Alerts
-In this step, we show you how to trigger alerts.
+This step shows you how to trigger alerts.
 
 ### Configuring Alerts
 When installing the Prometheus chart, we configure all the alerting-related settings in the customized [values.yaml](../prometheus/values.yaml) file.  
@@ -13,11 +13,11 @@ Access the Prometheus alerts page in your browser with the URL, `http://<HostIP>
 
 ![Alert Rule](./images/alert-rule.png)  
 
-Go to the Alertmanager web UI at the URL, `http://<HostIP>:32000`.
-- Check the configured rule and receiver at the URL, `http://<HostIP>:32000/#/status`. You'll see an Alertmanager configuration, as shown below.  
+Open the Alertmanager web UI at the URL, `http://<HostIP>:32000`.
+- Check the configured rule and receiver at the URL, `http://<HostIP>:32000/#/status`. You'll see an Alertmanager configuration, as follows.  
 
 ![Alert Manager Configuration](./images/alert-manager-config.png)  
-- Check the alert page at the URL, `http://<HostIP>:32000/#/alerts`. There is no received alert yet.
+- Check the alert page at `http://<HostIP>:32000/#/alerts`. There is no received alert yet.
 
 ### Triggering Alerts
 To trigger an alert, one WebLogic cluster must have only one Managed Server running.
@@ -42,12 +42,13 @@ Keep refreshing the Prometheus alerts page, `http://<HostIP>:30000/alerts`. An a
 ![Active Alert](./images/active-alert.png)
 
 ### Verification in Alertmanager
-Now let's check whether the Alertmanager has received the alert. View the Alertmanager's alert page at the URL, `http://<HostIP>:32000/#/alerts`. You should find one alert, as shown below.
+Now let's check whether the Alertmanager has received the alert. View the Alertmanager's alert page at `http://<HostIP>:32000/#/alerts`. You should find one alert, as shown below.
 
 ![Received Alert](./images/received-alert.png)
 
 ### Verification in Webhook Server
-After the Alertmanger receives the alert, it should send notifications to the configured receiver, the webhook. Let's check the output of the webhook server.  
+After the Alertmanger receives the alert, it should send notifications to the configured receiver, the webhook. Check the output of the webhook server.  
+
 Get the pod name of the webhook server.
 ```
 POD_NAME=$(kubectl -n webhook get pod -l app=webhook -o jsonpath="{.items[0].metadata.name}")
@@ -79,3 +80,5 @@ Webhook is serving at port 8080
 }
 ```
 One notification was received and logged by the webhook server.
+
+Next: [Cleanup](cleanup.md)

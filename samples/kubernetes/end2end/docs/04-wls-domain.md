@@ -1,10 +1,10 @@
 ## Running a WebLogic Domain
-The WebLogic Kubernetes Operator has detailed documentation about creating domains, including important considerations and different options to consider. For more information, see the [Manage Domains](https://oracle.github.io/weblogic-kubernetes-operator/userguide/managing-domains/) guide. To integrate with Prometheus, the only extra step needed is to install the `wls-exporter` web application to WebLogic servers/clusters.
+The WebLogic Server Kubernetes Operator has detailed documentation about creating domains, including important considerations and different options to consider. For more information, see [Manage WebLogic Domains](https://oracle.github.io/weblogic-kubernetes-operator/userguide/managing-domains/). To integrate with Prometheus, the only extra step needed is to install the `wls-exporter` web application to WebLogic Servers/clusters.
 
-In this task, we provide scripts that create a demonstration domain.
+In this step, we provide scripts that create a demonstration domain.
 
 ### Set Proxy Before Run
-In the scripts below, we use `wget` to download the WebLogic Deploy Tool archive from GitHub. If you are behind a proxy, you need to configure the proxy settings properly. One approach is to use proxy variables:
+In the following scripts, we use `wget` to download the WebLogic Deploy Tool archive from GitHub. If you are behind a proxy, you need to configure the proxy settings properly. One approach is to use proxy variables:
 ```
 export http_proxy=http://proxy_host:proxy_port
 export https_proxy=$http_proxy

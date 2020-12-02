@@ -1,5 +1,5 @@
 ## Setting up a Webhook
-Let's set up a simple webhook as the notification receiver. The webhook is written in [a Python script](../webhook/scripts/server.py) which simply logs all the received notifications. Typically, webhook receivers are often used to notify systems that Alertmanager doesn’t support directly.  
+We will set up a simple webhook as the notification receiver. The webhook is written as [a Python script](../webhook/scripts/server.py) which simply logs all the received notifications. Typically, webhook receivers are often used to notify systems that Alertmanager doesn’t support directly.  
 
 Build the webhook image.
 ```
