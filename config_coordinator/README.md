@@ -1,8 +1,8 @@
 WLS Prometheus Exporter Coordinator
 =====
 
-Each instance in a WLS cluster maintains the configuration for its
-Prometheus Exporter locally. The coordinator allows them to share
+Each instance in a WLS cluster maintains the configuration locally for its
+Prometheus Exporter. The coordinator allows them to share
 changes to the query configurations.
 
 The coordinator is a simple web server, listening on port 8999, which accepts two requests:

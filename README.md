@@ -8,8 +8,9 @@ It is deployed as a web application in a WebLogic Server (WLS) instance, version
 
 ## Downloading the release
 
-You can find all the releases on the [releases page](https://github.com/oracle/weblogic-monitoring-exporter/releases).  
-To download the web application `wls-exporter.war` and put your configuration file into the WAR, download the `getXXX.sh` script and then run:
+You can find all the releases on the [Releases page](https://github.com/oracle/weblogic-monitoring-exporter/releases).
+
+To download the web application `wls-exporter.war` and put your configuration file into the WAR, download the `getXXX.sh` script, which is provided with each release and also can be downloaded from the Releases page, and then run:
 
 ```
 bash getXXX.sh <your-config-file>
@@ -18,7 +19,7 @@ bash getXXX.sh <your-config-file>
 ## Building from source
 
 Use `mvn install` to build the web application. This will create `wls-exporter-<version>`, where _version_
-is the Maven-assigned version number; it is intended for release to Maven Central.
+is the Maven-assigned version number.
 
 Adding `-Dconfiguration=<some-config-file>` will insert the specified configuration as its default and remove
 the version number to simplify deployment to WebLogic Server.
