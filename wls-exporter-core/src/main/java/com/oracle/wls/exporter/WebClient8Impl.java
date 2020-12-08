@@ -5,6 +5,7 @@ package com.oracle.wls.exporter;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -22,8 +23,8 @@ import java.util.stream.Stream;
 public class WebClient8Impl extends WebClientCommon {
 
   static class Header {
-    private String name;
-    private String value;
+    private final String name;
+    private final String value;
 
     Header(String name, String value) {
       this.name = name;
@@ -116,18 +117,19 @@ public class WebClient8Impl extends WebClientCommon {
     public void completeRequest(HttpURLConnection connection) throws IOException {
       super.completeRequest(connection);
       connection.setDoOutput(true);
-      connection.getOutputStream().write(body.getBytes());
+      
+      try (final OutputStream outputStream = connection.getOutputStream()) {
+        outputStream.write(body.getBytes());
+      }
     }
   }
 
   static class Java8WebResponse implements WebResponse {
-    private final WebRequest request;
     private final HttpURLConnection connection;
     private final int responseCode;
     private final Map<String, List<String>> headerFields;
 
-    Java8WebResponse(WebRequest request, HttpURLConnection connection) throws IOException {
-      this.request = request;
+    Java8WebResponse(HttpURLConnection connection) throws IOException {
       this.connection = connection;
       responseCode = connection.getResponseCode();
       headerFields = connection.getHeaderFields();
@@ -153,7 +155,7 @@ public class WebClient8Impl extends WebClientCommon {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
 
     }
   }
@@ -164,7 +166,7 @@ public class WebClient8Impl extends WebClientCommon {
       HttpURLConnection connection = openConnection(request.getURI().toURL());
       ((Java8WebRequest) request).completeRequest(connection);
 
-      return new Java8WebResponse(request, connection);
+      return new Java8WebResponse(connection);
     }
 
     /**
@@ -186,7 +188,7 @@ public class WebClient8Impl extends WebClientCommon {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
 
     }
   }
