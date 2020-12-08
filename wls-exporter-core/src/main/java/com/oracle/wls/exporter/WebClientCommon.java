@@ -142,7 +142,9 @@ abstract class WebClientCommon implements WebClient {
 
     private String getReply(WebResponse response) throws IOException {
         processStatusCode(response);
-        return toString(response.getContents());
+        try (final InputStream contents = response.getContents()) {
+            return toString(contents);
+        }
     }
 
     private void processStatusCode(WebResponse response) {
