@@ -1,11 +1,11 @@
 ## Configuring the PV Path
-In this sample, we need to create four Persistent Volumes (PV) and Persistent Volume Claims (PVC) to store data for MySQL, Prometheus server, Prometheus Alertmanager, and Grafana. See the YAML files for the four PVs/PVCs.
-- [PV and PVC for MYSQL server](../mysql/persistence.yaml).
-- [PV and PVC for Prometheus server](../prometheus/persistence.yaml).
-- [PV and PVC for Prometheus Alertmanager](../prometheus/alert-persistence.yaml).
-- [PV and PVC for Grafana server](../grafana/persistence.yaml).
+In this sample, we need to create four Persistent Volumes (PV) and Persistent Volume Claims (PVC) to store data for MySQL, Prometheus server, Prometheus Alertmanager, and Grafana. See the following YAML files for the four PVs/PVCs:
+- [PV and PVC for MYSQL server](../mysql/persistence.yaml)
+- [PV and PVC for Prometheus server](../prometheus/persistence.yaml)
+- [PV and PVC for Prometheus Alertmanager](../prometheus/alert-persistence.yaml)
+- [PV and PVC for Grafana server](../grafana/persistence.yaml)
 
-> **Note**: To simplify the configuration, we use `hostPath` PV that can work only in a single-node Kubernetes cluster; therefore, it's for demonstration purposes only. In a production environment, you would need to use a more sophisticated PV type like NFS, iSCSI. For detailed information, see the Kubernetes [Types of Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#types-of-persistent-volumes) document.  
+> **Note**: To simplify the configuration, we use `hostPath` PV that works only in a single-node Kubernetes cluster; therefore, it's for demonstration purposes only. In a production environment, you would need to use a more sophisticated PV type like NFS, iSCSI. For detailed information, see the Kubernetes [Types of Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#types-of-persistent-volumes) document.  
 
 To simplify the configuration and management, the four PVs will share the same root path. Prepare a host folder as the root path of the PVs.
 
@@ -15,7 +15,7 @@ mkdir <someDIR>
 export PV_ROOT=<someDIR>
 ```
 
-Then use the following commands to auto-update the path values in the PV and PVC YAML files.
+Then use the following commands to auto-update the path values in the PV and PVC YAML files:
 
 ```
 sed -i 's@%PV_ROOT%@'"$PV_ROOT"'@' mysql/persistence.yaml

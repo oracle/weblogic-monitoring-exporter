@@ -1,10 +1,10 @@
 ## Cleanup
-Follow the steps below to clean up all the resources created in this sample.
+Follow these steps to clean up all the resources created in this sample.
 * [Delete Webhook](#delete-webhook)
 * [Delete Grafana](#delete-grafana)
 * [Delete Prometheus](#delete-prometheus)
 * [Delete the WebLogic Domain](#delete-the-wls-domain)
-* [Delete the WebLogic Kubernetes Operator](#delete-the-wls-kubernetes-operator)
+* [Delete the WebLogic Server Kubernetes Operator](#delete-the-wls-kubernetes-operator)
 * [Delete MYSQL Server](#delete-mysql-server)
 * [Delete Content in PV Folder](#delete-content-in-pv-folder)
 
@@ -78,7 +78,7 @@ kubectl get service -l weblogic.domainName=domain1
 No resources found.
 ```
 
-### Delete the WebLogic Kubernetes Operator
+### Delete the WebLogic Server Kubernetes Operator
 Wait until all the WebLogic domain-related resources are deleted before deleting the operator.
 
 Delete the operator chart.
@@ -113,7 +113,7 @@ kubectl delete  -f ./mysql/persistence.yaml
 ```
 
 ### Delete Content in PV Folder
-To get around file permission checking under this folder, we do the deletion in a Docker container with root privilege.
+To get around file permission checking under this folder, we perform the deletion in a Docker container with root privilege.
 ```
 docker run --rm -v $PV_ROOT:/tt -v $PWD/util:/util  nginx /util/clean-pv.sh
 ```

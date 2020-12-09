@@ -74,7 +74,7 @@ curl -v -H 'Content-Type: application/json' -H "Content-Type: application/json" 
 ### Verification
 Use the Grafana web UI to confirm that the resources were created successfully.
 
-Check the datasource.  
+Check the data source.  
 ![datasource](images/datasource.png)  
 
 Check the WebLogic dashboard.  
