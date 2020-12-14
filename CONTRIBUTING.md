@@ -27,5 +27,5 @@ included in Your Submissions. All Users, Oracle, and their
 sublicensees are responsible for any modifications they make to the
 Submissions of others.*
 
-Copyright 2017, 2019, Oracle Corporation and/or its affiliates. All rights reserved.
-Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
+Copyright 2017, 2019, Oracle and/or its affiliates.
+Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
