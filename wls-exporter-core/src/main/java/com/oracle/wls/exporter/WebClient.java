@@ -64,22 +64,6 @@ public interface WebClient {
   String getAuthentication();
 
   /**
-   * Sets the credential session cookie to be sent on each request
-   * @param sessionCookie the encoded cookie
-   */
-  void setSessionCookie(String sessionCookie);
-
-  /**
-   * Returns the credential session cookie defined for this web client.
-   */
-  String getSessionCookie();
-
-  /**
-   * Returns the value of the set-cookie header from the server, indicating that a session cookie should be cached.
-   */
-  String getSetCookieHeader();
-
-  /**
    * Populates the specified response with the response headers recorded in this web client,
    * sending them back to the external client. This is generally a web browser or Prometheus client.
    * @param resp the servlet response sent to the external client

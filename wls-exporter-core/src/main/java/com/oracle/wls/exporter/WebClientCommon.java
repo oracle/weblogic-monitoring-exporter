@@ -17,22 +17,18 @@ import javax.servlet.http.HttpServletResponse;
 
 import static com.oracle.wls.exporter.ServletConstants.AUTHENTICATION_HEADER;
 import static com.oracle.wls.exporter.ServletConstants.CONTENT_TYPE_HEADER;
-import static com.oracle.wls.exporter.ServletConstants.COOKIE_HEADER;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 /**
- * A client for sending http requests.  Note that it does not do any cookie management or authentication by itself.
+ * A client for sending http requests.  Note that it does not do any authentication by itself.
  *
  * @author Russell Gold
  */
 abstract class WebClientCommon implements WebClient {
 
-    private String setCookieHeader;
     private String authentication;
-    private String sessionCookie;
     private boolean retryNeeded;
     private String contentType;
     private String url;
@@ -64,7 +60,7 @@ abstract class WebClientCommon implements WebClient {
 
     /**
      * Session headers are those which are computed by the web client, and which change based on session information,
-     * such as authentic credentials and cookies. This method clears any currently defined.
+     * such as authentic credentials. This method clears any currently defined.
      */
     abstract void clearSessionHeaders();
 
@@ -104,10 +100,6 @@ abstract class WebClientCommon implements WebClient {
 
     protected String getContentType() {
         return contentType;
-    }
-
-    final String getUrl() {
-        return url;
     }
 
     @Override
@@ -155,12 +147,6 @@ abstract class WebClientCommon implements WebClient {
                 throw createAuthenticationChallengeException(response);
             case SC_FORBIDDEN:
                 throw new ForbiddenException();
-            case SC_OK:
-                String setCookieHeader = extractSessionSetCookieHeader(response);
-                if (setCookieHeader != null) {
-                    this.setCookieHeader = setCookieHeader;
-                    setSessionCookie(extractSessionCookie(setCookieHeader));
-                }
             default:
                 if (response.getResponseCode() > SC_BAD_REQUEST)
                     throw new ServerErrorException(response.getResponseCode());
@@ -182,7 +168,6 @@ abstract class WebClientCommon implements WebClient {
     final void defineSessionHeaders() {
         clearSessionHeaders();
         if (getAuthentication() != null) putSessionHeader(AUTHENTICATION_HEADER, getAuthentication());
-        if (getSessionCookie() != null) putSessionHeader(COOKIE_HEADER, getSessionCookie());
         if (getContentType() != null) putSessionHeader(CONTENT_TYPE_HEADER, getContentType());
     }
 
@@ -192,18 +177,6 @@ abstract class WebClientCommon implements WebClient {
 
     private String getAuthenticationHeader(WebResponse response) {
         return response.getHeadersAsStream("WWW-Authenticate").filter(Objects::nonNull).findFirst().orElse(null);
-    }
-
-    private String extractSessionSetCookieHeader(WebResponse response) {
-        return response.getHeadersAsStream("Set-Cookie").filter(this::isSessionCookie).findFirst().orElse(null);
-    }
-
-    private boolean isSessionCookie(String headerValue) {
-        return ExporterSession.getSessionCookie(headerValue) != null;
-    }
-
-    String extractSessionCookie(String setCookieHeaderValue) {
-        return ExporterSession.getSessionCookie(setCookieHeaderValue);
     }
 
     static class EmptyInputStream extends InputStream {
@@ -232,43 +205,11 @@ abstract class WebClientCommon implements WebClient {
     }
 
     /**
-     * Defines the fixed session cookie to be used by the client.
-     * @param sessionCookie a cookie representing the session on the REST API
-     */
-    @Override
-    public void setSessionCookie(String sessionCookie) {
-        this.sessionCookie = sessionCookie;
-    }
-
-    /**
-     * Returns the cookie representing the session on the REST API
-     * @return a string consisting of the name and value of a session cookie
-     */
-    @Override
-    public String getSessionCookie() {
-        return sessionCookie;
-    }
-
-    @Override
-    public String getSetCookieHeader() {
-        return setCookieHeader;
-    }
-
-    /**
      * Adds relevant headers to the response for the client
      * @param resp the response returned to the client
      */
     @Override
     public void forwardResponseHeaders(HttpServletResponse resp) {
-        if (getSetCookieHeader() != null) {
-            resp.setHeader("Set-Cookie", getSetCookieHeader());
-            cacheSessionCookie();
-        }
-    }
-
-    // Records the session information for future REST requests
-    private void cacheSessionCookie() {
-        ExporterSession.cacheSession(authentication, getSessionCookie());
     }
 
     /**
