@@ -26,7 +26,6 @@ import static com.oracle.wls.exporter.HttpServletRequestStub.createGetRequest;
 import static com.oracle.wls.exporter.HttpServletResponseStub.createServletResponse;
 import static com.oracle.wls.exporter.InMemoryFileSystem.withNoParams;
 import static com.oracle.wls.exporter.ServletConstants.AUTHENTICATION_HEADER;
-import static com.oracle.wls.exporter.ServletConstants.COOKIE_HEADER;
 import static com.oracle.wls.exporter.domain.JsonPathMatcher.hasJsonPath;
 import static com.oracle.wls.exporter.matchers.CommentsOnlyMatcher.containsOnlyComments;
 import static com.oracle.wls.exporter.matchers.MetricsNamesSnakeCaseMatcher.usesSnakeCase;
@@ -75,7 +74,6 @@ public class ExporterServletTest {
         InMemoryFileSystem.install();
         ConfigurationUpdaterStub.install();
         LiveConfiguration.loadFromString("");
-        ExporterSession.cacheSession(null, null);
         MessagesServlet.clear();
         UrlBuilder.clearHistory();
     }
@@ -205,70 +203,13 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void whenServerSendsSetCookieHeader_returnToClient() throws Exception {
-        final String SET_COOKIE_HEADER = "ACookie=AValue; Secure";
-
-        factory.setSetCookieResponseHeader(SET_COOKIE_HEADER);
-        factory.addJsonResponse(getGroupResponseMap());
-        initServlet(TWO_VALUE_CONFIG);
-
-        servlet.doGet(request, response);
-
-        assertThat(response, containsHeader("Set-Cookie", SET_COOKIE_HEADER));
-    }
-
-    @Test
     public void whenClientSendsAuthenticationHeader_passToServer() throws Exception {
         initServlet(ONE_VALUE_CONFIG);
 
         request.setHeader(AUTHENTICATION_HEADER, "auth-credentials");
-        request.setHeader(COOKIE_HEADER, "a=2; JSESSIONID=abc#$");
         servlet.doGet(request, response);
 
         assertThat(factory.getSentAuthentication(), equalTo("auth-credentials"));
-    }
-
-    @Test
-    public void whenClientSendsAuthenticationMatchingSession_passSessionToServer() throws Exception {
-        final String SESSION_COOKIE = ExporterSession.SESSION_COOKIE_PREFIX + "abcdef";
-        ExporterSession.cacheSession("auth-credentials", SESSION_COOKIE);
-        initServlet(ONE_VALUE_CONFIG);
-
-        request.setHeader(AUTHENTICATION_HEADER, "auth-credentials");
-        request.setHeader(COOKIE_HEADER, "a=2; b=abc#$");
-        servlet.doGet(request, response);
-
-        assertThat(factory.getSentSessionCookie(), equalTo(SESSION_COOKIE));
-    }
-
-    @Test
-    public void whenServerSendsSetCookieHeader_establishExporterSession() throws Exception {
-        final String SESSION_COOKIE = ExporterSession.SESSION_COOKIE_PREFIX + "abc@345";
-        final String CREDENTIALS = "auth-credentials";
-
-        request.setHeader(AUTHENTICATION_HEADER, CREDENTIALS);
-        factory.setSetCookieResponseHeader(SESSION_COOKIE);
-        factory.addJsonResponse(getGroupResponseMap());
-        initServlet(TWO_VALUE_CONFIG);
-
-        servlet.doGet(request, response);
-
-        assertThat(ExporterSession.getSessionCookie(), equalTo(SESSION_COOKIE));
-        assertThat(ExporterSession.getAuthentication(), equalTo(CREDENTIALS));
-    }
-
-    // todo whenAuthorization header and already have matching session cookie, pass to web client
-    // todo consecutive requests for same auth header use same session cookie
-
-    @Test
-    public void whenClientSendsCookieHeaderOnGet_passToServer() throws Exception {
-        final String SESSION_COOKIE = ExporterSession.SESSION_COOKIE_PREFIX + "with-chocolate-chips";
-        initServlet(ONE_VALUE_CONFIG);
-
-        request.setHeader("Cookie", SESSION_COOKIE);
-        servlet.doGet(request, response);
-
-        assertThat(factory.getSentSessionCookie(), equalTo(SESSION_COOKIE));
     }
 
     @Test

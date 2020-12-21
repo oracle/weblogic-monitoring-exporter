@@ -32,11 +32,6 @@ class WebClientFactoryStub implements WebClientFactory {
     }
 
 
-    void setSetCookieResponseHeader(String setCookieHeader) {
-        webClient.setCookieHeader = setCookieHeader;
-    }
-
-
     String getSentQuery() {
         return webClient.jsonQuery;
     }
@@ -51,10 +46,6 @@ class WebClientFactoryStub implements WebClientFactory {
 
     String getSentAuthentication() {
         return webClient.getAuthentication();
-    }
-
-    String getSentSessionCookie() {
-        return webClient.getSessionCookie();
     }
 
     String getClientUrl() {
@@ -84,11 +75,10 @@ class WebClientFactoryStub implements WebClientFactory {
     }
 
     static abstract class WebClientStub extends WebClientCommon {
-        private final String WLS_SEARCH_PATH = "/management/weblogic/latest/serverRuntime/search";
+        private final static String WLS_SEARCH_PATH = "/management/weblogic/latest/serverRuntime/search";
 
         private String url;
         private String jsonQuery;
-        private String setCookieHeader;
         private final List<TestResponse> testResponses = new ArrayList<>();
         private Iterator<TestResponse> responses;
         private final Map<String, String> addedHeaders = new HashMap<>();
@@ -150,8 +140,6 @@ class WebClientFactoryStub implements WebClientFactory {
             if (url == null) throw new NullPointerException("No URL specified");
             sentHeaders = Collections.unmodifiableMap(addedHeaders);
             this.jsonQuery = postBody;
-            if (setCookieHeader != null)
-                setSessionCookie(extractSessionCookie(setCookieHeader));
 
             return getResult(getNextResponse());
         }
@@ -180,11 +168,6 @@ class WebClientFactoryStub implements WebClientFactory {
         private String getResult(TestResponse response) {
             if (response.getException() != null) throw response.getException();
             return response.getJsonResponse();
-        }
-
-        @Override
-        public String getSetCookieHeader() {
-            return setCookieHeader;
         }
 
     }
