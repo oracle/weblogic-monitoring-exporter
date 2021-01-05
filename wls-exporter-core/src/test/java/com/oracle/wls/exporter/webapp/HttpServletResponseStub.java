@@ -1,7 +1,7 @@
 // Copyright (c) 2017, 2020, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-package com.oracle.wls.exporter;
+package com.oracle.wls.exporter.webapp;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -18,22 +18,22 @@ import static com.meterware.simplestub.Stub.createStrictStub;
 /**
  * @author Russell Gold
  */
-abstract class HttpServletResponseStub implements HttpServletResponse {
+public abstract class HttpServletResponseStub implements HttpServletResponse {
     private int status = SC_OK;
     private final ServletOutputStreamStub out = createStrictStub(ServletOutputStreamStub.class);
     private final Map<String,List<String>> headers = new HashMap<>();
     private boolean responseSent = false;
     private String redirectLocation;
 
-    static HttpServletResponseStub createServletResponse() {
+    public static HttpServletResponseStub createServletResponse() {
         return createStrictStub(HttpServletResponseStub.class);
     }
 
-    String getHtml() {
+    public String getHtml() {
         return out.html;
     }
 
-    String getRedirectLocation() {
+    public String getRedirectLocation() {
         return redirectLocation;
     }
 

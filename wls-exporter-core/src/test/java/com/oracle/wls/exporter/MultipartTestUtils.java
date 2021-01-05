@@ -7,11 +7,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
+import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 
-import static com.oracle.wls.exporter.HttpServletRequestStub.createPostRequest;
+import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.createPostRequest;
 
 public class MultipartTestUtils {
 

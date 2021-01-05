@@ -3,18 +3,21 @@
 
 package com.oracle.wls.exporter;
 
+import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 
 import com.oracle.wls.exporter.domain.ConfigurationException;
+import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
+import com.oracle.wls.exporter.webapp.HttpServletResponseStub;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.oracle.wls.exporter.HttpServletRequestStub.LOCAL_PORT;
-import static com.oracle.wls.exporter.HttpServletRequestStub.createPostRequest;
-import static com.oracle.wls.exporter.HttpServletResponseStub.createServletResponse;
+import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.LOCAL_PORT;
+import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.createPostRequest;
+import static com.oracle.wls.exporter.webapp.HttpServletResponseStub.createServletResponse;
 import static com.oracle.wls.exporter.MultipartTestUtils.createEncodedForm;
 import static com.oracle.wls.exporter.MultipartTestUtils.createUploadRequest;
 import static com.oracle.wls.exporter.ServletConstants.CONFIGURATION_PAGE;
@@ -150,8 +153,22 @@ public class ConfigurationServletTest {
     }
 
     private String createAuthenticationUrl() {
-        servlet.createWebClient(HttpServletRequestStub.createGetRequest());
-        return servlet.getAuthenticationUrl();
+        final InvocationContext invocationContext = new ServletInvocationContext(HttpServletRequestStub.createGetRequest(), response);
+        final AuthenticatedCall context = new AuthenticatedCallStub(factory, invocationContext);
+        context.createWebClient();
+        return context.getAuthenticationUrl();
+    }
+
+    static class AuthenticatedCallStub extends AuthenticatedCall {
+
+        AuthenticatedCallStub(WebClientFactory webClientFactory, InvocationContext context) {
+            super(webClientFactory, context);
+        }
+
+        @Override
+        protected void invoke(WebClient webClient, InvocationContext context) throws IOException {
+
+        }
     }
 
     @Test

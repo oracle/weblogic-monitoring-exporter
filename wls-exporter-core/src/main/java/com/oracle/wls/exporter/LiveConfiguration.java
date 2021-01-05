@@ -10,7 +10,6 @@ import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Optional;
 import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 
 import com.google.gson.JsonObject;
@@ -82,15 +81,6 @@ class LiveConfiguration {
      */
     static void setServer(HttpServletRequest req) {
         LiveConfiguration.setServer(req.getServerName(), req.getServerPort());
-    }
-
-    /**
-     * Creates a builder for URLs that can handle retries to alternative ports.
-     * @param request the active servlet request
-     * @return the new builder
-     */
-    static UrlBuilder createUrlBuilder(HttpServletRequest request) {
-        return new UrlBuilder(request, getConfiguredRestPort());
     }
 
     static Integer getConfiguredRestPort() {
@@ -181,10 +171,10 @@ class LiveConfiguration {
      * Other fields from the new configuration, including the query_spec, will be ignored.
      *
      * @param uploadedConfig an exporter configuration
-     * @throws ServletException if an error occurs while trying to perform the update.
+     * @throws RuntimeException if an error occurs while trying to perform the update.
      */
-    static void appendConfiguration(ExporterConfig uploadedConfig) throws ServletException {
-        if (uploadedConfig == null) throw new ServletException("No configuration specified");
+    static void appendConfiguration(ExporterConfig uploadedConfig) {
+        if (uploadedConfig == null) throw new RuntimeException("No configuration specified");
         getConfig().append(uploadedConfig);
         shareConfiguration();
     }
@@ -199,10 +189,10 @@ class LiveConfiguration {
      * Other fields from the new configuration, including the query_spec, will be ignored.
      *
      * @param uploadedConfig an exporter configuration
-     * @throws ServletException if an error occurs while trying to perform the update.
+     * @throws RuntimeException if an error occurs while trying to perform the update.
      */
-    static void replaceConfiguration(ExporterConfig uploadedConfig) throws ServletException {
-        if (uploadedConfig == null) throw new ServletException("No configuration specified");
+    static void replaceConfiguration(ExporterConfig uploadedConfig) {
+        if (uploadedConfig == null) throw new RuntimeException("No configuration specified");
         getConfig().replace(uploadedConfig);
         shareConfiguration();
     }

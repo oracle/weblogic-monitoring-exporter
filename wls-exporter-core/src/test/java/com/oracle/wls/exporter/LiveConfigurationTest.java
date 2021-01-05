@@ -8,12 +8,13 @@ import java.io.ByteArrayInputStream;
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
 import com.oracle.wls.exporter.domain.ExporterConfig;
+import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.oracle.wls.exporter.HttpServletRequestStub.HOST;
-import static com.oracle.wls.exporter.HttpServletRequestStub.PORT;
+import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.HOST;
+import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.PORT;
 import static com.oracle.wls.exporter.InMemoryFileSystem.withNoParams;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;

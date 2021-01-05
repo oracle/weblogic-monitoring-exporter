@@ -12,6 +12,8 @@ import javax.servlet.http.HttpServlet;
 
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
+import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
+import com.oracle.wls.exporter.webapp.HttpServletResponseStub;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

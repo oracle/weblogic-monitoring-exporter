@@ -1,8 +1,11 @@
 // Copyright (c) 2017, 2020, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-package com.oracle.wls.exporter;
+package com.oracle.wls.exporter.webapp;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -13,16 +16,18 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.meterware.simplestub.Stub;
+
 import static com.meterware.simplestub.Stub.createStrictStub;
 
 /**
  * @author Russell Gold
  */
 @SuppressWarnings("SameParameterValue")
-abstract class HttpServletRequestStub implements HttpServletRequest {
-    final static String HOST = "myhost";
-    final static int PORT = 7654;
-    final static int LOCAL_PORT = 7631;
+public abstract class HttpServletRequestStub implements HttpServletRequest {
+    public final static String HOST = "myhost";
+    public final static int PORT = 7654;
+    public final static int LOCAL_PORT = 7631;
 
     private final static String DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded";
     private final Map<String,String> headers = new HashMap<>();
@@ -37,20 +42,20 @@ abstract class HttpServletRequestStub implements HttpServletRequest {
     private String host = HOST;
     private int port = PORT;
 
-    static HttpServletRequestStub createGetRequest() {
+    public static HttpServletRequestStub createGetRequest() {
         return createStrictStub(HttpServletRequestStub.class, "GET");
     }
 
-    static HttpServletRequestStub createPostRequest() {
+    public static HttpServletRequestStub createPostRequest() {
         return createStrictStub(HttpServletRequestStub.class, "POST");
     }
 
-    HttpServletRequestStub withHost(String host) {
+    public HttpServletRequestStub withHost(String host) {
         this.host = host;
         return this;
     }
 
-    HttpServletRequestStub withPort(int port) {
+    public HttpServletRequestStub withPort(int port) {
         this.port = port;
         return this;
     }
@@ -59,25 +64,25 @@ abstract class HttpServletRequestStub implements HttpServletRequest {
         this.method = method;
     }
 
-    void setHeader(String headerName, String headerValue) {
+    public void setHeader(String headerName, String headerValue) {
         headers.put(headerName, headerValue);
     }
 
-    HttpServletRequestStub withMultipartContent(String contents, String boundary) {
+    public HttpServletRequestStub withMultipartContent(String contents, String boundary) {
         this.contentType = "multipart/form-data; boundary=" + boundary;
         this.contents = contents;
         return this;
     }
 
-    void setContextPath(String contextPath) {
+    public void setContextPath(String contextPath) {
         this.contextPath = contextPath;
     }
 
-    void setServletPath(String servletPath) {
+    public void setServletPath(String servletPath) {
         this.servletPath = servletPath;
     }
 
-    void setSecure(boolean secure) {
+    public void setSecure(boolean secure) {
         this.secure = secure;
     }
 
@@ -151,7 +156,7 @@ abstract class HttpServletRequestStub implements HttpServletRequest {
     @Override
     public ServletInputStream getInputStream() {
         if (inputStream == null)
-            inputStream = createStrictStub(ExporterServletTest.ServletInputStreamStub.class, contents);
+            inputStream = Stub.createStrictStub(ServletInputStreamStub.class, contents);
         return inputStream;
     }
 
@@ -167,7 +172,7 @@ abstract class HttpServletRequestStub implements HttpServletRequest {
         return secure;
     }
 
-    boolean hasInvalidatedSession() {
+    public boolean hasInvalidatedSession() {
         return session != null && !session.valid;
     }
 
@@ -177,6 +182,20 @@ abstract class HttpServletRequestStub implements HttpServletRequest {
         @Override
         public void invalidate() {
             valid = false;
+        }
+    }
+
+
+    abstract static class ServletInputStreamStub extends ServletInputStream {
+        private final InputStream inputStream;
+
+        public ServletInputStreamStub(String contents) {
+            inputStream = new ByteArrayInputStream(contents.getBytes());
+        }
+
+        @Override
+        public int read() throws IOException {
+            return inputStream.read();
         }
     }
 }

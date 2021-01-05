@@ -9,7 +9,6 @@ import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.util.Locale;
 import javax.management.MBeanServerConnection;
-import javax.servlet.http.HttpServletRequest;
 
 import com.sun.management.OperatingSystemMXBean;
 
@@ -22,32 +21,32 @@ import com.sun.management.OperatingSystemMXBean;
 class MetricsStream extends PrintStream {
     private static final double NANOSEC_PER_SECONDS = 1000000000;
 
-    private final HttpServletRequest request;
     private final PerformanceProbe performanceProbe;
     private final long startTime;
     private final long startCpu;
+    private final String instance;
 
     private int scrapeCount;
 
     /**
-     * Constructs a metrics stream object, installer a performance probe that access system data.
-     * @param request the request for the metrics
+     * Constructs a metrics stream object, installing a performance probe that access system data.
+     * @param instance the instance from which metrics are being collected
      * @param outputStream the parent output stream
      * @throws IOException if some error occurs while creating the performance probe
      */
-    MetricsStream(HttpServletRequest request, OutputStream outputStream) throws IOException {
-        this(request, outputStream, new PlatformPeformanceProbe());
+    MetricsStream(String instance, OutputStream outputStream) throws IOException {
+        this(instance, outputStream, new PlatformPeformanceProbe());
     }
 
     /**
      * A constructor for unit testing, allowing the specification of a test version of the performance probe.
-     * @param request the request for the metrics
+     * @param instance the instance from which metrics are being collected
      * @param outputStream the parent output stream
      * @param performanceProbe an object which can return performance data
      */
-    MetricsStream(HttpServletRequest request, OutputStream outputStream, PerformanceProbe performanceProbe) {
+    MetricsStream(String instance, OutputStream outputStream, PerformanceProbe performanceProbe) {
         super(outputStream);
-        this.request = request;
+        this.instance = instance;
         this.performanceProbe = performanceProbe;
         startTime = performanceProbe.getCurrentTime();
         startCpu = performanceProbe.getCurrentCpu();
@@ -81,7 +80,7 @@ class MetricsStream extends PrintStream {
      * @return a metrics qualifier string
      */
     private String getPerformanceQualifier() {
-        return String.format("{instance=\"%s:%d\"}", request.getServerName(), request.getServerPort());
+        return String.format("{instance=\"%s\"}", instance);
     }
 
     private String getCpuUsageName() {
