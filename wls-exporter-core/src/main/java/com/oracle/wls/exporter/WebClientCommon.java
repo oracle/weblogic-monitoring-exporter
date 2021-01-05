@@ -13,7 +13,6 @@ import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
 import java.util.Objects;
 import java.util.stream.Stream;
-import javax.servlet.http.HttpServletResponse;
 
 import static com.oracle.wls.exporter.ServletConstants.AUTHENTICATION_HEADER;
 import static com.oracle.wls.exporter.ServletConstants.CONTENT_TYPE_HEADER;
@@ -202,14 +201,6 @@ abstract class WebClientCommon implements WebClient {
     @Override
     public String getAuthentication() {
         return authentication;
-    }
-
-    /**
-     * Adds relevant headers to the response for the client
-     * @param resp the response returned to the client
-     */
-    @Override
-    public void forwardResponseHeaders(HttpServletResponse resp) {
     }
 
     /**

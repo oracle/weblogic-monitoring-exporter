@@ -1,7 +1,7 @@
 // Copyright (c) 2019, 2020, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-package com.oracle.wls.exporter;
+package com.oracle.wls.exporter.webapp;
 
 import java.io.IOException;
 import java.lang.reflect.Modifier;
@@ -9,13 +9,14 @@ import java.util.stream.IntStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 
+import com.oracle.wls.exporter.WlsRestExchanges;
 import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.oracle.wls.exporter.HttpServletRequestStub.createGetRequest;
-import static com.oracle.wls.exporter.HttpServletResponseStub.createServletResponse;
-import static com.oracle.wls.exporter.MessagesServlet.MAX_EXCHANGES;
+import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.createGetRequest;
+import static com.oracle.wls.exporter.webapp.HttpServletResponseStub.createServletResponse;
+import static com.oracle.wls.exporter.WlsRestExchanges.MAX_EXCHANGES;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.both;
 import static org.hamcrest.Matchers.contains;
@@ -35,7 +36,7 @@ public class MessagesServletTest {
 
     @Before
     public void setUp() {
-        MessagesServlet.clear();
+        WlsRestExchanges.clear();
     }
 
     @Test
@@ -62,20 +63,20 @@ public class MessagesServletTest {
 
     @Test
     public void afterExchangeAdded_retrieveExchange() {
-        MessagesServlet.addExchange(URL, "request 1", "response1");
+        WlsRestExchanges.addExchange(URL, "request 1", "response1");
 
-        assertThat(MessagesServlet.getMessages(), hasItem(both(containsString("request 1")).and(containsString("response1"))));
+      assertThat(WlsRestExchanges.getExchanges(), hasItem(both(containsString("request 1")).and(containsString("response1"))));
     }
 
     @Test
     public void afterMaximumExchangesAdded_retrieveAllExchanges() {
         IntStream.rangeClosed(1, MAX_EXCHANGES).forEach(this::addTestExchange);
 
-        assertThat(MessagesServlet.getMessages(), contains(getExchangeMatchers(1, MAX_EXCHANGES)));
+      assertThat(WlsRestExchanges.getExchanges(), contains(getExchangeMatchers(1, MAX_EXCHANGES)));
     }
 
     private void addTestExchange(int i) {
-        MessagesServlet.addExchange(URL, "request " + i, "response " + i);
+        WlsRestExchanges.addExchange(URL, "request " + i, "response " + i);
     }
 
     @SuppressWarnings("unchecked")
@@ -91,7 +92,7 @@ public class MessagesServletTest {
     public void afterMoreThanMaximumExchangesAdded_retrieveLastMExchanges() {
         IntStream.rangeClosed(1, MAX_EXCHANGES+EXCESS_EXCHANGES).forEach(this::addTestExchange);
 
-        assertThat(MessagesServlet.getMessages(), contains(getExchangeMatchers(EXCESS_EXCHANGES+1, MAX_EXCHANGES+EXCESS_EXCHANGES)));
+      assertThat(WlsRestExchanges.getExchanges(), contains(getExchangeMatchers(EXCESS_EXCHANGES+1, MAX_EXCHANGES+EXCESS_EXCHANGES)));
     }
 
     @Test

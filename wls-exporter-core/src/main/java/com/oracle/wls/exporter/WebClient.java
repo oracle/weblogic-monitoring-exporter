@@ -4,7 +4,6 @@
 package com.oracle.wls.exporter;
 
 import java.io.IOException;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * An interface for an object responsible for sending requests from exporter web application to
@@ -62,13 +61,6 @@ public interface WebClient {
    * Returns the user credentials defined for this web client.
    */
   String getAuthentication();
-
-  /**
-   * Populates the specified response with the response headers recorded in this web client,
-   * sending them back to the external client. This is generally a web browser or Prometheus client.
-   * @param resp the servlet response sent to the external client
-   */
-  void forwardResponseHeaders(HttpServletResponse resp);
 
   /**
    * Set a flag to indicate that a retry of the request will be needed. Typically this means that the previous

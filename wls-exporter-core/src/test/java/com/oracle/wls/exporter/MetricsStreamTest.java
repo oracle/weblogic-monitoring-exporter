@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
 import com.meterware.simplestub.SystemPropertySupport;
+import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +46,7 @@ public class MetricsStreamTest {
 
     private void initMetricsStream() {
         baos = new ByteArrayOutputStream();
-        metrics = new MetricsStream(postRequest, new PrintStream(baos), performanceProbe);
+        metrics = new MetricsStream("wlshost:7201", new PrintStream(baos), performanceProbe);
     }
 
     @After

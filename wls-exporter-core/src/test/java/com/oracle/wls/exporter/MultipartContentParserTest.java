@@ -4,6 +4,7 @@
 package com.oracle.wls.exporter;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -12,9 +13,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 
+import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -36,12 +37,12 @@ public class MultipartContentParserTest {
   private MultipartContentParser parser;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     parser = new MultipartContentParser("multipart/form-data; boundary=" + BOUNDARY);
   }
 
-  @Test(expected = ServletException.class)
-  public void whenContentTypeIsNotMultiForm_throwException() throws ServletException {
+  @Test(expected = RuntimeException.class)
+  public void whenContentTypeIsNotMultiForm_throwException() {
     new MultipartContentParser("text/plain");
   }
 
@@ -154,15 +155,15 @@ public class MultipartContentParserTest {
 
 
 
-  @Test(expected = ServletException.class)
-  public void whenMultipartRequestNotParseable_throwException() throws ServletException {
+  @Test(expected = RuntimeException.class)
+  public void whenMultipartRequestNotParseable_throwException() {
       HttpServletRequest request = HttpServletRequestStub.createPostRequest();
 
-      MultipartContentParser.parse(request);
+      MultipartContentParser.parse(request.getContentType(), new ByteArrayInputStream(new byte[0]));
   }
 
   @Test
-  public void whenMultipartRequestContainsFormFields_allAreMarkedAsFormFields() throws IOException, ServletException {
+  public void whenMultipartRequestContainsFormFields_allAreMarkedAsFormFields() throws IOException {
       HttpEntity httpEntity = MultipartEntityBuilder.create()
             .setBoundary(BOUNDARY)
             .addTextBody("field1", "value1")
@@ -172,9 +173,9 @@ public class MultipartContentParserTest {
       assertThat(toRequestStream(httpEntity).allMatch(MultipartItem::isFormField), is(true));
   }
 
-  protected Stream<MultipartItem> toRequestStream(HttpEntity httpEntity) throws IOException, ServletException {
+  protected Stream<MultipartItem> toRequestStream(HttpEntity httpEntity) throws IOException {
       HttpServletRequest request = toPostRequest(httpEntity);
-      return MultipartContentParser.parse(request).stream();
+      return MultipartContentParser.parse(request.getContentType(), request.getInputStream()).stream();
   }
 
   protected static HttpServletRequest toPostRequest(HttpEntity httpEntity) throws IOException {
@@ -183,7 +184,7 @@ public class MultipartContentParserTest {
   }
 
   @Test
-  public void whenMultipartRequestContainsFormFields_retrieveThem() throws IOException, ServletException {
+  public void whenMultipartRequestContainsFormFields_retrieveThem() throws IOException {
       HttpEntity httpEntity = MultipartEntityBuilder.create()
             .setBoundary(BOUNDARY)
             .addTextBody("field1", "value1")
@@ -197,7 +198,7 @@ public class MultipartContentParserTest {
   }
 
   @Test
-  public void whenMultipartRequestContainsBinaryEntries_nonAreMarkedAsFormFields() throws IOException, ServletException {
+  public void whenMultipartRequestContainsBinaryEntries_nonAreMarkedAsFormFields() throws IOException {
       HttpEntity httpEntity = MultipartEntityBuilder.create()
             .setBoundary(BOUNDARY)
             .addBinaryBody("file1", "value1".getBytes(), ContentType.DEFAULT_BINARY, "/path/to/file1.txt")
@@ -208,7 +209,7 @@ public class MultipartContentParserTest {
   }
 
   @Test
-  public void whenMultipartRequestContainsBinaryEntries_retrieveThem() throws IOException, ServletException {
+  public void whenMultipartRequestContainsBinaryEntries_retrieveThem() throws IOException {
       HttpEntity httpEntity = MultipartEntityBuilder.create()
             .setBoundary(BOUNDARY)
             .addBinaryBody("file1", "value1".getBytes(UTF_8), ContentType.DEFAULT_BINARY, "/path/to/file1.txt")

@@ -4,26 +4,22 @@
 package com.oracle.wls.exporter;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import javax.servlet.ServletException;
-import javax.servlet.ServletInputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 
 import com.google.common.collect.ImmutableMap;
+import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
+import com.oracle.wls.exporter.webapp.HttpServletResponseStub;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.oracle.wls.exporter.HttpServletRequestStub.LOCAL_PORT;
-import static com.oracle.wls.exporter.HttpServletRequestStub.createGetRequest;
-import static com.oracle.wls.exporter.HttpServletResponseStub.createServletResponse;
 import static com.oracle.wls.exporter.InMemoryFileSystem.withNoParams;
 import static com.oracle.wls.exporter.ServletConstants.AUTHENTICATION_HEADER;
 import static com.oracle.wls.exporter.domain.JsonPathMatcher.hasJsonPath;
@@ -31,6 +27,9 @@ import static com.oracle.wls.exporter.matchers.CommentsOnlyMatcher.containsOnlyC
 import static com.oracle.wls.exporter.matchers.MetricsNamesSnakeCaseMatcher.usesSnakeCase;
 import static com.oracle.wls.exporter.matchers.PrometheusMetricsMatcher.followsPrometheusRules;
 import static com.oracle.wls.exporter.matchers.ResponseHeaderMatcher.containsHeader;
+import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.LOCAL_PORT;
+import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.createGetRequest;
+import static com.oracle.wls.exporter.webapp.HttpServletResponseStub.createServletResponse;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.hamcrest.Matchers.allOf;
@@ -74,7 +73,7 @@ public class ExporterServletTest {
         InMemoryFileSystem.install();
         ConfigurationUpdaterStub.install();
         LiveConfiguration.loadFromString("");
-        MessagesServlet.clear();
+        WlsRestExchanges.clear();
         UrlBuilder.clearHistory();
     }
 
@@ -233,7 +232,7 @@ public class ExporterServletTest {
 
         servlet.doGet(request, response);
 
-        assertThat(MessagesServlet.getMessages(), not(empty()));
+      assertThat(WlsRestExchanges.getExchanges(), not(empty()));
     }
 
     @Test
@@ -401,19 +400,5 @@ public class ExporterServletTest {
     }
 
 
-
-
-    abstract static class ServletInputStreamStub extends ServletInputStream {
-        private final InputStream inputStream;
-
-        public ServletInputStreamStub(String contents) {
-            inputStream = new ByteArrayInputStream(contents.getBytes());
-        }
-
-        @Override
-        public int read() throws IOException {
-            return inputStream.read();
-        }
-    }
 
 }

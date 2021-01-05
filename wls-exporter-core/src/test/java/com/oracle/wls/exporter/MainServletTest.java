@@ -6,6 +6,8 @@ package com.oracle.wls.exporter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 
+import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
+import com.oracle.wls.exporter.webapp.HttpServletResponseStub;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

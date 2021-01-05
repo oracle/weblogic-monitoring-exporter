@@ -12,30 +12,24 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
 
 class MultipartContentParser implements ParserActions {
 
   private final String boundary;
   private ParserState state = ParserState.INITIAL;
   private MultipartItem currentItem;
-  private List<MultipartItem> items = new ArrayList<>();
+  private final List<MultipartItem> items = new ArrayList<>();
 
-  MultipartContentParser(String contentType) throws ServletException {
+  MultipartContentParser(String contentType) {
     Header type = new Header("Content-Type: " + contentType);
-    if (!type.getValue().toLowerCase().equals("multipart/form-data")) throw new ServletException("Not multipart");
+    if (!type.getValue().toLowerCase().equals("multipart/form-data")) throw new RuntimeException("Not multipart");
     this.boundary = type.getValue("boundary");
   }
 
-  static List<MultipartItem> parse(HttpServletRequest request) throws ServletException {
-    try {
-      final MultipartContentParser parser = new MultipartContentParser(request.getContentType());
-      new BufferedReader(new InputStreamReader(request.getInputStream())).lines().forEach(parser::process);
-      return parser.getItems();
-    } catch (IOException e) {
-      throw new ServletException("Unable to parse request", e);
-    }
+  static List<MultipartItem> parse(String contentType, InputStream inputStream) {
+    final MultipartContentParser parser = new MultipartContentParser(contentType);
+    new BufferedReader(new InputStreamReader(inputStream)).lines().forEach(parser::process);
+    return parser.getItems();
   }
 
   String getBoundary() {
