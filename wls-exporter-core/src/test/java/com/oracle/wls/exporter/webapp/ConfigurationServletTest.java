@@ -1,27 +1,32 @@
 // Copyright (c) 2017, 2020, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-package com.oracle.wls.exporter;
+package com.oracle.wls.exporter.webapp;
 
-import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 
+import com.oracle.wls.exporter.AuthenticatedCall;
+import com.oracle.wls.exporter.InvocationContext;
+import com.oracle.wls.exporter.LiveConfiguration;
+import com.oracle.wls.exporter.ServletInvocationContext;
+import com.oracle.wls.exporter.UrlBuilder;
+import com.oracle.wls.exporter.WebClient;
+import com.oracle.wls.exporter.WebClientFactory;
+import com.oracle.wls.exporter.WebClientFactoryStub;
 import com.oracle.wls.exporter.domain.ConfigurationException;
-import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
-import com.oracle.wls.exporter.webapp.HttpServletResponseStub;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.oracle.wls.exporter.MultipartTestUtils.createEncodedForm;
+import static com.oracle.wls.exporter.MultipartTestUtils.createUploadRequest;
+import static com.oracle.wls.exporter.WebAppConstants.CONFIGURATION_PAGE;
+import static com.oracle.wls.exporter.matchers.ResponseHeaderMatcher.containsHeader;
 import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.LOCAL_PORT;
 import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.createPostRequest;
 import static com.oracle.wls.exporter.webapp.HttpServletResponseStub.createServletResponse;
-import static com.oracle.wls.exporter.MultipartTestUtils.createEncodedForm;
-import static com.oracle.wls.exporter.MultipartTestUtils.createUploadRequest;
-import static com.oracle.wls.exporter.ServletConstants.CONFIGURATION_PAGE;
-import static com.oracle.wls.exporter.matchers.ResponseHeaderMatcher.containsHeader;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.hamcrest.Matchers.arrayContaining;
@@ -67,6 +72,7 @@ public class ConfigurationServletTest {
         assertThat(annotation.value(), arrayContaining("/" + CONFIGURATION_PAGE));
     }
 
+
     private static final String CONFIGURATION =
             "host: " + HttpServletRequestStub.HOST + "\n" +
             "port: " + HttpServletRequestStub.PORT + "\n" +
@@ -105,7 +111,6 @@ public class ConfigurationServletTest {
             "- people:\n" +
             "    key: name\n" +
             "    values: [age, sex]\n";
-
 
     @Test(expected = ServletException.class)
     public void whenPostWithoutFile_reportFailure() throws Exception {
@@ -166,7 +171,7 @@ public class ConfigurationServletTest {
         }
 
         @Override
-        protected void invoke(WebClient webClient, InvocationContext context) throws IOException {
+        protected void invoke(WebClient webClient, InvocationContext context) {
 
         }
     }

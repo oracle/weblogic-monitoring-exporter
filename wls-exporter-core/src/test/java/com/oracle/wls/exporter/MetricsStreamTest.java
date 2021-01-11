@@ -14,6 +14,7 @@ import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
 import com.meterware.simplestub.SystemPropertySupport;
 import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
+import com.oracle.wls.exporter.webapp.ServletUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,7 +40,7 @@ public class MetricsStreamTest {
     @Before
     public void setUp() throws NoSuchFieldException {
         initMetricsStream();
-        LiveConfiguration.setServer(postRequest);
+        ServletUtils.setServer(postRequest);
         mementos.add(SystemPropertySupport.preserve(LINE_SEPARATOR));
         mementos.add(StaticStubSupport.preserve(System.class, "lineSeparator"));
     }

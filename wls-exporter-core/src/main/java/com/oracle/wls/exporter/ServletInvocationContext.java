@@ -11,14 +11,22 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+/**
+ * An implementation for the InvocationContext for a servlet web application.
+ */
 public class ServletInvocationContext implements InvocationContext {
 
-  final HttpServletRequest request;
+  private final HttpServletRequest request;
   private final HttpServletResponse response;
 
   public ServletInvocationContext(HttpServletRequest request, HttpServletResponse response) {
     this.request = request;
     this.response = response;
+  }
+
+  @Override
+  public void close() {
+    Optional.ofNullable(request.getSession(false)).ifPresent(HttpSession::invalidate);
   }
 
   @Override
@@ -29,8 +37,13 @@ public class ServletInvocationContext implements InvocationContext {
   }
 
   @Override
-  public InputStream getRequestStream() throws IOException {
-      return request.getInputStream();
+  public String getApplicationContext() {
+    return request.getContextPath();
+  }
+
+  @Override
+  public String getAuthenticationHeader() {
+      return request.getHeader(WebAppConstants.AUTHENTICATION_HEADER);
   }
 
   @Override
@@ -44,8 +57,8 @@ public class ServletInvocationContext implements InvocationContext {
   }
 
   @Override
-  public String getAuthenticationHeader() {
-      return request.getHeader(ServletConstants.AUTHENTICATION_HEADER);
+  public InputStream getRequestStream() throws IOException {
+      return request.getInputStream();
   }
 
   @Override
@@ -54,13 +67,8 @@ public class ServletInvocationContext implements InvocationContext {
   }
 
   @Override
-  public String getApplicationContext() {
-    return request.getContextPath();
-  }
-
-  @Override
-  public void close() {
-    Optional.ofNullable(request.getSession(false)).ifPresent(HttpSession::invalidate);
+  public void sendError(int status, String msg) throws IOException {
+      response.sendError(status, msg);
   }
 
   @Override
@@ -69,22 +77,12 @@ public class ServletInvocationContext implements InvocationContext {
   }
 
   @Override
-  public void sendError(int status) throws IOException {
-      response.sendError(status);
-  }
-
-  @Override
-  public void sendError(int status, String msg) throws IOException {
-      response.sendError(status, msg);
+  public void setResponseHeader(String name, String value) {
+      response.setHeader(name, value);
   }
 
   @Override
   public void setStatus(int status) {
       response.setStatus(status);
-  }
-
-  @Override
-  public void setHeader(String name, String value) {
-      response.setHeader(name, value);
   }
 }

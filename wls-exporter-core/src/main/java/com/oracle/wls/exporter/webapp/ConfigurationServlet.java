@@ -1,7 +1,7 @@
 // Copyright (c) 2017, 2020, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-package com.oracle.wls.exporter;
+package com.oracle.wls.exporter.webapp;
 
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -10,15 +10,21 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.oracle.wls.exporter.CallFactory;
+import com.oracle.wls.exporter.ServletInvocationContext;
+import com.oracle.wls.exporter.WebAppConstants;
+import com.oracle.wls.exporter.WebClientFactory;
+import com.oracle.wls.exporter.WebClientFactoryImpl;
+
 /**
  * A servlet which handles updates to the exporter configuration.
  *
  * @author Russell Gold
  */
-@WebServlet(value = "/" + ServletConstants.CONFIGURATION_PAGE)
+@WebServlet(value = "/" + WebAppConstants.CONFIGURATION_PAGE)
 public class ConfigurationServlet extends HttpServlet {
 
-    private final WebClientFactory webClientFactory;
+    private final CallFactory callFactory;
 
     @SuppressWarnings("unused")  // production constructor
     public ConfigurationServlet() {
@@ -26,15 +32,14 @@ public class ConfigurationServlet extends HttpServlet {
     }
 
     ConfigurationServlet(WebClientFactory webClientFactory) {
-        this.webClientFactory = webClientFactory;
+        this.callFactory = new CallFactoryServletImpl(webClientFactory);
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
-            LiveConfiguration.setServer(request);
-            ConfigurationCall call = new ConfigurationCall(webClientFactory, new ServletInvocationContext(request, response));
-            call.doWithAuthentication();
+            ServletUtils.setServer(request);
+            callFactory.invokeConfigurationFormCall(new ServletInvocationContext(request, response));
         } catch (RuntimeException e) {
             throw new ServletException(e);
         }

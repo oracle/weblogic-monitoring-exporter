@@ -9,8 +9,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Optional;
-import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServletRequest;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -24,9 +22,7 @@ import org.yaml.snakeyaml.Yaml;
  *
  * @author Russell Gold
  */
-class LiveConfiguration {
-    /** The path to the configuration file within the web application. */
-    static final String CONFIG_YML = "/config.yml";
+public class LiveConfiguration {
 
     /** The address used to access WLS (cannot use the address found in the request due to potential server-side request forgery. */
     static final String WLS_HOST;
@@ -57,7 +53,7 @@ class LiveConfiguration {
     }
 
 
-    static void loadFromString(String yamlString) {
+    public static void loadFromString(String yamlString) {
         Map<String, Object> yamlConfig = new Yaml().load(yamlString);
 
         config = ExporterConfig.loadConfig(yamlConfig);
@@ -69,18 +65,9 @@ class LiveConfiguration {
      * @param serverName the name of the server
      * @param serverPort the port on which the server is listening
      */
-    static void setServer(String serverName, int serverPort) {
+    public static void setServer(String serverName, int serverPort) {
         LiveConfiguration.serverName = serverName;
         LiveConfiguration.serverPort = serverPort;
-    }
-
-    /**
-     * Specifies the server on which to contact the Management RESTful services.
-     *
-     * @param req the incoming request
-     */
-    static void setServer(HttpServletRequest req) {
-        LiveConfiguration.setServer(req.getServerName(), req.getServerPort());
     }
 
     static Integer getConfiguredRestPort() {
@@ -107,20 +94,13 @@ class LiveConfiguration {
      * Returns the accumulatedLoggedErrors
      * @return a string containing errors or the empty string;
      */
-    static String getErrors() {
+    public static String getErrors() {
         return errorLog.getErrors();
     }
 
-    /**
-     * Loads the initial configuration during servlet load. Will skip the initialization if the configuration
-     * has already been loaded from the config coordinator.
-     *
-     * @param servletConfig a standard servlet configuration which points to an exporter configuration
-     */
-    static void init(ServletConfig servletConfig) {
+    public static void initialize(InputStream configurationFile) {
         if (timestamp != null) return;
-        
-        InputStream configurationFile = getConfigurationFile(servletConfig);
+
         initialize(Optional.ofNullable(configurationFile)
                 .map(ExporterConfig::loadConfig)
                 .orElse(ExporterConfig.createEmptyConfig()));
@@ -139,15 +119,11 @@ class LiveConfiguration {
         updater = new ConfigurationUpdaterImpl(syncConfiguration, errorLog);
     }
 
-    private static InputStream getConfigurationFile(ServletConfig config) {
-        return config.getServletContext().getResourceAsStream(CONFIG_YML);
-    }
-
     /**
      * Returns a string representation of the current configuration, prepended with the server location.
      * @return a human readable representation of the configuration
      */
-    static String asString() {
+    public static String asString() {
         return "host: " + serverName + '\n' +
                "port: " + serverPort + '\n' + getConfig();
     }
@@ -163,7 +139,7 @@ class LiveConfiguration {
     }
 
     private static JsonObject toJsonObject(String response) {
-        return new JsonParser().parse(response).getAsJsonObject();
+        return JsonParser.parseString(response).getAsJsonObject();
     }
 
     /**
@@ -208,7 +184,7 @@ class LiveConfiguration {
     /**
      * If a newer shared configuration is available, update it now.
      */
-    static void updateConfiguration() {
+    public static void updateConfiguration() {
         if (timestamp == null) timestamp = 0L;
         if (updater.getLatestConfigurationTimestamp() > timestamp)
             installNewConfiguration(updater.getUpdate());

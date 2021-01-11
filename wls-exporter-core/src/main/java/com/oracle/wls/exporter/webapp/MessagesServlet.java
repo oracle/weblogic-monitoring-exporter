@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.oracle.wls.exporter.WlsRestExchanges;
 
-import static com.oracle.wls.exporter.ServletConstants.MESSAGES_PAGE;
+import static com.oracle.wls.exporter.WebAppConstants.MESSAGES_PAGE;
 
 /**
  * A collector of REST requests and replies, that can be viewed to diagnose problems.

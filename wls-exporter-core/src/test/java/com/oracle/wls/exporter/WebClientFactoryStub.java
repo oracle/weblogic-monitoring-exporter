@@ -14,7 +14,7 @@ import com.google.gson.Gson;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
 
-class WebClientFactoryStub implements WebClientFactory {
+public class WebClientFactoryStub implements WebClientFactory {
     private final WebClientStub webClient = createStrictStub(WebClientStub.class);
 
     @Override
@@ -48,11 +48,11 @@ class WebClientFactoryStub implements WebClientFactory {
         return webClient.getAuthentication();
     }
 
-    String getClientUrl() {
+    public String getClientUrl() {
         return webClient.url;
     }
 
-    void reportNotAuthorized() {
+    public void reportNotAuthorized() {
         webClient.reportForbidden();
     }
 
@@ -61,12 +61,12 @@ class WebClientFactoryStub implements WebClientFactory {
     }
 
     @SuppressWarnings("SameParameterValue")
-    void reportAuthenticationRequired(String basicRealmName) {
+    public void reportAuthenticationRequired(String basicRealmName) {
         webClient.reportAuthenticationRequired(basicRealmName);
     }
 
     @SuppressWarnings("SameParameterValue")
-    void throwConnectionFailure(String host, int port) {
+    public void throwConnectionFailure(String host, int port) {
         webClient.throwConnectionFailure(host, port);
     }
 

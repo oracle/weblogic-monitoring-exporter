@@ -1,7 +1,7 @@
 // Copyright (c) 2017, 2020, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-package com.oracle.wls.exporter;
+package com.oracle.wls.exporter.webapp;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -15,7 +15,7 @@ import javax.servlet.ServletContext;
 import com.google.common.collect.ImmutableMap;
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
-import com.oracle.wls.exporter.webapp.ServletUtils;
+import com.oracle.wls.exporter.LiveConfiguration;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
 

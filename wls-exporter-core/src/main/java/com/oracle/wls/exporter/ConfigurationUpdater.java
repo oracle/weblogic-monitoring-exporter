@@ -8,7 +8,7 @@ package com.oracle.wls.exporter;
  *
  * @author Russell Gold
  */
-interface ConfigurationUpdater {
+public interface ConfigurationUpdater {
 
     /**
      * Returns the timestamp associated with the latest known configuration update.

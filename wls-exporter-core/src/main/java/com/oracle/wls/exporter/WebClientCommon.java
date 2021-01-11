@@ -14,8 +14,8 @@ import java.security.GeneralSecurityException;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import static com.oracle.wls.exporter.ServletConstants.AUTHENTICATION_HEADER;
-import static com.oracle.wls.exporter.ServletConstants.CONTENT_TYPE_HEADER;
+import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
+import static com.oracle.wls.exporter.WebAppConstants.CONTENT_TYPE_HEADER;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;

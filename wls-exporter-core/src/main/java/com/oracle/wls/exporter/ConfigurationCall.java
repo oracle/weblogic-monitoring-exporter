@@ -12,12 +12,12 @@ import java.util.Locale;
 import com.oracle.wls.exporter.domain.ConfigurationException;
 import com.oracle.wls.exporter.domain.ExporterConfig;
 
-import static com.oracle.wls.exporter.ServletConstants.APPEND_ACTION;
-import static com.oracle.wls.exporter.ServletConstants.DEFAULT_ACTION;
-import static com.oracle.wls.exporter.ServletConstants.MAIN_PAGE;
-import static com.oracle.wls.exporter.ServletConstants.REPLACE_ACTION;
+import static com.oracle.wls.exporter.WebAppConstants.APPEND_ACTION;
+import static com.oracle.wls.exporter.WebAppConstants.DEFAULT_ACTION;
+import static com.oracle.wls.exporter.WebAppConstants.MAIN_PAGE;
+import static com.oracle.wls.exporter.WebAppConstants.REPLACE_ACTION;
 
-class ConfigurationCall extends AuthenticatedCall {
+public class ConfigurationCall extends AuthenticatedCall {
 
   public ConfigurationCall(WebClientFactory webClientFactory, InvocationContext context) {
     super(webClientFactory, context);
@@ -58,7 +58,7 @@ class ConfigurationCall extends AuthenticatedCall {
     for (MultipartItem item : fileItems) {
       if (!item.isFormField()) {
         postAction.defineUploadedFile(item.getInputStream());
-      } else if (item.getFieldName().equals(ServletConstants.EFFECT_OPTION))
+      } else if (item.getFieldName().equals(WebAppConstants.EFFECT_OPTION))
         postAction.setEffect(item.getString());
     }
   }
@@ -68,7 +68,7 @@ class ConfigurationCall extends AuthenticatedCall {
   }
 
   private void reportUnableToUpdateConfiguration(String contextPath, PrintStream out, ConfigurationException e) throws IOException {
-    out.println(ServletConstants.PAGE_HEADER);
+    out.println(WebAppConstants.PAGE_HEADER);
     out.println("<H1>Unable to Update Configuration</H1><p>");
     out.println(e.getMessage());
     out.println("</p>" + "</body></html>");
