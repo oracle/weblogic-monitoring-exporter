@@ -14,9 +14,9 @@ import com.meterware.simplestub.StaticStubSupport;
 import com.meterware.simplestub.SystemPropertySupport;
 import org.apache.maven.plugin.AbstractMojo;
 import org.hamcrest.Matchers;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 import static com.meterware.simplestub.Stub.createStub;
 import static org.apache.maven.plugins.annotations.LifecyclePhase.PROCESS_RESOURCES;
@@ -33,14 +33,14 @@ public class BuildHelperMojoTest {
   private final CopyExecutorStub copyExecutorStub = new CopyExecutorStub();
   private MojoTestSupport mojoTestSupport;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     mojoTestSupport = new MojoTestSupport(BuildHelperMojo.class);
     mementos.add(StaticStubSupport.install(BuildHelperMojo.class, "executor", copyExecutorStub));
     mementos.add(SystemPropertySupport.preserve("user.dir"));
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     mementos.forEach(Memento::revert);
   }

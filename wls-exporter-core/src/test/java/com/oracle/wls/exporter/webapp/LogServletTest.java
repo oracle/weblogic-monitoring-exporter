@@ -1,4 +1,4 @@
-// Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2019, 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.webapp;
@@ -14,9 +14,9 @@ import com.meterware.simplestub.StaticStubSupport;
 import com.oracle.wls.exporter.ErrorLog;
 import com.oracle.wls.exporter.LiveConfiguration;
 import com.oracle.wls.exporter.WebClientException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.containsString;
@@ -31,13 +31,13 @@ public class LogServletTest {
     private final HttpServletResponseStub response = HttpServletResponseStub.createServletResponse();
     private final List<Memento> mementos = new ArrayList<>();
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         InMemoryFileSystem.install();
         LiveConfiguration.loadFromString("");
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         mementos.forEach(Memento::revert);
         InMemoryFileSystem.uninstall();

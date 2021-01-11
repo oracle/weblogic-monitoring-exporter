@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -8,9 +8,9 @@ import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+import static com.google.gson.JsonParser.parseString;
 import static com.oracle.wls.exporter.domain.MetricMatcher.hasMetric;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
@@ -172,7 +172,7 @@ public class MetricsScraperTest {
     }
 
     private JsonObject getJsonResponse(String jsonString) {
-        return new JsonParser().parse(jsonString).getAsJsonObject();
+        return parseString(jsonString).getAsJsonObject();
     }
 
     @Test

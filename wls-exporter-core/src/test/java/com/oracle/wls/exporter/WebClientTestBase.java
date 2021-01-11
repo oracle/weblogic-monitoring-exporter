@@ -9,12 +9,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import com.meterware.pseudoserver.HttpUserAgentTest;
+import com.meterware.pseudoserver.PseudoServer;
 import com.meterware.pseudoserver.PseudoServlet;
 import com.meterware.pseudoserver.WebResource;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
 import static com.oracle.wls.exporter.WebAppConstants.CONTENT_TYPE_HEADER;
@@ -32,15 +32,13 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author Russell Gold
  */
-abstract class WebClientTestBase extends HttpUserAgentTest {
+abstract class WebClientTestBase {
     private static final char QUOTE = '"';
-
-    /** A URL with a host guaranteed not to exist. */
-    private static final String UNDEFINED_HOST_URL = "http://undefined.invalid";
 
     /** A URL on a known host with a port on which no server is listening. */
     private static final String UNDEFINED_PORT_URL = "http://localhost:59236";
@@ -53,22 +51,31 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
     public WebClientTestBase(Supplier<WebClient> factory) {
         this.factory = factory;
     }
+    private String _hostPath;
+    private PseudoServer _server;
 
-    @Before
-    public void setUp() {
+
+    @BeforeEach
+    public void setUp() throws IOException {
+        _server = new PseudoServer();
+        _hostPath = "http://localhost:" + _server.getConnectedPort();
         sentInfo = null;
         sentHeaders.clear();
     }
 
-    @Ignore("seems to be unreliable on some machines")
-    @Test(expected = WebClientException.class)
-    public void whenUnableToReachHost_throwException() throws Exception {
-        factory.get().withUrl(UNDEFINED_HOST_URL).doGetRequest();
+    @AfterEach
+    public void tearDown() {
+        tearDownServer();
     }
 
-    @Test(expected = WebClientException.class)
-    public void whenUnableToReachServer_throwException() throws Exception {
-        factory.get().withUrl(UNDEFINED_PORT_URL).doGetRequest();
+    private void tearDownServer() {
+        if (_server != null) _server.shutDown();
+    }
+
+    @Test
+    public void whenUnableToReachServer_throwException() {
+        assertThrows(WebClientException.class,
+              () ->  factory.get().withUrl(UNDEFINED_PORT_URL).doGetRequest());
     }
 
     @Test
@@ -81,9 +88,17 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
             }
         });
 
-        final String response = factory.get().withUrl(getHostPath() + "/unprotected").doGetRequest();
+        final String response = withWebClient("unprotected").doGetRequest();
 
         assertThat(response, equalTo(RESPONSE));
+    }
+
+    private String getHostPath() {
+        return _hostPath;
+    }
+
+    public void defineResource(String resourceName, PseudoServlet servlet) {
+        _server.setResource(resourceName, servlet);
     }
 
     @Test
@@ -97,9 +112,13 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
             }
         });
 
-        factory.get().withUrl(getHostPath() + "/unprotected").doPostRequest(QUERY);
+        withWebClient("unprotected").doPostRequest(QUERY);
 
         assertThat(sentInfo, equalTo(QUERY));
+    }
+
+    private WebClient withWebClient(String path) {
+        return factory.get().withUrl(getHostPath() + "/" + path);
     }
 
     @Test
@@ -113,7 +132,7 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
             }
         });
 
-        factory.get().withUrl(getHostPath() + "/unprotected_put").doPutRequest(QUERY);
+        withWebClient("unprotected_put").doPutRequest(QUERY);
 
         assertThat(sentInfo, equalTo(QUERY));
     }
@@ -131,7 +150,7 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
             }
         });
 
-        WebClient client = factory.get().withUrl(getHostPath() + "/checkHeader");
+        WebClient client = withWebClient("checkHeader");
         client.addHeader("Added-header", "header_value");
         client.doPostRequest("abced");
     }
@@ -145,7 +164,7 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
             }
         });
 
-        WebClient webClient = factory.get().withUrl(getHostPath() + "/headers");
+        WebClient webClient = withWebClient("headers");
         webClient.doPostRequest("abced");
 
         assertThat(sentHeaders, hasEntry(CONTENT_TYPE_HEADER, WebClient.APPLICATION_JSON));
@@ -160,7 +179,7 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
             }
         });
 
-        WebClient webClient = factory.get().withUrl(getHostPath() + "/headers");
+        WebClient webClient = withWebClient("headers");
         webClient.doPostRequest("abced");
 
         assertThat(sentHeaders, hasKey(X_REQUESTED_BY_HEADER));
@@ -175,7 +194,7 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
             }
         });
 
-        WebClient webClient = factory.get().withUrl(getHostPath() + "/headers");
+        WebClient webClient = withWebClient("headers");
         webClient.setAuthentication("auth-value");
         webClient.doGetRequest();
 
@@ -191,7 +210,7 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
             }
         });
 
-        WebClient webClient = factory.get().withUrl(getHostPath() + "/headers");
+        WebClient webClient = withWebClient("headers");
         webClient.setAuthentication("auth-value");
         webClient.doPostRequest("abced");
 
@@ -208,12 +227,12 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
             }
         });
 
-        WebClient webClient = factory.get().withUrl(getHostPath() + "/query");
+        WebClient webClient = withWebClient("query");
         assertThat(webClient.doPostRequest("abced"), equalTo(RESPONSE));
     }
 
-    @Test(expected = RestQueryException.class)
-    public void when400StatusReceived_throwsRestQueryException() throws Exception {
+    @Test
+    public void when400StatusReceived_throwsRestQueryException() {
         defineResource("badRestQuery", new PseudoServlet() {
             @Override
             public WebResource getPostResponse() {
@@ -221,11 +240,12 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
             }
         });
 
-        factory.get().withUrl(getHostPath() + "/badRestQuery").doPostRequest("abced");
+        assertThrows(RestQueryException.class,
+              () -> withWebClient("badRestQuery").doPostRequest("abced"));
     }
 
-    @Test(expected = AuthenticationChallengeException.class)
-    public void when401ReceivedFromServer_throwsException() throws Exception {
+    @Test
+    public void when401ReceivedFromServer_throwsException() {
         defineResource("protected", new PseudoServlet() {
             @Override
             public WebResource getPostResponse() {
@@ -235,7 +255,8 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
             }
         });
 
-        factory.get().withUrl(getHostPath() + "/protected").doPostRequest("abced");
+        assertThrows(AuthenticationChallengeException.class,
+              () -> withWebClient("protected").doPostRequest("abced"));
     }
 
     @Test
@@ -249,7 +270,7 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
             }
         });
 
-        WebClient webClient = factory.get().withUrl(getHostPath() + "/protected");
+        WebClient webClient = withWebClient("protected");
 
         try {
             webClient.doPostRequest("abcd");
@@ -258,8 +279,8 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
         }
     }
 
-    @Test(expected = ServerErrorException.class)
-    public void when500StatusReceived_throwsServerErrorException() throws Exception {
+    @Test
+    public void when500StatusReceived_throwsServerErrorException() {
         defineResource("500Query", new PseudoServlet() {
             @Override
             public WebResource getPostResponse() {
@@ -267,11 +288,12 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
             }
         });
 
-        factory.get().withUrl(getHostPath() + "/500Query").doPostRequest("abced");
+        assertThrows(ServerErrorException.class,
+              () -> withWebClient("500Query").doPostRequest("abced"));
     }
 
-    @Test(expected = ServerErrorException.class)
-    public void when501StatusReceived_throwsServerErrorException() throws Exception {
+    @Test
+    public void when501StatusReceived_throwsServerErrorException() {
         defineResource("501Query", new PseudoServlet() {
             @Override
             public WebResource getPostResponse() {
@@ -279,11 +301,12 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
             }
         });
 
-        factory.get().withUrl(getHostPath() + "/501Query").doPostRequest("abced");
+        assertThrows(ServerErrorException.class,
+              () -> withWebClient("501Query").doPostRequest("abced"));
     }
 
-    @Test(expected = ServerErrorException.class)
-    public void when502StatusReceived_throwsServerErrorException() throws Exception {
+    @Test
+    public void when502StatusReceived_throwsServerErrorException() {
         defineResource("502Query", new PseudoServlet() {
             @Override
             public WebResource getPostResponse() {
@@ -291,11 +314,12 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
             }
         });
 
-        factory.get().withUrl(getHostPath() + "/502Query").doPostRequest("abced");
+        assertThrows(ServerErrorException.class,
+              () -> withWebClient("502Query").doPostRequest("abced"));
     }
 
-    @Test(expected = ServerErrorException.class)
-    public void when503StatusReceived_throwsServerErrorException() throws Exception {
+    @Test
+    public void when503StatusReceived_throwsServerErrorException() {
         defineResource("503Query", new PseudoServlet() {
             @Override
             public WebResource getPostResponse() {
@@ -303,11 +327,12 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
             }
         });
 
-        factory.get().withUrl(getHostPath() + "/503Query").doPostRequest("abced");
+        assertThrows(ServerErrorException.class,
+              () -> withWebClient("503Query").doPostRequest("abced"));
     }
 
-    @Test(expected = ServerErrorException.class)
-    public void when504StatusReceived_throwsServerErrorException() throws Exception {
+    @Test
+    public void when504StatusReceived_throwsServerErrorException() {
         defineResource("504Query", new PseudoServlet() {
             @Override
             public WebResource getPostResponse() {
@@ -315,11 +340,12 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
             }
         });
 
-        factory.get().withUrl(getHostPath() + "/504Query").doPostRequest("abced");
+        assertThrows(ServerErrorException.class,
+                      () -> withWebClient("504Query").doPostRequest("abced"));
     }
 
-    @Test(expected = ServerErrorException.class)
-    public void when505StatusReceived_throwsServerErrorException() throws Exception {
+    @Test
+    public void when505StatusReceived_throwsServerErrorException() {
         defineResource("505Query", new PseudoServlet() {
             @Override
             public WebResource getPostResponse() {
@@ -327,7 +353,8 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
             }
         });
 
-        factory.get().withUrl(getHostPath() + "/505Query").doPostRequest("abced");
+        assertThrows(ServerErrorException.class,
+                      () -> withWebClient("505Query").doPostRequest("abced"));
     }
 
     // the value should be of the form <Basic realm="<realm-name>" and we want to extract the realm name
@@ -337,8 +364,8 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
         return start > 0 ? authenticationHeaderValue.substring(start+1, end) : "none";
     }
 
-    @Test(expected = ForbiddenException.class)
-    public void when403ReceivedFromServer_throwsException() throws Exception {
+    @Test
+    public void when403ReceivedFromServer_throwsException() {
         defineResource("forbidden", new PseudoServlet() {
             @Override
             public WebResource getPostResponse() {
@@ -346,21 +373,28 @@ abstract class WebClientTestBase extends HttpUserAgentTest {
             }
         });
 
-        factory.get().withUrl(getHostPath() + "/forbidden").doPostRequest("abced");
+        assertThrows(ForbiddenException.class,
+                      () -> withWebClient("forbidden").doPostRequest("abced"));
     }
 
-    @Test(expected = RestPortConnectionException.class)
-    public void whenUnableToConnect_throwsException() throws IOException {
-        testSupport.tearDownServer();
+    @Test
+    public void whenUnableToConnect_throwsException() {
+        tearDownServer();
 
-        for (int attempt = 0; attempt < 20; attempt++)
-            accessUndefinedPort();
+        assertThrows(RestPortConnectionException.class,
+              () -> accessUndefinedPortRepeatedly(withWebClient("noConnection"), 20));
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private void accessUndefinedPortRepeatedly(WebClient webClient, int numTries) throws IOException {
+        for (int attempt = 0; attempt < numTries; attempt++)
+            accessUndefinedPort(webClient);
     }
 
     // try to read the just-closed port. If it is not yet closed, we get a socket exception, which we swallow to retry
-    private void accessUndefinedPort() throws IOException {
+    private void accessUndefinedPort(WebClient webClient) throws IOException {
         try {
-            factory.get().withUrl(getHostPath() + "/noConnection").doPostRequest("abced");
+            webClient.doPostRequest("abced");
         } catch (SocketException ignored) {
         }
     }

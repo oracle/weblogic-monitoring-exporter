@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -11,7 +11,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.Yaml;
 
 import static com.oracle.wls.exporter.domain.ExporterConfigTest.QueryHierarchyMatcher.hasQueryFor;
@@ -27,6 +27,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author Russell Gold
@@ -141,18 +142,18 @@ public class ExporterConfigTest {
         assertThat(config.getQuerySyncConfiguration(), nullValue());
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void whenQuerySyncDefinedWithoutProperties_throwException() {
-        loadFromString(CONFIG_WITH_MISSING_SYNC_PROPERTIES);
+        assertThrows(ConfigurationException.class, () -> loadFromString(CONFIG_WITH_MISSING_SYNC_PROPERTIES));
     }
 
     private static final String CONFIG_WITH_MISSING_SYNC_PROPERTIES =
             "query_sync:";
 
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void whenQuerySyncDefinedWithoutUrl_throwException() {
-        loadFromString(CONFIG_WITH_MISSING_SYNC_URL);
+        assertThrows(ConfigurationException.class, () -> loadFromString(CONFIG_WITH_MISSING_SYNC_URL));
     }
 
     private static final String CONFIG_WITH_MISSING_SYNC_URL =
@@ -473,9 +474,9 @@ public class ExporterConfigTest {
             "    key: name\n" +
             "    values: heapFreeCurrent\n";
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void whenConfigHasDuplicateValues_reportFailure() {
-        loadFromString(CONFIG_WITH_DUPLICATE_VALUE);
+        assertThrows(ConfigurationException.class, () -> loadFromString(CONFIG_WITH_DUPLICATE_VALUE));
     }
 
     private static final String CONFIG_WITH_DUPLICATE_VALUE =
@@ -487,9 +488,9 @@ public class ExporterConfigTest {
             "      key: applicationName\n" +
             "      values: [heapFreeCurrent,heapFreeCurrent]\n";
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void whenConfigHasNoValues_reportFailure() {
-        loadFromString(CONFIG_WITH_NO_VALUES);
+        assertThrows(ConfigurationException.class, () -> loadFromString(CONFIG_WITH_NO_VALUES));
     }
 
     private static final String CONFIG_WITH_NO_VALUES =
@@ -590,7 +591,7 @@ public class ExporterConfigTest {
 
     @SuppressWarnings("SameParameterValue")
     private JsonObject getJsonResponse(String jsonString) {
-        return new JsonParser().parse(jsonString).getAsJsonObject();
+        return JsonParser.parseString(jsonString).getAsJsonObject();
     }
 
     @SuppressWarnings("unused")

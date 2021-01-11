@@ -6,8 +6,8 @@ package com.oracle.wls.exporter;
 import java.io.IOException;
 
 import com.oracle.wls.exporter.domain.ConfigurationException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 
 import static com.oracle.wls.exporter.InvocationContextStub.HOST;
 import static com.oracle.wls.exporter.InvocationContextStub.PORT;
@@ -18,6 +18,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ConfigurationCallTest {
 
@@ -64,15 +65,15 @@ public class ConfigurationCallTest {
   private final WebClientFactoryStub factory = new WebClientFactoryStub();
   private final InvocationContextStub context = InvocationContextStub.create();
 
-  @Before
+  @BeforeEach
   public void setUp() {
     LiveConfiguration.setServer(HOST, PORT);
     LiveConfiguration.loadFromString(CONFIGURATION);
   }
 
-  @Test(expected = RuntimeException.class)
-  public void whenNoConfigurationSpecified_reportFailure() throws Exception {
-    handleConfigurationCall(context);
+  @Test
+  public void whenNoConfigurationSpecified_reportFailure() {
+    assertThrows(RuntimeException.class, () -> handleConfigurationCall(context));
   }
 
   private void handleConfigurationCall(InvocationContextStub context) throws IOException {
