@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.webapp;
@@ -17,8 +17,8 @@ import com.oracle.wls.exporter.WebClientFactory;
 import com.oracle.wls.exporter.WebClientFactoryStub;
 import com.oracle.wls.exporter.domain.ConfigurationException;
 import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 
 import static com.oracle.wls.exporter.MultipartTestUtils.createEncodedForm;
 import static com.oracle.wls.exporter.MultipartTestUtils.createUploadRequest;
@@ -35,6 +35,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author Russell Gold
@@ -48,7 +49,7 @@ public class ConfigurationServletTest {
     private final HttpServletResponseStub response = createServletResponse();
     private HttpServletRequestStub request;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         LiveConfiguration.loadFromString("");
         request = createUploadRequest(createEncodedForm("replace", CONFIGURATION));
@@ -112,9 +113,9 @@ public class ConfigurationServletTest {
             "    key: name\n" +
             "    values: [age, sex]\n";
 
-    @Test(expected = ServletException.class)
-    public void whenPostWithoutFile_reportFailure() throws Exception {
-        servlet.doPost(createPostRequest(), response);
+    @Test
+    public void whenPostWithoutFile_reportFailure() {
+        assertThrows(ServletException.class, () -> servlet.doPost(createPostRequest(), response));
     }
 
     @Test

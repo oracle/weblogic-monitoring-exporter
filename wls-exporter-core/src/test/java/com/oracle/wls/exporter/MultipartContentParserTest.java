@@ -1,4 +1,4 @@
-// Copyright (c) 2020, Oracle and/or its affiliates.
+// Copyright (c) 2020, 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -20,8 +20,8 @@ import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.equalTo;
@@ -30,20 +30,21 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class MultipartContentParserTest {
 
   private static final String BOUNDARY = "---------------------------9051914041544843365972754266";
   private MultipartContentParser parser;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     parser = new MultipartContentParser("multipart/form-data; boundary=" + BOUNDARY);
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void whenContentTypeIsNotMultiForm_throwException() {
-    new MultipartContentParser("text/plain");
+    assertThrows(RuntimeException.class, () -> new MultipartContentParser("text/plain"));
   }
 
   @Test
@@ -155,11 +156,12 @@ public class MultipartContentParserTest {
 
 
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void whenMultipartRequestNotParseable_throwException() {
       HttpServletRequest request = HttpServletRequestStub.createPostRequest();
 
-      MultipartContentParser.parse(request.getContentType(), new ByteArrayInputStream(new byte[0]));
+      assertThrows(RuntimeException.class,
+            () -> MultipartContentParser.parse(request.getContentType(), new ByteArrayInputStream(new byte[0])));
   }
 
   @Test

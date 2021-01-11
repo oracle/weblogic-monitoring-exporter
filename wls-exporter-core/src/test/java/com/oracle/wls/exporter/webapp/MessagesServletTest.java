@@ -1,4 +1,4 @@
-// Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2019, 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.webapp;
@@ -11,12 +11,12 @@ import javax.servlet.http.HttpServlet;
 
 import com.oracle.wls.exporter.WlsRestExchanges;
 import org.hamcrest.Matcher;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 
+import static com.oracle.wls.exporter.WlsRestExchanges.MAX_EXCHANGES;
 import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.createGetRequest;
 import static com.oracle.wls.exporter.webapp.HttpServletResponseStub.createServletResponse;
-import static com.oracle.wls.exporter.WlsRestExchanges.MAX_EXCHANGES;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.both;
 import static org.hamcrest.Matchers.contains;
@@ -34,7 +34,7 @@ public class MessagesServletTest {
     private final HttpServletRequestStub request = createGetRequest();
     private final HttpServletResponseStub response = createServletResponse();
 
-    @Before
+    @BeforeEach
     public void setUp() {
         WlsRestExchanges.clear();
     }

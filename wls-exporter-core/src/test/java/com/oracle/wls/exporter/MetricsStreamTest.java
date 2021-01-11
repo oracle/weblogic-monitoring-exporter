@@ -15,9 +15,9 @@ import com.meterware.simplestub.StaticStubSupport;
 import com.meterware.simplestub.SystemPropertySupport;
 import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
 import com.oracle.wls.exporter.webapp.ServletUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 import static com.oracle.wls.exporter.matchers.PrometheusMetricsMatcher.followsPrometheusRules;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -37,7 +37,7 @@ public class MetricsStreamTest {
     private MetricsStream metrics;
     private final List<Memento> mementos = new ArrayList<>();
 
-    @Before
+    @BeforeEach
     public void setUp() throws NoSuchFieldException {
         initMetricsStream();
         ServletUtils.setServer(postRequest);
@@ -50,7 +50,7 @@ public class MetricsStreamTest {
         metrics = new MetricsStream("wlshost:7201", new PrintStream(baos), performanceProbe);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         mementos.forEach(Memento::revert);
     }

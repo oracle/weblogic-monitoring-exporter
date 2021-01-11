@@ -17,9 +17,9 @@ import com.oracle.wls.exporter.webapp.ExporterServlet;
 import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
 import com.oracle.wls.exporter.webapp.HttpServletResponseStub;
 import com.oracle.wls.exporter.webapp.ServletUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 import static com.oracle.wls.exporter.InMemoryFileSystem.withNoParams;
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
@@ -68,7 +68,7 @@ public class ExporterServletTest {
     private final HttpServletResponseStub response = createServletResponse();
     private Locale locale;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         locale = Locale.getDefault();
         InMemoryFileSystem.install();
@@ -78,7 +78,7 @@ public class ExporterServletTest {
         UrlBuilder.clearHistory();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         Locale.setDefault(locale);
         InMemoryFileSystem.uninstall();

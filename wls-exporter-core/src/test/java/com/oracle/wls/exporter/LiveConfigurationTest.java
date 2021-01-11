@@ -10,13 +10,13 @@ import com.meterware.simplestub.StaticStubSupport;
 import com.oracle.wls.exporter.domain.ExporterConfig;
 import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
 import com.oracle.wls.exporter.webapp.ServletUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
+import static com.oracle.wls.exporter.InMemoryFileSystem.withNoParams;
 import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.HOST;
 import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.PORT;
-import static com.oracle.wls.exporter.InMemoryFileSystem.withNoParams;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
@@ -68,14 +68,14 @@ public class LiveConfigurationTest {
             "    key: name\n" +
             "    values: [sample1, sample2]\n";
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         InMemoryFileSystem.install();
         ConfigurationUpdaterStub.install();
         ServletUtils.setServer(HttpServletRequestStub.createPostRequest());
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         InMemoryFileSystem.uninstall();
         ConfigurationUpdaterStub.uninstall();
@@ -128,7 +128,7 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void afterReplaceQueryCalled_configurationIsUpdated() throws Exception {
+    public void afterReplaceQueryCalled_configurationIsUpdated() {
         init(CONFIGURATION);
 
         LiveConfiguration.replaceConfiguration(toConfiguration(ADDED_CONFIGURATION));
@@ -142,7 +142,7 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void afterReplaceQueryCalled_shareUpdatedConfiguration() throws Exception {
+    public void afterReplaceQueryCalled_shareUpdatedConfiguration() {
         init(CONFIGURATION);
 
         LiveConfiguration.replaceConfiguration(toConfiguration(ADDED_CONFIGURATION));
@@ -151,7 +151,7 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void afterReplaceQueryCalled_timestampIsUpdated() throws Exception {
+    public void afterReplaceQueryCalled_timestampIsUpdated() {
         init(CONFIGURATION);
         long originalTimestamp = LiveConfiguration.getTimestamp();
 
@@ -161,7 +161,7 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void afterAppendQueryCalled_configurationIsUpdated() throws Exception {
+    public void afterAppendQueryCalled_configurationIsUpdated() {
         init(CONFIGURATION);
 
         LiveConfiguration.appendConfiguration(toConfiguration(ADDED_CONFIGURATION));
@@ -170,7 +170,7 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void afterAppendQueryCalled_shareUpdatedConfiguration() throws Exception {
+    public void afterAppendQueryCalled_shareUpdatedConfiguration() {
         init(CONFIGURATION);
 
         LiveConfiguration.appendConfiguration(toConfiguration(ADDED_CONFIGURATION));
@@ -179,7 +179,7 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void afterAppendQueryCalled_timestampIsUpdated() throws Exception {
+    public void afterAppendQueryCalled_timestampIsUpdated() {
         init(CONFIGURATION);
         long originalTimestamp = LiveConfiguration.getTimestamp();
 

@@ -1,13 +1,14 @@
-// Copyright (c) 2020, Oracle and/or its affiliates.
+// Copyright (c) 2020, 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 
 package com.oracle.wls.exporter;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class UrlBuilderTest {
 
@@ -36,12 +37,12 @@ public class UrlBuilderTest {
     assertThat(builder.createUrl(URL_PATTERN), equalTo(String.format(URL_PATTERN, "http", HOST, REST_PORT)));
   }
 
-  @Test(expected = RestPortConnectionException.class)
+  @Test
   public void whenNoRestPortAndConnectionFails_reportFailure() {
     UrlBuilder builder = createUrlBuilder().withPort(LOCAL_PORT);
     builder.createUrl(URL_PATTERN);
     
-    builder.reportFailure(connectionException);
+    assertThrows(RestPortConnectionException.class, () -> builder.reportFailure(connectionException));
   }
 
   @Test
@@ -53,14 +54,13 @@ public class UrlBuilderTest {
     assertThat(builder.createUrl(URL_PATTERN), equalTo(String.format(URL_PATTERN, "http", HOST, LOCAL_PORT)));
   }
 
-  @Test(expected = RestPortConnectionException.class)
+  @Test
   public void afterRestPortFailsAndSecondRetryFails_reportFailure() {
     UrlBuilder builder = createUrlBuilder().withPort(REST_PORT).withPort(LOCAL_PORT);
     builder.createUrl(URL_PATTERN);
     builder.reportFailure(connectionException);
-    builder.reportFailure(connectionException);
 
-    builder.createUrl(URL_PATTERN);
+    assertThrows(RestPortConnectionException.class, () -> builder.reportFailure(connectionException));
   }
 
   @Test

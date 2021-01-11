@@ -12,7 +12,7 @@ import java.util.List;
 
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.oracle.wls.exporter.ErrorLogTest.LogMatcher.containsErrors;
 import static org.hamcrest.junit.MatcherAssert.assertThat;

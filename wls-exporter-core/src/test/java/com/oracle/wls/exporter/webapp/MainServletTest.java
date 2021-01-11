@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.webapp;
@@ -7,9 +7,9 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 
 import com.oracle.wls.exporter.LiveConfiguration;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 import static com.oracle.wls.exporter.WebAppConstants.CONFIGURATION_PAGE;
 import static com.oracle.wls.exporter.webapp.InMemoryFileSystem.withNoParams;
@@ -28,7 +28,7 @@ public class MainServletTest {
     private final HttpServletRequestStub request = HttpServletRequestStub.createGetRequest();
     private final HttpServletResponseStub response = HttpServletResponseStub.createServletResponse();
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         InMemoryFileSystem.install();
         ConfigurationUpdaterStub.install();
@@ -36,7 +36,7 @@ public class MainServletTest {
         request.setContextPath("/exporter");
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         InMemoryFileSystem.uninstall();
         ConfigurationUpdaterStub.uninstall();

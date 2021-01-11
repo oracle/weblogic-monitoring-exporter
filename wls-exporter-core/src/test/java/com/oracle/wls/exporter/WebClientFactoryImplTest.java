@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -9,8 +9,8 @@ import java.util.function.Function;
 
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
 
 import static org.hamcrest.Matchers.sameInstance;
 import static org.hamcrest.junit.MatcherAssert.assertThat;
@@ -18,7 +18,7 @@ import static org.hamcrest.junit.MatcherAssert.assertThat;
 public class WebClientFactoryImplTest {
 
   private final List<Memento> mementos = new ArrayList<>();
-  private Function<String, Class<? extends WebClient>> apacheClassesMissing = WebClientFactoryImplTest::reportApacheClassesMissing;
+  private final Function<String, Class<? extends WebClient>> apacheClassesMissing = WebClientFactoryImplTest::reportApacheClassesMissing;
 
   static Class<? extends WebClient> reportApacheClassesMissing(String className) {
     if (className.equals(WebClientImpl.class.getName()))
@@ -29,7 +29,7 @@ public class WebClientFactoryImplTest {
       throw new RuntimeException("Unexpected client class name: " + className);
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     mementos.forEach(Memento::revert);
   }

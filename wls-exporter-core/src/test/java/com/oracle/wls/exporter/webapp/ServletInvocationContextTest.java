@@ -9,7 +9,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 
 import com.oracle.wls.exporter.ServletInvocationContext;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
 import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.HOST;

@@ -6,8 +6,8 @@ package com.oracle.wls.exporter;
 import java.time.Clock;
 import java.time.Instant;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
 import static com.oracle.wls.exporter.domain.JsonPathMatcher.hasJsonPath;
@@ -43,7 +43,7 @@ public class ConfigurationUpdaterImplTest {
         return '"' + aString + '"';
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         impl.configure("url", REFRESH_INTERVAL);
     }
