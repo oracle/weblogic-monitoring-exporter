@@ -14,6 +14,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
+import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
 
 /**
  * @author Russell Gold
@@ -23,7 +24,6 @@ public abstract class HttpServletResponseStub implements HttpServletResponse {
     private final ServletOutputStreamStub out = createStrictStub(ServletOutputStreamStub.class);
     private final Map<String,List<String>> headers = new HashMap<>();
     private boolean responseSent = false;
-    private String redirectLocation;
 
     public static HttpServletResponseStub createServletResponse() {
         return createStrictStub(HttpServletResponseStub.class);
@@ -34,7 +34,7 @@ public abstract class HttpServletResponseStub implements HttpServletResponse {
     }
 
     public String getRedirectLocation() {
-        return redirectLocation;
+        return getHeaders("Location").stream().findFirst().orElse(null);
     }
 
     @Override
@@ -46,6 +46,7 @@ public abstract class HttpServletResponseStub implements HttpServletResponse {
     public void sendError(int sc, String msg) {
         status = sc;
         responseSent = true;
+        out.html = msg;
     }
 
     @Override
@@ -60,7 +61,8 @@ public abstract class HttpServletResponseStub implements HttpServletResponse {
 
     @Override
     public void sendRedirect(String location) {
-        redirectLocation = location;
+        setHeader("Location", location);
+        sendError(HTTP_MOVED_TEMP, "Found");
     }
 
     @Override

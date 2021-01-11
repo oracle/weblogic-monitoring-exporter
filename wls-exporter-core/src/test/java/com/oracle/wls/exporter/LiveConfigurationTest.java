@@ -9,6 +9,7 @@ import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
 import com.oracle.wls.exporter.domain.ExporterConfig;
 import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
+import com.oracle.wls.exporter.webapp.ServletUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -71,7 +72,7 @@ public class LiveConfigurationTest {
     public void setUp() throws Exception {
         InMemoryFileSystem.install();
         ConfigurationUpdaterStub.install();
-        LiveConfiguration.setServer(HttpServletRequestStub.createPostRequest());
+        ServletUtils.setServer(HttpServletRequestStub.createPostRequest());
     }
 
     @After
@@ -88,8 +89,8 @@ public class LiveConfigurationTest {
     }
 
     private void init(String configuration) {
-        InMemoryFileSystem.defineResource(LiveConfiguration.CONFIG_YML, configuration);
-        LiveConfiguration.init(withNoParams());
+        InMemoryFileSystem.defineResource(ServletUtils.CONFIG_YML, configuration);
+        ServletUtils.initializeConfiguration(withNoParams());
     }
 
     @Test
@@ -99,7 +100,7 @@ public class LiveConfigurationTest {
 
     @Test
     public void whenInitCalledWithNoConfig_haveNoQueries() {
-        LiveConfiguration.init(withNoParams());
+        ServletUtils.initializeConfiguration(withNoParams());
         
         assertThat(LiveConfiguration.hasQueries(), is(false));
     }

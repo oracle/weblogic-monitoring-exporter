@@ -8,7 +8,7 @@ package com.oracle.wls.exporter;
  * 
  * @author Russell Gold
  */
-public interface ServletConstants {
+public interface WebAppConstants {
     String PAGE_HEADER
           = "<!DOCTYPE html>\n" +
             "<html lang=\"en\">\n" +
@@ -35,7 +35,7 @@ public interface ServletConstants {
     String EFFECT_OPTION = "effect";
 
     // The possible values for the effect
-    String DEFAULT_ACTION = ServletConstants.REPLACE_ACTION;
+    String DEFAULT_ACTION = WebAppConstants.REPLACE_ACTION;
     String REPLACE_ACTION = "replace";
     String APPEND_ACTION = "append";
 }

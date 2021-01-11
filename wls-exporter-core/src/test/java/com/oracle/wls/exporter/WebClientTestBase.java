@@ -16,8 +16,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import static com.oracle.wls.exporter.ServletConstants.AUTHENTICATION_HEADER;
-import static com.oracle.wls.exporter.ServletConstants.CONTENT_TYPE_HEADER;
+import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
+import static com.oracle.wls.exporter.WebAppConstants.CONTENT_TYPE_HEADER;
 import static com.oracle.wls.exporter.WebClient.X_REQUESTED_BY_HEADER;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_GATEWAY;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;

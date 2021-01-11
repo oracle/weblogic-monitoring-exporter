@@ -31,7 +31,7 @@ public abstract class AuthenticatedCall {
         this.urlBuilder = context.createUrlBuilder();
     }
 
-    String getAuthenticationUrl() {
+    public String getAuthenticationUrl() {
         return urlBuilder.createUrl(QueryType.RUNTIME_URL_PATTERN);
     }
 
@@ -43,7 +43,7 @@ public abstract class AuthenticatedCall {
         urlBuilder.reportFailure(e);
     }
 
-    WebClient createWebClient() {
+    public WebClient createWebClient() {
         final WebClient webClient = webClientFactory.createClient();
         webClient.addHeader("X-Requested-By", "rest-exporter");
 
@@ -64,7 +64,7 @@ public abstract class AuthenticatedCall {
      *
      * @throws IOException if an error occurs in the web client
      */
-    void doWithAuthentication() throws IOException {
+    public void doWithAuthentication() throws IOException {
         try {
             WebClient webClient = createWebClient();
             performRequest(webClient);
@@ -72,11 +72,11 @@ public abstract class AuthenticatedCall {
         } catch (ForbiddenException e) {
             context.sendError(HTTP_FORBIDDEN, "Not authorized");
         } catch (AuthenticationChallengeException e) {
-            context.setHeader("WWW-Authenticate", e.getChallenge());
+            context.setResponseHeader("WWW-Authenticate", e.getChallenge());
             context.sendError(HTTP_UNAUTHORIZED, "Authentication required");
         } catch (ServerErrorException e) {
             final int status = e.getStatus();
-            context.sendError(status);
+            context.sendError(status, e.getMessage());
         } catch (RestPortConnectionException e) {
             context.setStatus(HTTP_INTERNAL_ERROR);
             reportUnableToContactRestApi(e.getUri());

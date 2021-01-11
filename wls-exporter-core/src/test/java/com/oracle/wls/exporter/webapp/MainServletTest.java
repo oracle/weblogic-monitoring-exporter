@@ -1,19 +1,18 @@
 // Copyright (c) 2017, 2020, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-package com.oracle.wls.exporter;
+package com.oracle.wls.exporter.webapp;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 
-import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
-import com.oracle.wls.exporter.webapp.HttpServletResponseStub;
+import com.oracle.wls.exporter.LiveConfiguration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.oracle.wls.exporter.InMemoryFileSystem.withNoParams;
-import static com.oracle.wls.exporter.ServletConstants.CONFIGURATION_PAGE;
+import static com.oracle.wls.exporter.WebAppConstants.CONFIGURATION_PAGE;
+import static com.oracle.wls.exporter.webapp.InMemoryFileSystem.withNoParams;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
@@ -95,7 +94,7 @@ public class MainServletTest {
 
     @Test
     public void getRequestShowsCurrentConfiguration() throws Exception {
-        InMemoryFileSystem.defineResource(LiveConfiguration.CONFIG_YML, PARSED_CONFIGURATION);
+        InMemoryFileSystem.defineResource(ServletUtils.CONFIG_YML, PARSED_CONFIGURATION);
         servlet.init(withNoParams());
 
         servlet.doGet(request, response);
@@ -105,7 +104,7 @@ public class MainServletTest {
 
     @Test
     public void whenNewConfigAvailable_getRequestShowsNewConfiguration() throws Exception {
-        InMemoryFileSystem.defineResource(LiveConfiguration.CONFIG_YML, EMPTY_CONFIGURATION);
+        InMemoryFileSystem.defineResource(ServletUtils.CONFIG_YML, EMPTY_CONFIGURATION);
         servlet.init(withNoParams());
 
         ConfigurationUpdaterStub.newConfiguration(1, PARSED_CONFIGURATION);
@@ -116,7 +115,7 @@ public class MainServletTest {
 
     @Test
     public void whenNewConfigHasNoQueries_displayEmptyConfiguration() throws Exception {
-        InMemoryFileSystem.defineResource(LiveConfiguration.CONFIG_YML, PARSED_CONFIGURATION);
+        InMemoryFileSystem.defineResource(ServletUtils.CONFIG_YML, PARSED_CONFIGURATION);
         servlet.init(withNoParams());
 
         ConfigurationUpdaterStub.newConfiguration(1, "queries:\n");

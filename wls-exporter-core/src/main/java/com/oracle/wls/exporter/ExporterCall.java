@@ -13,7 +13,7 @@ import com.oracle.wls.exporter.domain.MBeanSelector;
 
 import static com.oracle.wls.exporter.domain.MapUtils.isNullOrEmptyString;
 
-class ExporterCall extends AuthenticatedCall {
+public class ExporterCall extends AuthenticatedCall {
 
   public ExporterCall(WebClientFactory webClientFactory, InvocationContext context) {
     super(webClientFactory, context);

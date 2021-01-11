@@ -3,14 +3,14 @@
 
 package com.oracle.wls.exporter;
 
-class ErrorLog {
+public class ErrorLog {
     private StringBuilder errors = new StringBuilder();
 
     /**
      * Report an exception.
      * @param throwable the exception
      */
-    void log(Throwable throwable) {
+    public void log(Throwable throwable) {
         errors.append(toLogMessage(throwable));
         for (Throwable cause = throwable.getCause(); cause != null; cause = cause.getCause())
             errors.append(System.lineSeparator()).append("  ").append(toLogMessage(cause));
@@ -28,7 +28,7 @@ class ErrorLog {
      * returns the current error log.
      * @return a string of errors, separated by line breaks.
      */
-    String getErrors() {
+    public String getErrors() {
         return errors.toString();
     }
 }

@@ -1,19 +1,19 @@
 // Copyright (c) 2019, 2020, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-package com.oracle.wls.exporter;
+package com.oracle.wls.exporter.webapp;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
-import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
-import com.oracle.wls.exporter.webapp.HttpServletResponseStub;
+import com.oracle.wls.exporter.ErrorLog;
+import com.oracle.wls.exporter.LiveConfiguration;
+import com.oracle.wls.exporter.WebClientException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,6 +40,7 @@ public class LogServletTest {
     @After
     public void tearDown() {
         mementos.forEach(Memento::revert);
+        InMemoryFileSystem.uninstall();
     }
 
     @Test
@@ -60,14 +61,14 @@ public class LogServletTest {
     }
 
     @Test
-    public void whenNoErrorsReported_saySo() throws ServletException, IOException {
+    public void whenNoErrorsReported_saySo() throws IOException {
         servlet.doGet(request, response);
 
         assertThat(response.getHtml(), containsString("No errors reported."));
     }
 
     @Test
-    public void whenErrorsReported_listThem() throws NoSuchFieldException, ServletException, IOException {
+    public void whenErrorsReported_listThem() throws NoSuchFieldException, IOException {
         ErrorLog errorLog = new ErrorLog();
         mementos.add(StaticStubSupport.install(LiveConfiguration.class, "errorLog", errorLog));
 

@@ -18,11 +18,15 @@ public class MultipartTestUtils {
 
   private final static String BOUNDARY = "C3n5NKoslNBKj4wBHR8kCX6OtVYEqeFYNjorlBP";
 
-  static HttpServletRequestStub createUploadRequest(String contents) {
+  public static HttpServletRequestStub createUploadRequest(String contents) {
     return createPostRequest().withMultipartContent(contents, BOUNDARY);
   }
 
-  static String createEncodedForm(String effect, String configuration) throws IOException {
+  public static String getContentType() {
+    return "multipart/form-data; boundary=" + BOUNDARY;
+  }
+
+  public static String createEncodedForm(String effect, String configuration) throws IOException {
       MultipartEntityBuilder builder = MultipartEntityBuilder.create();
       builder.setBoundary(BOUNDARY);
       builder.addTextBody("effect", effect);

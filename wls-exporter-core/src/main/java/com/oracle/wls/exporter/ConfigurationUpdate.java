@@ -8,16 +8,16 @@ package com.oracle.wls.exporter;
  *
  * @author Russell Gold
  */
-class ConfigurationUpdate {
+public class ConfigurationUpdate {
     private long timestamp;
     private String configuration;
 
-    ConfigurationUpdate(long timestamp, String configuration) {
+    public ConfigurationUpdate(long timestamp, String configuration) {
         this.timestamp = timestamp;
         this.configuration = configuration;
     }
 
-    long getTimestamp() {
+    public long getTimestamp() {
         return timestamp;
     }
 

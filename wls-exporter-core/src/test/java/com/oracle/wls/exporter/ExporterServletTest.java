@@ -9,19 +9,20 @@ import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 
 import com.google.common.collect.ImmutableMap;
+import com.oracle.wls.exporter.webapp.ExporterServlet;
 import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
 import com.oracle.wls.exporter.webapp.HttpServletResponseStub;
+import com.oracle.wls.exporter.webapp.ServletUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import static com.oracle.wls.exporter.InMemoryFileSystem.withNoParams;
-import static com.oracle.wls.exporter.ServletConstants.AUTHENTICATION_HEADER;
+import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
 import static com.oracle.wls.exporter.domain.JsonPathMatcher.hasJsonPath;
 import static com.oracle.wls.exporter.matchers.CommentsOnlyMatcher.containsOnlyComments;
 import static com.oracle.wls.exporter.matchers.MetricsNamesSnakeCaseMatcher.usesSnakeCase;
@@ -150,7 +151,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void whenRestPortDefined_connectionUrlUsesRestPort() throws ServletException, IOException {
+    public void whenRestPortDefined_connectionUrlUsesRestPort() throws IOException {
         initServlet(REST_PORT_CONFIG);
 
         servlet.doGet(request, response);
@@ -160,7 +161,7 @@ public class ExporterServletTest {
 
 
     @Test
-    public void whenRestPortAccessFails_switchToLocalPort() throws ServletException, IOException {
+    public void whenRestPortAccessFails_switchToLocalPort() throws IOException {
         initServlet(REST_PORT_CONFIG);
         factory.throwConnectionFailure("localhost", REST_PORT);
         factory.addJsonResponse(new HashMap<>());
@@ -222,7 +223,7 @@ public class ExporterServletTest {
     }
 
     private void initServlet(String configuration) {
-        InMemoryFileSystem.defineResource(LiveConfiguration.CONFIG_YML, configuration);
+        InMemoryFileSystem.defineResource(ServletUtils.CONFIG_YML, configuration);
         servlet.init(withNoParams());
     }
 
