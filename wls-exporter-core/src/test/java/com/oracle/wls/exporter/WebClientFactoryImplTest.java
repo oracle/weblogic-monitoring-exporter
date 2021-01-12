@@ -9,11 +9,11 @@ import java.util.function.Function;
 
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.sameInstance;
-import static org.hamcrest.junit.MatcherAssert.assertThat;
 
 public class WebClientFactoryImplTest {
 

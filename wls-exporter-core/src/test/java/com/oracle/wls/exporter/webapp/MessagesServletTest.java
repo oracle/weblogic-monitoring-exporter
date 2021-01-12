@@ -11,12 +11,13 @@ import javax.servlet.http.HttpServlet;
 
 import com.oracle.wls.exporter.WlsRestExchanges;
 import org.hamcrest.Matcher;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.oracle.wls.exporter.WlsRestExchanges.MAX_EXCHANGES;
 import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.createGetRequest;
 import static com.oracle.wls.exporter.webapp.HttpServletResponseStub.createServletResponse;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.both;
 import static org.hamcrest.Matchers.contains;
@@ -25,7 +26,6 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.junit.MatcherAssert.assertThat;
 
 public class MessagesServletTest {
     private static final int EXCESS_EXCHANGES = 3;

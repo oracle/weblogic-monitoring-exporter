@@ -17,8 +17,8 @@ import com.oracle.wls.exporter.WebClientFactory;
 import com.oracle.wls.exporter.WebClientFactoryStub;
 import com.oracle.wls.exporter.domain.ConfigurationException;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.oracle.wls.exporter.MultipartTestUtils.createEncodedForm;
 import static com.oracle.wls.exporter.MultipartTestUtils.createUploadRequest;
@@ -29,12 +29,12 @@ import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.createPostRe
 import static com.oracle.wls.exporter.webapp.HttpServletResponseStub.createServletResponse;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.junit.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**

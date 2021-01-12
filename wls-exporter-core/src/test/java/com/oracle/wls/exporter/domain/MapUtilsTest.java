@@ -9,8 +9,8 @@ import java.util.Map;
 import com.google.common.collect.ImmutableMap;
 import org.junit.jupiter.api.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayContaining;
-import static org.hamcrest.junit.MatcherAssert.assertThat;
 
 /**
  * @author Russell Gold

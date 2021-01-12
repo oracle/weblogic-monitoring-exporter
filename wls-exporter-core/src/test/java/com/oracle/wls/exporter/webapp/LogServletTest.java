@@ -14,15 +14,15 @@ import com.meterware.simplestub.StaticStubSupport;
 import com.oracle.wls.exporter.ErrorLog;
 import com.oracle.wls.exporter.LiveConfiguration;
 import com.oracle.wls.exporter.WebClientException;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.junit.MatcherAssert.assertThat;
 
 public class LogServletTest {
 

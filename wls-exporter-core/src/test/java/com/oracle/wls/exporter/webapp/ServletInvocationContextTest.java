@@ -1,4 +1,4 @@
-// Copyright (c) 2021, Oracle Corporation and/or its affiliates.
+// Copyright (c) 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.webapp;
@@ -15,9 +15,9 @@ import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
 import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.HOST;
 import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.PORT;
 import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.junit.MatcherAssert.assertThat;
 
 public class ServletInvocationContextTest {
 

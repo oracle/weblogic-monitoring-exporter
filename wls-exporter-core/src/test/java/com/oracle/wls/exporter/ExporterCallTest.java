@@ -1,4 +1,4 @@
-// Copyright (c) 2021, Oracle Corporation and/or its affiliates.
+// Copyright (c) 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 package com.oracle.wls.exporter;
 
@@ -9,9 +9,9 @@ import org.junit.jupiter.api.Test;
 
 import static com.oracle.wls.exporter.InvocationContextStub.HOST;
 import static com.oracle.wls.exporter.InvocationContextStub.PORT;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.junit.MatcherAssert.assertThat;
 
 public class ExporterCallTest {
   private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";

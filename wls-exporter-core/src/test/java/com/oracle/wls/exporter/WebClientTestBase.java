@@ -12,9 +12,9 @@ import java.util.function.Supplier;
 import com.meterware.pseudoserver.PseudoServer;
 import com.meterware.pseudoserver.PseudoServlet;
 import com.meterware.pseudoserver.WebResource;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
 import static com.oracle.wls.exporter.WebAppConstants.CONTENT_TYPE_HEADER;
@@ -28,10 +28,10 @@ import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_IMPLEMENTED;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.junit.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
