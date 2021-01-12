@@ -15,7 +15,7 @@ import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.jupiter.api.Test;
 
 import static com.oracle.wls.exporter.ErrorLogTest.LogMatcher.containsErrors;
-import static org.hamcrest.junit.MatcherAssert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ErrorLogTest {
     private final ErrorLog errorLog = new ErrorLog();

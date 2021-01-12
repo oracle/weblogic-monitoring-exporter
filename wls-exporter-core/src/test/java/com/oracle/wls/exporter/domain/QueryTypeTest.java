@@ -10,13 +10,13 @@ import org.junit.jupiter.api.Test;
 
 import static com.oracle.wls.exporter.domain.QueryType.CONFIGURATION;
 import static com.oracle.wls.exporter.domain.QueryType.RUNTIME;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.junit.MatcherAssert.assertThat;
 
 public class QueryTypeTest {
 

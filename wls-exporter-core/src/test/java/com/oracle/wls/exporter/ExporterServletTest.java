@@ -17,9 +17,9 @@ import com.oracle.wls.exporter.webapp.ExporterServlet;
 import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
 import com.oracle.wls.exporter.webapp.HttpServletResponseStub;
 import com.oracle.wls.exporter.webapp.ServletUtils;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static com.oracle.wls.exporter.InMemoryFileSystem.withNoParams;
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
@@ -33,6 +33,7 @@ import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.createGetReq
 import static com.oracle.wls.exporter.webapp.HttpServletResponseStub.createServletResponse;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.containsString;
@@ -43,7 +44,6 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.junit.MatcherAssert.assertThat;
 
 /**
  * @author Russell Gold
