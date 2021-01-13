@@ -54,22 +54,6 @@
             <artifactId>helidon-webserver-test-support</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <!-- to create multipart content -->
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpmime</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.httpunit</groupId>
-            <artifactId>httpunit</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
