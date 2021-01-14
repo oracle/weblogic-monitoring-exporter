@@ -36,8 +36,7 @@ class MetricsService implements Service {
         executorService.submit(() -> {
             try {
                 InvocationContext context = invocationContextFactory.createContext(req, res);
-                new ExporterCall(webClientFactory, context)
-                        .doWithAuthentication();
+                new ExporterCall(webClientFactory, context).doWithAuthentication();
             } catch (IOException e) {
                 // unexpected failure on closing context or other I/O error - send 500 back
                 res.send(e);

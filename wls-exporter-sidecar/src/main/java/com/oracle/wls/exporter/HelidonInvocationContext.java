@@ -68,23 +68,19 @@ public class HelidonInvocationContext implements InvocationContext {
 
     @Override
     public void sendError(int status, String msg) {
-        res.status(status)
-                .send(msg);
+        res.status(status).send(msg);
     }
 
     @Override
     public void sendRedirect(String location) {
-        res.headers()
-                .location(URI.create(location));
+        res.headers().location(URI.create(location));
 
-        res.status(Http.Status.FOUND_302)
-                .send();
+        res.status(Http.Status.FOUND_302).send();
     }
 
     @Override
     public void setResponseHeader(String name, String value) {
-        res.headers()
-                .add(name, value);
+        res.headers().add(name, value);
     }
 
     @Override
@@ -94,7 +90,6 @@ public class HelidonInvocationContext implements InvocationContext {
 
     @Override
     public void close() {
-        // the lowest level sending of bytes (we could send a string or JsonObject as well)
         res.send(Single.just(DataChunk.create(baos.toByteArray())));
     }
 }
