@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -33,15 +33,16 @@ public class ExporterConfig {
     private static final String DEFAULT_HOST = "localhost";
     private static final int DEFAULT_PORT = 7001;
 
-
     private static final MBeanSelector[] NO_QUERIES = {};
     private static final String DOMAIN_NAME_QUALIFIER = "domain=\"%s\"";
+
+    private static boolean defaultSnakeCaseSetting;
 
     private MBeanSelector[] queries = {};
     private String host = DEFAULT_HOST;
     private int port = DEFAULT_PORT;
     private Integer restPort;
-    private boolean metricsNameSnakeCase;
+    private boolean metricsNameSnakeCase = defaultSnakeCaseSetting;
     private QuerySyncConfiguration querySyncConfiguration;
     private boolean useDomainQualifier;
     private String domainName;
@@ -73,6 +74,10 @@ public class ExporterConfig {
         } catch (ClassCastException e) {
             throw new ConfigurationException(ConfigurationException.NOT_YAML_FORMAT);
         }
+    }
+
+    public static void setDefaultMetricsNameSnakeCase(boolean defaultValue) {
+        defaultSnakeCaseSetting = defaultValue;
     }
 
     /**

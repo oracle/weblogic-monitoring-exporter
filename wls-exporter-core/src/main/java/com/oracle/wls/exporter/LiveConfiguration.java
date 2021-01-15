@@ -75,6 +75,13 @@ public class LiveConfiguration {
     }
 
     /**
+     * Creates a URL builder configured with the settings from a call to setServer().
+     */
+    public static UrlBuilder createUrlBuilder() {
+        return UrlBuilder.create(serverName, false).withPort(serverPort);
+    }
+
+    /**
      * Returns true if the live configuration has at least one query defined
      * @return a boolean which can be used to decide whether to perform a query
      */

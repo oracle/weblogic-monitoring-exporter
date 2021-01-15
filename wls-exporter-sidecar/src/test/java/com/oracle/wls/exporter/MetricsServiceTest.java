@@ -1,13 +1,24 @@
+// Copyright (c) 2021, Oracle and/or its affiliates.
+// Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+
 package com.oracle.wls.exporter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import com.meterware.simplestub.Memento;
+import com.meterware.simplestub.StaticStubSupport;
+import com.oracle.wls.exporter.domain.ExporterConfig;
 import io.helidon.common.http.Http;
+import io.helidon.common.http.MediaType;
 import io.helidon.webserver.Routing;
+import io.helidon.webserver.testsupport.MediaPublisher;
 import io.helidon.webserver.testsupport.TestClient;
 import io.helidon.webserver.testsupport.TestResponse;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,16 +43,26 @@ class MetricsServiceTest {
 
     private final WebClientFactoryStub clientFactory = new WebClientFactoryStub();
     private TestClient client;
+    private final List<Memento> mementos = new ArrayList<>();
 
     @BeforeEach
-    void setupServer() {
+    void setUp() throws NoSuchFieldException {
+        mementos.add(StaticStubSupport.install(ExporterConfig.class, "defaultSnakeCaseSetting", false));
         LiveConfiguration.setServer("myhost", 7123);
+        LiveConfiguration.loadFromString(ONE_VALUE_CONFIG);
         client = TestClient.create(Routing.builder().register(createMetricsService()));
     }
 
-    private MetricsService createMetricsService() {
-        return new MetricsService(HelidonInvocationContextFactory.create(), clientFactory);
+    @AfterEach
+    void tearDown() {
+        mementos.forEach(Memento::revert);
     }
+
+    private MetricsService createMetricsService() {
+        return new MetricsService(new SidecarConfiguration(), clientFactory);
+    }
+
+    //------------- metrics --------
 
     @Test
     void whenNoConfiguration_reportTheIssue() throws TimeoutException, InterruptedException, ExecutionException {
@@ -64,8 +85,6 @@ class MetricsServiceTest {
 
     @Test
     public void whenServerSends403StatusOnGet_returnToClient() throws Exception {
-        LiveConfiguration.loadFromString(ONE_VALUE_CONFIG);
-
         clientFactory.reportNotAuthorized();
 
         assertThat(getMetricsResponse().status().code(), equalTo(HTTP_FORBIDDEN));
@@ -73,8 +92,6 @@ class MetricsServiceTest {
 
     @Test
     public void whenServerSends400StatusOnGet_reportErrorInComments() throws Exception {
-        LiveConfiguration.loadFromString(ONE_VALUE_CONFIG);
-
         clientFactory.reportBadQuery();
 
         assertThat(getMetrics(), followsPrometheusRules());
@@ -82,8 +99,6 @@ class MetricsServiceTest {
 
     @Test
     public void whenServerSends401StatusOnGet_returnToClient() throws Exception {
-        LiveConfiguration.loadFromString(ONE_VALUE_CONFIG);
-
         clientFactory.reportAuthenticationRequired("Test-Realm");
         final TestResponse metricsResponse = getMetricsResponse();
 
@@ -93,8 +108,6 @@ class MetricsServiceTest {
 
     @Test
     public void whenClientSendsAuthenticationHeader_passToServer() throws Exception {
-        LiveConfiguration.loadFromString(ONE_VALUE_CONFIG);
-
         client.path("/metrics").header(AUTHENTICATION_HEADER, "auth-credentials").get();
 
         assertThat(clientFactory.getSentAuthentication(), equalTo("auth-credentials"));
@@ -102,8 +115,6 @@ class MetricsServiceTest {
 
     @Test
     public void onGet_sendJsonQuery() throws Exception {
-        LiveConfiguration.loadFromString(ONE_VALUE_CONFIG);
-
         getMetricsResponse();
 
         assertThat(clientFactory.getSentQuery(),
@@ -124,9 +135,9 @@ class MetricsServiceTest {
 
         final String metrics = getMetrics();
 
-        assertThat(metrics, containsString("groupValue_testSample1{name=\"first\"} 12"));
-        assertThat(metrics, containsString("groupValue_testSample1{name=\"second\"} -3"));
-        assertThat(metrics, containsString("groupValue_testSample2{name=\"second\"} 71.0"));
+        assertThat(metrics, containsString("group_value_test_sample1{name=\"first\"} 12"));
+        assertThat(metrics, containsString("group_value_test_sample1{name=\"second\"} -3"));
+        assertThat(metrics, containsString("group_value_test_sample2{name=\"second\"} 71.0"));
     }
 
     private Map<String,Object> getGroupResponseMap() {
@@ -139,8 +150,6 @@ class MetricsServiceTest {
 
     @Test
     void testMetricsEndpoint() throws TimeoutException, InterruptedException, ExecutionException {
-        LiveConfiguration.loadFromString(ONE_VALUE_CONFIG);
-
         TestResponse testResponse = getMetricsResponse();
 
         assertEquals(Http.Status.OK_200, testResponse.status());
@@ -155,5 +164,21 @@ class MetricsServiceTest {
     void validateResponse(String response, String toCheck) {
         assertTrue(response.contains(toCheck),
                    "Response should contain " + toCheck + ", but is: " + response);
+    }
+
+
+    // -------------- put configuration  ---------
+
+
+    @Test
+    void afterPutConfiguration_displayMetrics() throws TimeoutException, InterruptedException, ExecutionException {
+        client.path("/configuration").put(MediaPublisher.create(MediaType.APPLICATION_YAML, TWO_VALUE_CONFIG));
+        clientFactory.addJsonResponse(getGroupResponseMap());
+
+        final String metrics = getMetrics();
+
+        assertThat(metrics, containsString("group_value_test_sample1{name=\"first\"} 12"));
+        assertThat(metrics, containsString("group_value_test_sample1{name=\"second\"} -3"));
+        assertThat(metrics, containsString("group_value_test_sample2{name=\"second\"} 71.0"));
     }
 }

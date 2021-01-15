@@ -3,14 +3,20 @@
 
 package com.oracle.wls.exporter.domain;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.meterware.simplestub.Memento;
+import com.meterware.simplestub.StaticStubSupport;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.Yaml;
 
@@ -53,6 +59,17 @@ public class ExporterConfigTest {
     private static final Map<String, Object> NULL_MAP = null;
 
     private Map<String,Object> yamlConfig = new HashMap<>();
+    private final List<Memento> mementos = new ArrayList<>();
+
+    @BeforeEach
+    void setUp() throws NoSuchFieldException {
+        mementos.add(StaticStubSupport.install(ExporterConfig.class, "defaultSnakeCaseSetting", false));
+    }
+
+    @AfterEach
+    void tearDown() {
+        mementos.forEach(Memento::revert);
+    }
 
     @Test
     public void whenYamlConfigEmpty_returnNonNullConfiguration() {
@@ -60,10 +77,18 @@ public class ExporterConfigTest {
     }
 
     @Test
-    public void whenYamlConfigEmpty_returnDefaultConfiguration() {
+    public void byDefaultSnakeCase_isDisabled() {
         ExporterConfig config = ExporterConfig.loadConfig(NULL_MAP);
 
         assertThat(config.getMetricsNameSnakeCase(), equalTo(false));
+    }
+
+    @Test
+    public void whenSnakeNameEnabledByDefault_isSetInEmptyConfiguration() {
+        ExporterConfig.setDefaultMetricsNameSnakeCase(true);
+        ExporterConfig config = ExporterConfig.loadConfig(NULL_MAP);
+
+        assertThat(config.getMetricsNameSnakeCase(), equalTo(true));
     }
 
     @Test

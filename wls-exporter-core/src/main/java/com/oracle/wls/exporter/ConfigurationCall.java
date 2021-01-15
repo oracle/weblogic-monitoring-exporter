@@ -5,19 +5,11 @@ package com.oracle.wls.exporter;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
-import java.util.List;
-import java.util.Locale;
 
 import com.oracle.wls.exporter.domain.ConfigurationException;
 import com.oracle.wls.exporter.domain.ExporterConfig;
 
-import static com.oracle.wls.exporter.WebAppConstants.APPEND_ACTION;
-import static com.oracle.wls.exporter.WebAppConstants.DEFAULT_ACTION;
-import static com.oracle.wls.exporter.WebAppConstants.MAIN_PAGE;
-import static com.oracle.wls.exporter.WebAppConstants.REPLACE_ACTION;
-
-public class ConfigurationCall extends AuthenticatedCall {
+public abstract class ConfigurationCall extends AuthenticatedCall {
 
   public ConfigurationCall(WebClientFactory webClientFactory, InvocationContext context) {
     super(webClientFactory, context);
@@ -26,21 +18,15 @@ public class ConfigurationCall extends AuthenticatedCall {
   @Override
   protected void invoke(WebClient webClient, InvocationContext context) throws IOException {
     try {
-      if (!isMultipartContent()) throw new RuntimeException("Must be a multi-part request");
-
       authenticate(webClient.withUrl(getAuthenticationUrl()));
-      createPostAction(getRequestContentType(), getRequestStream()).perform();
+      createConfigurationAction(getRequestContentType(), getRequestStream()).perform();
       reportUpdatedConfiguration(context);
     } catch (RestPortConnectionException e) {
       reportFailure(e);
       webClient.setRetryNeeded();
     } catch (ConfigurationException e) {
-      reportUnableToUpdateConfiguration(context.getApplicationContext(), context.getResponseStream(), e);
+      reportUnableToUpdateConfiguration(context, e);
     }
-  }
-
-  private boolean isMultipartContent() {
-    return getRequestContentType().toLowerCase(Locale.ENGLISH).startsWith("multipart/");
   }
 
   // Authenticates by attempting to send a request to the Management RESTful API.
@@ -48,43 +34,17 @@ public class ConfigurationCall extends AuthenticatedCall {
     webClient.doPostRequest("{ 'links':[], 'fields':[], 'children':{} }".replace("'", "\""));
   }
 
-  private PostAction createPostAction(String contentType, InputStream inputStream) throws IOException {
-    PostAction postAction = new PostAction();
-    configure(postAction, MultipartContentParser.parse(contentType, inputStream));
-    return postAction;
-  }
+  abstract ConfigurationAction createConfigurationAction(String contentType, InputStream inputStream) throws IOException;
 
-  private void configure(PostAction postAction, List<MultipartItem> fileItems) throws IOException {
-    for (MultipartItem item : fileItems) {
-      if (!item.isFormField()) {
-        postAction.defineUploadedFile(item.getInputStream());
-      } else if (item.getFieldName().equals(WebAppConstants.EFFECT_OPTION))
-        postAction.setEffect(item.getString());
-    }
-  }
+  protected abstract void reportUpdatedConfiguration(InvocationContext context) throws IOException;
 
-  private void reportUpdatedConfiguration(InvocationContext context) throws IOException {
-    context.sendRedirect(MAIN_PAGE);
-  }
+  abstract void reportUnableToUpdateConfiguration(InvocationContext context, ConfigurationException e) throws IOException;
 
-  private void reportUnableToUpdateConfiguration(String contextPath, PrintStream out, ConfigurationException e) throws IOException {
-    out.println(WebAppConstants.PAGE_HEADER);
-    out.println("<H1>Unable to Update Configuration</H1><p>");
-    out.println(e.getMessage());
-    out.println("</p>" + "</body></html>");
-    out.println("<form action=\"" + contextPath + "/\">");
-    out.println("    <br><input type=\"submit\" value=\"OK\">");
-    out.println("</form>");
-    out.close();
-  }
+  static abstract class ConfigurationAction {
 
-  private static class PostAction {
-
-    // The action to take. May be either "replace" or "append"
-    private String effect = DEFAULT_ACTION;
     private ExporterConfig uploadedConfig;
 
-    private void defineUploadedFile(InputStream inputStream) {
+    final void defineUploadedFile(InputStream inputStream) {
       try {
         uploadedConfig = ExporterConfig.loadConfig(inputStream);
       } catch (ConfigurationException e) {
@@ -94,17 +54,10 @@ public class ConfigurationCall extends AuthenticatedCall {
       }
     }
 
-    void perform() {
-      ExporterConfig uploadedConfig = this.uploadedConfig;
+    public abstract void perform();
 
-      if (effect.equalsIgnoreCase(REPLACE_ACTION))
-        LiveConfiguration.replaceConfiguration(uploadedConfig);
-      else if (effect.equalsIgnoreCase(APPEND_ACTION))
-        LiveConfiguration.appendConfiguration(uploadedConfig);
-    }
-
-    void setEffect(String effect) {
-      this.effect = effect;
+    ExporterConfig getUploadedConfig() {
+      return uploadedConfig;
     }
   }
 }
