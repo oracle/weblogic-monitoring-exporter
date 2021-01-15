@@ -6,13 +6,15 @@ package com.oracle.wls.exporter.webapp;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 
+import com.oracle.wls.exporter.ConfigurationUpdaterStub;
+import com.oracle.wls.exporter.InMemoryFileSystem;
 import com.oracle.wls.exporter.LiveConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static com.oracle.wls.exporter.InMemoryFileSystem.withNoParams;
 import static com.oracle.wls.exporter.WebAppConstants.CONFIGURATION_PAGE;
-import static com.oracle.wls.exporter.webapp.InMemoryFileSystem.withNoParams;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.containsString;
