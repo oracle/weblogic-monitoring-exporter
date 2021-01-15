@@ -1,12 +1,18 @@
 // Copyright (c) 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-package com.oracle.wls.exporter;
+package com.oracle.wls.exporter.sidecar;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiFunction;
 
+import com.oracle.wls.exporter.AuthenticatedCall;
+import com.oracle.wls.exporter.ConfigurationPutCall;
+import com.oracle.wls.exporter.ExporterCall;
+import com.oracle.wls.exporter.InvocationContext;
+import com.oracle.wls.exporter.LiveConfiguration;
+import com.oracle.wls.exporter.WebClientFactory;
 import com.oracle.wls.exporter.domain.ExporterConfig;
 import io.helidon.common.configurable.ThreadPoolSupplier;
 import io.helidon.webserver.Routing;
@@ -43,7 +49,7 @@ class MetricsService implements Service {
     }
 
     class Handler {
-        private final BiFunction<WebClientFactory,InvocationContext,AuthenticatedCall> builder;
+        private final BiFunction<WebClientFactory, InvocationContext, AuthenticatedCall> builder;
 
         Handler(BiFunction<WebClientFactory, InvocationContext, AuthenticatedCall> builder) {
             this.builder = builder;

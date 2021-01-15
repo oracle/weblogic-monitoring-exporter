@@ -1,7 +1,7 @@
 // Copyright (c) 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-package com.oracle.wls.exporter;
+package com.oracle.wls.exporter.sidecar;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -10,6 +10,10 @@ import java.io.PrintStream;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
+import com.oracle.wls.exporter.InvocationContext;
+import com.oracle.wls.exporter.LiveConfiguration;
+import com.oracle.wls.exporter.UrlBuilder;
+import com.oracle.wls.exporter.WebAppConstants;
 import io.helidon.common.http.DataChunk;
 import io.helidon.common.http.Http;
 import io.helidon.common.http.MediaType;

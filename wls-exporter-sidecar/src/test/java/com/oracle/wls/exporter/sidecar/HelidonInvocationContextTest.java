@@ -1,7 +1,7 @@
 // Copyright (c) 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-package com.oracle.wls.exporter;
+package com.oracle.wls.exporter.sidecar;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,6 +11,9 @@ import java.util.Optional;
 
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.SystemPropertySupport;
+import com.oracle.wls.exporter.InvocationContext;
+import com.oracle.wls.exporter.LiveConfiguration;
+import com.oracle.wls.exporter.WebAppConstants;
 import io.helidon.common.http.MediaType;
 import io.helidon.webserver.RequestHeaders;
 import io.helidon.webserver.ServerRequest;
@@ -20,7 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
-import static com.oracle.wls.exporter.SidecarConfiguration.POD_NAME_PROPERTY;
+import static com.oracle.wls.exporter.sidecar.SidecarConfiguration.POD_NAME_PROPERTY;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;

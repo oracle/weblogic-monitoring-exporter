@@ -25,7 +25,7 @@ import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
  *
  * @author Russell Gold
  */
-abstract class WebClientCommon implements WebClient {
+public abstract class WebClientCommon implements WebClient {
 
     private String authentication;
     private boolean retryNeeded;
@@ -211,7 +211,7 @@ abstract class WebClientCommon implements WebClient {
         this.retryNeeded = true;
     }
 
-    void clearRetryNeeded() {
+    public void clearRetryNeeded() {
         retryNeeded = false;
     }
 
