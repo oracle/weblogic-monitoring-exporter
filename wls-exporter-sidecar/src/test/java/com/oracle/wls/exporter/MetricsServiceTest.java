@@ -23,8 +23,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
-import static com.oracle.wls.exporter.matchers.JsonPathMatcher.hasJsonPath;
-import static com.oracle.wls.exporter.matchers.PrometheusMetricsMatcher.followsPrometheusRules;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -91,13 +89,6 @@ class MetricsServiceTest {
     }
 
     @Test
-    public void whenServerSends400StatusOnGet_reportErrorInComments() throws Exception {
-        clientFactory.reportBadQuery();
-
-        assertThat(getMetrics(), followsPrometheusRules());
-    }
-
-    @Test
     public void whenServerSends401StatusOnGet_returnToClient() throws Exception {
         clientFactory.reportAuthenticationRequired("Test-Realm");
         final TestResponse metricsResponse = getMetricsResponse();
@@ -111,14 +102,6 @@ class MetricsServiceTest {
         client.path("/metrics").header(AUTHENTICATION_HEADER, "auth-credentials").get();
 
         assertThat(clientFactory.getSentAuthentication(), equalTo("auth-credentials"));
-    }
-
-    @Test
-    public void onGet_sendJsonQuery() throws Exception {
-        getMetricsResponse();
-
-        assertThat(clientFactory.getSentQuery(),
-                   hasJsonPath("$.children.groups.fields").withValues("name", "testSample1"));
     }
 
     @Test
