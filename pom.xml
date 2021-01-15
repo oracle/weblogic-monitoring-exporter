@@ -14,8 +14,6 @@
         <module>wls-exporter-core</module>
         <module>build-helper-mojo</module>
         <module>wls-exporter-war</module>
-        <module>wls-operator-exporter</module>
-        <module>wls-exporter-sidecar</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -166,4 +164,17 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>helidon-sidecar</id>
+            <activation>
+                <jdk>[11,)</jdk>
+            </activation>
+            <modules>
+                <module>wls-exporter-sidecar</module>
+            </modules>
+        </profile>
+    </profiles>
+
 </project>

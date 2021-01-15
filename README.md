@@ -132,8 +132,11 @@ include the `restPort` configuration to tell the exporter which port to use.
 
 * [Chart-based sample](samples/kubernetes/end2end): This is an end-to-end sample that shows you the steps to set up monitoring for WebLogic domains using Prometheus and Grafana. Prometheus and Grafana are installed with Helm charts.
 
+## Sidecar implementation
+
+The exporter may also be built as a [sidecar](https://github.com/oracle/weblogic-monitoring-exporter/wls-exporter-sidecar) 
 
 ## Copyright
 
- Copyright &copy; 2017, 2020, Oracle and/or its affiliates.
+ Copyright &copy; 2017, 2021, Oracle and/or its affiliates.
  Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
