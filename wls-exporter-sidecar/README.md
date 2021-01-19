@@ -27,9 +27,21 @@ curl -X PUT -i -u myname:mypassword \
 where you should replace `myname` and `mypassword` with the credentials expected by WebLogic Server for its REST API,
 and `<path to yaml>` is the relative path to the configuration to use.
 
+## Optional overrides
+
+By default, the exporter listens on 8080, and looks for WebLogic on `localhost:7001`, but that can be changed
+by passing one or more system properties at start-up:
+
+Setting | Default | Property
+------------ | ------------- | -------------
+Exporter port | 8080 | EXPORTER_PORT
+WebLogic host | localhost | WLS_HOST
+WebLogic port | 7001 | WLS_PORT
+
+
 ## Access the metrics
 
-Once the exporter is configured, a GET to `http://localhost:8080/metrics` will return the current metrics.
+Once the exporter is configured, a GET to `http://localhost:8080/metrics` (or whatever port was chosen) will return the current metrics.
 
 ## Copyright
 
