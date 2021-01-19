@@ -17,6 +17,7 @@ import static com.oracle.wls.exporter.sidecar.SidecarConfiguration.DEFAULT_POD_N
 import static com.oracle.wls.exporter.sidecar.SidecarConfiguration.DEFAULT_WLS_PORT;
 import static com.oracle.wls.exporter.sidecar.SidecarConfiguration.LISTEN_PORT_PROPERTY;
 import static com.oracle.wls.exporter.sidecar.SidecarConfiguration.POD_NAME_PROPERTY;
+import static com.oracle.wls.exporter.sidecar.SidecarConfiguration.WLS_HOST_PROPERTY;
 import static com.oracle.wls.exporter.sidecar.SidecarConfiguration.WLS_PORT_PROPERTY;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -28,10 +29,12 @@ public class SidecarConfigurationTest {
   @BeforeEach
   void setUp() {
     mementos.add(SystemPropertySupport.preserve(LISTEN_PORT_PROPERTY));
+    mementos.add(SystemPropertySupport.preserve(WLS_HOST_PROPERTY));
     mementos.add(SystemPropertySupport.preserve(WLS_PORT_PROPERTY));
     mementos.add(SystemPropertySupport.preserve(POD_NAME_PROPERTY));
 
     System.clearProperty(LISTEN_PORT_PROPERTY);
+    System.clearProperty(WLS_HOST_PROPERTY);
     System.clearProperty(WLS_PORT_PROPERTY);
     System.clearProperty(POD_NAME_PROPERTY);
   }
@@ -69,6 +72,16 @@ public class SidecarConfigurationTest {
     final SidecarConfiguration configuration = new SidecarConfiguration();
 
     assertThat(configuration.getWebLogicPort(), equalTo(port));
+  }
+
+  @Test
+  void whenWebLogicHostPropertySpecified_useIt() {
+    final String host = "webLogicHost";
+    System.setProperty(WLS_HOST_PROPERTY, host);
+
+    final SidecarConfiguration configuration = new SidecarConfiguration();
+
+    assertThat(configuration.getWebLogicHost(), equalTo(host));
   }
 
   @Test
