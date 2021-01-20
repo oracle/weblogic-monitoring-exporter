@@ -46,7 +46,7 @@ class MetricsServiceTest {
 
     @BeforeEach
     void setUp() throws NoSuchFieldException {
-        mementos.add(StaticStubSupport.install(ExporterConfig.class, "defaultSnakeCaseSetting", false));
+        mementos.add(StaticStubSupport.install(ExporterConfig.class, "defaultSnakeCaseSetting", true));
         LiveConfiguration.setServer("myhost", 7123);
         LiveConfiguration.loadFromString(ONE_VALUE_CONFIG);
         client = TestClient.create(Routing.builder().register(createMetricsService()));

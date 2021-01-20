@@ -13,7 +13,6 @@ import com.oracle.wls.exporter.ExporterCall;
 import com.oracle.wls.exporter.InvocationContext;
 import com.oracle.wls.exporter.LiveConfiguration;
 import com.oracle.wls.exporter.WebClientFactory;
-import com.oracle.wls.exporter.domain.ExporterConfig;
 import io.helidon.common.configurable.ThreadPoolSupplier;
 import io.helidon.webserver.Routing;
 import io.helidon.webserver.ServerRequest;
@@ -29,7 +28,6 @@ class MetricsService implements Service {
     private final Handler configurationHandler = new Handler(ConfigurationPutCall::new);
 
     MetricsService(SidecarConfiguration configuration, WebClientFactory webClientFactory) {
-        ExporterConfig.setDefaultMetricsNameSnakeCase(true);
         LiveConfiguration.setServer(configuration.getWebLogicHost(), configuration.getWebLogicPort());
         this.webClientFactory = webClientFactory;
 
