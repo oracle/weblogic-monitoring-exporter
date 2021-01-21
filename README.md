@@ -188,15 +188,16 @@ Once the exporter is configured, a GET to `http://localhost:8080/metrics` (or wh
 If docker is installed, running 
 
 ```
-docker build .
+docker build . -t <image-name>
 ```
 
-will build the project and create a docker image. It is not necessary even to do the Maven build first, as that will
+will build the project and create a docker image with the specified name. It is not necessary even 
+to do the Maven build first, as that will
 happen as part of creating the image. When running behind a firewall, it is necessary to specify a value for 
 the MAVEN_OPTS variable on the command line. For example
 
 ```
-docker build . --build-arg MAVEN_OPTS="-Dhttps.proxyHost=www-proxy -Dhttps.proxyPort=80"
+docker build . --build-arg MAVEN_OPTS="-Dhttps.proxyHost=www-proxy -Dhttps.proxyPort=80" -t <image-name>
 ```
 
 To allow the Maven image to download the dependencies. 

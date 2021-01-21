@@ -46,7 +46,6 @@
                 </property>
             </activation>
             <build>
-                <finalName>wls-exporter</finalName>
                 <plugins>
                     <plugin>
                         <groupId>${project.groupId}</groupId>
@@ -72,7 +71,7 @@
                                     <goal>copy</goal>
                                 </goals>
                                 <configuration>
-                                    <sourceFile>${project.build.directory}/wls-exporter.war</sourceFile>
+                                    <sourceFile>${project.build.directory}/${project.build.finalName}.war</sourceFile>
                                     <targetFile>${project.parent.build.directory}/wls-exporter.war</targetFile>
                                 </configuration>
                             </execution>
