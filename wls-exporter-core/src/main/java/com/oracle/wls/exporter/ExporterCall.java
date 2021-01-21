@@ -4,6 +4,7 @@
 package com.oracle.wls.exporter;
 
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -16,6 +17,7 @@ public class ExporterCall extends AuthenticatedCall {
 
   public ExporterCall(WebClientFactory webClientFactory, InvocationContext context) {
     super(webClientFactory, context);
+    Locale.setDefault(Locale.US);
   }
 
   @Override
