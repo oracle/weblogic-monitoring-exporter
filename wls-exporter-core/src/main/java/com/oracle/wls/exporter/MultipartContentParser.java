@@ -22,7 +22,7 @@ class MultipartContentParser implements ParserActions {
 
   MultipartContentParser(String contentType) {
     Header type = new Header("Content-Type: " + contentType);
-    if (!type.getValue().toLowerCase().equals("multipart/form-data")) throw new RuntimeException("Not multipart");
+    if (!type.getValue().equalsIgnoreCase("multipart/form-data")) throw new RuntimeException("Not multipart");
     this.boundary = type.getValue("boundary");
   }
 

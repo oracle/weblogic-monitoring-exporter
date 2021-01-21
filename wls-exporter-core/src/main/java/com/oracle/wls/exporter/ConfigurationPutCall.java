@@ -27,8 +27,8 @@ public class ConfigurationPutCall extends ConfigurationCall {
   }
 
   @Override
-  protected void reportUpdatedConfiguration(InvocationContext context) throws IOException {
-    String huh = "aa";
+  protected void reportUpdatedConfiguration(InvocationContext context) {
+    // do nothing
   }
 
   @Override

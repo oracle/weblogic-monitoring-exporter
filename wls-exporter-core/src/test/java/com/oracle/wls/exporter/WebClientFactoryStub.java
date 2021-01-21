@@ -3,6 +3,7 @@
 
 package com.oracle.wls.exporter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -153,9 +154,9 @@ public class WebClientFactoryStub implements WebClientFactory {
         }
 
         @Override
-        public String doPutRequest(String putBody) {
+        public <T> String doPutRequest(T putBody) throws IOException {
             if (url == null) throw new NullPointerException("No URL specified");
-            postedString = putBody;
+            postedString = new Gson().toJson(putBody);
 
             return getResult(getNextResponse());
         }

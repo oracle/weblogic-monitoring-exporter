@@ -14,6 +14,8 @@ import java.security.GeneralSecurityException;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import com.google.gson.Gson;
+
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
 import static com.oracle.wls.exporter.WebAppConstants.CONTENT_TYPE_HEADER;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -115,9 +117,9 @@ public abstract class WebClientCommon implements WebClient {
     }
 
     @Override
-    public String doPutRequest(String putBody) throws IOException {
+    public <T> String doPutRequest(T putBody) throws IOException {
         defineSessionHeaders();
-        return sendRequest(createPutRequest(url, putBody));
+        return sendRequest(createPutRequest(url, new Gson().toJson(putBody)));
     }
 
     // Sends the specified request to the server

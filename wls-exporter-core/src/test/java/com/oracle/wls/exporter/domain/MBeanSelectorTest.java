@@ -90,7 +90,7 @@ public class MBeanSelectorTest {
 
     @Test
     public void whenMapHasKey_selectorHasKey() {
-        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of(MBeanSelector.KEY, EXPECTED_KEY));
+        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of(MBeanSelector.QUERY_KEY, EXPECTED_KEY));
 
         assertThat(selector.getKey(), equalTo(EXPECTED_KEY));
     }
@@ -111,14 +111,14 @@ public class MBeanSelectorTest {
 
     @Test
     public void whenMapHasKeyNameButNoKeyName_selectorUsesKeyAsName() {
-        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of(MBeanSelector.KEY, EXPECTED_KEY));
+        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of(MBeanSelector.QUERY_KEY, EXPECTED_KEY));
 
         assertThat(selector.getKeyName(), equalTo(EXPECTED_KEY));
     }
 
     @Test
     public void whenMapHasBothKeyAndKeyName_selectorUsesKeyName() {
-        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of(MBeanSelector.KEY, EXPECTED_KEY,
+        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of(MBeanSelector.QUERY_KEY, EXPECTED_KEY,
                                                                       MBeanSelector.KEY_NAME, EXPECTED_KEY_NAME));
 
         assertThat(selector.getKeyName(), equalTo(EXPECTED_KEY_NAME));
@@ -159,7 +159,7 @@ public class MBeanSelectorTest {
     }
 
     private Map<String, Serializable> getServletMap() {
-        return ImmutableMap.of(MBeanSelector.KEY, EXPECTED_KEY, MBeanSelector.VALUES, EXPECTED_VALUES);
+        return ImmutableMap.of(MBeanSelector.QUERY_KEY, EXPECTED_KEY, MBeanSelector.VALUES, EXPECTED_VALUES);
     }
 
     @Test
@@ -177,7 +177,7 @@ public class MBeanSelectorTest {
     @Test
     public void whenKeySpecified_isIncludedInQueryFields() {
         MBeanSelector selector = MBeanSelector.create(
-                ImmutableMap.of(MBeanSelector.VALUES, EXPECTED_COMPONENT_VALUES, MBeanSelector.KEY, "name"));
+                ImmutableMap.of(MBeanSelector.VALUES, EXPECTED_COMPONENT_VALUES, MBeanSelector.QUERY_KEY, "name"));
 
         assertThat(querySpec(selector), hasJsonPath("$.fields").includingValues("name"));
     }
@@ -250,9 +250,9 @@ public class MBeanSelectorTest {
     @Test
     public void whenSelectorsNoCommonNestedElementsWithSameName_mayMerge() {
         MBeanSelector selector1 = MBeanSelector.create(ImmutableMap.of("servlets",
-                ImmutableMap.of(MBeanSelector.KEY, "oneKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
+                ImmutableMap.of(MBeanSelector.QUERY_KEY, "oneKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
         MBeanSelector selector2 = MBeanSelector.create(ImmutableMap.of("kidlets",
-                ImmutableMap.of(MBeanSelector.KEY, "differentKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
+                ImmutableMap.of(MBeanSelector.QUERY_KEY, "differentKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
 
         assertThat(selector1.mayMergeWith(selector2), is(true));
     }
@@ -260,9 +260,9 @@ public class MBeanSelectorTest {
     @Test
     public void whenSelectorsHaveMismatchedNestedElementsWithSameName_mayNotMerge() {
         MBeanSelector selector1 = MBeanSelector.create(ImmutableMap.of("servlets",
-                ImmutableMap.of(MBeanSelector.KEY, "oneKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
+                ImmutableMap.of(MBeanSelector.QUERY_KEY, "oneKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
         MBeanSelector selector2 = MBeanSelector.create(ImmutableMap.of("servlets",
-                ImmutableMap.of(MBeanSelector.KEY, "differentKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
+                ImmutableMap.of(MBeanSelector.QUERY_KEY, "differentKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
 
         assertThat(selector1.mayMergeWith(selector2), is(false));
     }
@@ -270,9 +270,9 @@ public class MBeanSelectorTest {
     @Test
     public void whenSelectorsHaveMismatchedNestedElementsWithDifferentName_merge() {
         MBeanSelector selector1 = MBeanSelector.create(ImmutableMap.of("servlets",
-                ImmutableMap.of(MBeanSelector.KEY, "oneKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
+                ImmutableMap.of(MBeanSelector.QUERY_KEY, "oneKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
         MBeanSelector selector2 = MBeanSelector.create(ImmutableMap.of("ejbs",
-                ImmutableMap.of(MBeanSelector.KEY, "differentKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
+                ImmutableMap.of(MBeanSelector.QUERY_KEY, "differentKey", MBeanSelector.VALUES, new String[] {"first", "second"})));
         MBeanSelector result = selector1.merge(selector2);
 
         assertThat(result.getNestedSelectors(), both(hasKey("servlets")).and(hasKey("ejbs")));
@@ -283,11 +283,11 @@ public class MBeanSelectorTest {
         MBeanSelector selector1 = MBeanSelector.create(
                 ImmutableMap.of("components",
                     ImmutableMap.of("servlets",
-                        ImmutableMap.of(MBeanSelector.KEY, "oneKey", MBeanSelector.VALUES, new String[] {"first", "second"}))));
+                        ImmutableMap.of(MBeanSelector.QUERY_KEY, "oneKey", MBeanSelector.VALUES, new String[] {"first", "second"}))));
         MBeanSelector selector2 = MBeanSelector.create(
                 ImmutableMap.of("components",
                     ImmutableMap.of("ejbs",
-                        ImmutableMap.of(MBeanSelector.KEY, "differentKey", MBeanSelector.VALUES, new String[] {"first", "second"}))));
+                        ImmutableMap.of(MBeanSelector.QUERY_KEY, "differentKey", MBeanSelector.VALUES, new String[] {"first", "second"}))));
 
         assertThat(selector1.mayMergeWith(selector2), is(true));
     }
@@ -297,11 +297,11 @@ public class MBeanSelectorTest {
         MBeanSelector selector1 = MBeanSelector.create(
                 ImmutableMap.of("components",
                     ImmutableMap.of("servlets",
-                        ImmutableMap.of(MBeanSelector.KEY, "oneKey", MBeanSelector.VALUES, new String[] {"first", "second"}))));
+                        ImmutableMap.of(MBeanSelector.QUERY_KEY, "oneKey", MBeanSelector.VALUES, new String[] {"first", "second"}))));
         MBeanSelector selector2 = MBeanSelector.create(
                 ImmutableMap.of("components",
                     ImmutableMap.of("ejbs",
-                        ImmutableMap.of(MBeanSelector.KEY, "differentKey", MBeanSelector.VALUES, new String[] {"first", "second"}))));
+                        ImmutableMap.of(MBeanSelector.QUERY_KEY, "differentKey", MBeanSelector.VALUES, new String[] {"first", "second"}))));
         MBeanSelector result = selector1.merge(selector2);
 
         assertThat(result.getNestedSelectors(), aMapWithSize(1));
@@ -316,12 +316,12 @@ public class MBeanSelectorTest {
     }
 
     private Map<String, Object> getApplicationMap() {
-        return ImmutableMap.of(MBeanSelector.KEY, "name",
+        return ImmutableMap.of(MBeanSelector.QUERY_KEY, "name",
                                "componentRuntimes", getComponentMap());
     }
 
     private Map<String, Object> getComponentMap() {
-        return ImmutableMap.of(MBeanSelector.KEY, "name", MBeanSelector.VALUES, EXPECTED_COMPONENT_VALUES,
+        return ImmutableMap.of(MBeanSelector.QUERY_KEY, "name", MBeanSelector.VALUES, EXPECTED_COMPONENT_VALUES,
                                "servlets", getServletMap());
     }
 
@@ -379,17 +379,17 @@ public class MBeanSelectorTest {
     }
 
     private Map<String, Object> getNoServletValuesApplicationMap() {
-        return ImmutableMap.of(MBeanSelector.KEY, "name",
+        return ImmutableMap.of(MBeanSelector.QUERY_KEY, "name",
                                "componentRuntimes", getNoServletValuesComponentMap());
     }
 
     private Map<String, Object> getNoServletValuesComponentMap() {
-        return ImmutableMap.of(MBeanSelector.KEY, "name", MBeanSelector.VALUES, EXPECTED_COMPONENT_VALUES,
+        return ImmutableMap.of(MBeanSelector.QUERY_KEY, "name", MBeanSelector.VALUES, EXPECTED_COMPONENT_VALUES,
                                "servlets", getNoValuesServletMap());
     }
 
     private Map<String, Serializable> getNoValuesServletMap() {
-        return ImmutableMap.of(MBeanSelector.PREFIX, "servlet_", MBeanSelector.KEY, EXPECTED_KEY);
+        return ImmutableMap.of(MBeanSelector.PREFIX, "servlet_", MBeanSelector.QUERY_KEY, EXPECTED_KEY);
     }
 
     private static final String EXPECTED_ALL_SERVLET_VALUES_JSON_REQUEST =

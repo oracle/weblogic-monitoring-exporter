@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import com.google.gson.Gson;
 import com.meterware.pseudoserver.PseudoServer;
 import com.meterware.pseudoserver.PseudoServlet;
 import com.meterware.pseudoserver.WebResource;
@@ -123,7 +124,7 @@ abstract class WebClientTestBase {
 
     @Test
     public void whenUnprotected_sendPutToServer() throws Exception {
-        final String QUERY = "sent this";
+        final Structure QUERY = new Structure(3, "red");
 
         defineResource("unprotected_put", new PseudoServlet() {
             public WebResource getPutResponse() {
@@ -134,7 +135,22 @@ abstract class WebClientTestBase {
 
         withWebClient("unprotected_put").doPutRequest(QUERY);
 
-        assertThat(sentInfo, equalTo(QUERY));
+        assertThat(sentInfo, equalTo(QUERY.getAsJson()));
+    }
+
+    @SuppressWarnings({"FieldCanBeLocal", "unused"})
+    static class Structure {
+        private final int count;
+        private final String color;
+
+        Structure(int count, String color) {
+            this.count = count;
+            this.color = color;
+        }
+
+        String getAsJson() {
+            return new Gson().toJson(this);
+        }
     }
 
     @Test

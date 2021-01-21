@@ -37,12 +37,12 @@ public interface WebClient {
   String doPostRequest(String postBody) throws IOException;
 
   /**
-   * Sends a PUT query to the server and returns the reply.
+   * Converts the specified object to JSON and uses a PUT request to send it to the server.
    * @param putBody query data
-   * @return the body of the response
+   * @return the reply
    */
   @SuppressWarnings("UnusedReturnValue")
-  String doPutRequest(String putBody) throws IOException;
+  <T> String doPutRequest(T putBody) throws IOException;
 
   /**
    * Adds a header to be sent on every query.

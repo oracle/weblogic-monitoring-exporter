@@ -76,4 +76,9 @@ public interface InvocationContext extends Closeable {
    * @param status an HTTP status code
    */
   void setStatus(int status);
+
+  /**
+   * Closes this context and flushes any pending outputs.
+   */
+  void close() throws IOException;
 }

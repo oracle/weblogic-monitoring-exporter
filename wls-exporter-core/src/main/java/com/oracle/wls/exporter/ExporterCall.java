@@ -4,8 +4,6 @@
 package com.oracle.wls.exporter;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -55,17 +53,9 @@ public class ExporterCall extends AuthenticatedCall {
     } catch (AuthenticationChallengeException e) {  // don't add a message for this case
       throw e;
     } catch (IOException | RuntimeException | Error e) {
-      WlsRestExchanges.addExchange(getQueryUrl(selector), selector.getRequest(), toStackTrace(e));
+      WlsRestExchanges.addExchange(getQueryUrl(selector), selector.getRequest(), e.toString());
       throw e;
     }
-  }
-
-  private static String toStackTrace(Throwable e) {
-    StringWriter sw = new StringWriter();
-    PrintWriter pw = new PrintWriter(sw);
-    e.printStackTrace(pw);
-    pw.close();
-    return sw.toString();
   }
 
   private static String withCommentMarkers(String string) {

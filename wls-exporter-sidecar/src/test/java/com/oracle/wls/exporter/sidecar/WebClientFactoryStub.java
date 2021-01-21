@@ -118,13 +118,6 @@ public class WebClientFactoryStub implements WebClientFactory {
             return getResult(getNextResponse());
         }
 
-        @Override
-        public String doPutRequest(String putBody) {
-            if (url == null) throw new NullPointerException("No URL specified");
-
-            return getResult(getNextResponse());
-        }
-
         private TestResponse getNextResponse() {
             if (responses == null) responses = testResponses.iterator();
             return !responses.hasNext() ? new JsonResponse(null) : responses.next();

@@ -3,12 +3,12 @@
 
 package com.oracle.wls.exporter;
 
-import com.google.gson.Gson;
-import com.oracle.wls.exporter.domain.QuerySyncConfiguration;
-
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
+
+import com.google.gson.Gson;
+import com.oracle.wls.exporter.domain.QuerySyncConfiguration;
 
 /**
  * An object to manage interactions with the configuration repeater over HTTP.
@@ -86,7 +86,7 @@ class ConfigurationUpdaterImpl implements ConfigurationUpdater {
         try {
             WebClient client = factory.createClient().withUrl(repeaterUrl);
 
-            client.doPutRequest(new Gson().toJson(createUpdate(configuration)));
+            client.doPutRequest(createUpdate(configuration));
         } catch (IOException | WebClientException e) {
             errorLog.log(e);
         }
