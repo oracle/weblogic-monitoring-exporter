@@ -18,17 +18,19 @@ ARG MAVEN_OPTS
 
 WORKDIR /project/
 COPY --from=m2repo /root/.m2 /root/.m2
-COPY --from=m2repo /project/ .
-#COPY wls-exporter-core/src wls-exporter-core/
-#COPY wls-exporter-sidecar/src wls-exporter-sidecar/
+COPY pom.xml .
+COPY wls-exporter-core/ wls-exporter-core/
+COPY wls-exporter-sidecar/ wls-exporter-sidecar/
 
-RUN mvn -B -e -C install -Ddocker-build -DskipTests=true
+RUN mvn -B -e -C install -Ddocker-build
+#RUN mvn -X install -Ddocker-build -DskipTests=true
 
 # Finally, copy the exporter sidecar and create the docker image
 FROM openjdk:11-oracle
 WORKDIR /tmp
 
 COPY --from=build project/wls-exporter-sidecar/target/wls-exporter-sidecar.jar ./
+COPY --from=build project/wls-exporter-sidecar/target/libs ./libs
 
 CMD ["java", "-jar", "wls-exporter-sidecar.jar"]
 
