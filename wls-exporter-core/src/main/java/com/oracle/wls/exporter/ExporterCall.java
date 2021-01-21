@@ -10,6 +10,7 @@ import java.util.TreeMap;
 import com.oracle.wls.exporter.domain.MBeanSelector;
 
 import static com.oracle.wls.exporter.domain.MapUtils.isNullOrEmptyString;
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 
 public class ExporterCall extends AuthenticatedCall {
 
@@ -47,9 +48,8 @@ public class ExporterCall extends AuthenticatedCall {
         sort(metrics).forEach(metricsStream::printMetric);
     } catch (RestQueryException e) {
       metricsStream.println(
-            withCommentMarkers("REST service was unable to handle this query\n"
-                  + selector.getPrintableRequest() + '\n'
-                  + "exception: " + e.getMessage()));
+            withCommentMarkers("REST service was unable to handle this query and returned a " + HTTP_BAD_REQUEST + "\n"
+                  + selector.getPrintableRequest()));
     } catch (AuthenticationChallengeException e) {  // don't add a message for this case
       throw e;
     } catch (IOException | RuntimeException | Error e) {

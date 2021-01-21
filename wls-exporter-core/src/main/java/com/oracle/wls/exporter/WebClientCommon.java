@@ -18,9 +18,10 @@ import com.google.gson.Gson;
 
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
 import static com.oracle.wls.exporter.WebAppConstants.CONTENT_TYPE_HEADER;
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
+import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 /**
  * A client for sending http requests.  Note that it does not do any authentication by itself.
@@ -142,11 +143,11 @@ public abstract class WebClientCommon implements WebClient {
 
     private void processStatusCode(WebResponse response) {
         switch (response.getResponseCode()) {
-            case SC_BAD_REQUEST:
+            case HTTP_BAD_REQUEST:
                 throw new RestQueryException();
-            case SC_UNAUTHORIZED:
+            case HTTP_UNAUTHORIZED:
                 throw createAuthenticationChallengeException(response);
-            case SC_FORBIDDEN:
+            case HTTP_FORBIDDEN:
                 throw new ForbiddenException();
             default:
                 if (response.getResponseCode() > SC_BAD_REQUEST)
