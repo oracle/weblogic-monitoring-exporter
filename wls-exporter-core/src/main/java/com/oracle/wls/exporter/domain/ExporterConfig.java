@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 
 import com.google.gson.JsonObject;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.scanner.ScannerException;
 
 /**
@@ -61,7 +62,7 @@ public class ExporterConfig {
      */
     public static ExporterConfig loadConfig(InputStream inputStream) {
         try {
-            return loadConfig(asMap(new Yaml().load(inputStream)));
+            return loadConfig(asMap(new Yaml(new SafeConstructor()).load(inputStream)));
         } catch (ScannerException e) {
             throw new YamlParserException(e);
         }

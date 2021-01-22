@@ -14,7 +14,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import javax.net.ssl.SSLContext;
 
-import com.google.gson.Gson;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -82,7 +81,7 @@ public class WebClientImpl extends WebClientCommon {
     @Override
     protected <T> WebRequest createPutRequest(String url, T putBody) {
         HttpPutRequest query = new HttpPutRequest(url);
-        query.setEntity(new StringEntity(new Gson().toJson(putBody), ContentType.APPLICATION_JSON));
+        query.setEntity(new JsonEntity<>(putBody));
         return query;
     }
 

@@ -4,8 +4,6 @@
 package com.oracle.wls.exporter;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
 
 import com.oracle.wls.exporter.domain.MBeanSelector;
@@ -97,22 +95,6 @@ public abstract class AuthenticatedCall {
      */
     public String getRequestContentType() {
         return context.getContentType();
-    }
-
-    /**
-     * Returns a stream from which the request body can be read.
-     * @throws IOException if unable to obtain the input stream
-     */
-    public InputStream getRequestStream() throws IOException {
-        return context.getRequestStream();
-    }
-
-    /**
-     * Returns a stream to which a response body should be written.
-     * @throws IOException if unable to obtain the output stream
-     */
-    public OutputStream getResponseStream() throws IOException {
-        return context.getResponseStream();
     }
 
 

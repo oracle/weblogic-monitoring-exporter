@@ -22,7 +22,7 @@ public class ConfigurationPutCall extends ConfigurationCall {
   }
 
   @Override
-  ConfigurationAction createConfigurationAction(String contentType, InputStream inputStream) throws IOException {
+  ConfigurationAction createConfigurationAction(String contentType, InputStream inputStream) {
     return new ConfigurationPutAction(contentType, inputStream);
   }
 

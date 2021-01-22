@@ -62,10 +62,14 @@ public class ConfigurationFormCall extends ConfigurationCall {
 
     private void configure(List<MultipartItem> fileItems) throws IOException {
       for (MultipartItem item : fileItems) {
-        if (!item.isFormField()) {
-          defineUploadedFile(item.getInputStream());
-        } else if (item.getFieldName().equals(WebAppConstants.EFFECT_OPTION))
-          setEffect(item.getString());
+        if (item.isFormField()) {
+          if (item.getFieldName().equals(WebAppConstants.EFFECT_OPTION))
+            setEffect(item.getString());
+        } else {
+          try (InputStream configStream = item.getInputStream()) {
+            defineUploadedFile(configStream);
+          }
+        }
       }
     }
 

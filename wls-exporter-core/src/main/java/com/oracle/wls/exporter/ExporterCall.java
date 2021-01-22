@@ -4,6 +4,7 @@
 package com.oracle.wls.exporter;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
@@ -23,7 +24,8 @@ public class ExporterCall extends AuthenticatedCall {
   @Override
   protected void invoke(WebClient webClient, InvocationContext context) throws IOException {
     LiveConfiguration.updateConfiguration();
-    try (MetricsStream metricsStream = new MetricsStream(getInstanceName(), getResponseStream())) {
+    try (OutputStream responseStream = context.getResponseStream();
+         MetricsStream metricsStream = new MetricsStream(getInstanceName(), responseStream)) {
       if (!LiveConfiguration.hasQueries())
         metricsStream.println("# No configuration defined.");
       else {

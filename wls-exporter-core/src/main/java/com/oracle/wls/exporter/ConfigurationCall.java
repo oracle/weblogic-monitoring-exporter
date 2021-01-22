@@ -17,9 +17,9 @@ public abstract class ConfigurationCall extends AuthenticatedCall {
 
   @Override
   protected void invoke(WebClient webClient, InvocationContext context) throws IOException {
-    try {
+    try (InputStream requestStream = context.getRequestStream()){
       authenticate(webClient.withUrl(getAuthenticationUrl()));
-      createConfigurationAction(getRequestContentType(), getRequestStream()).perform();
+      createConfigurationAction(getRequestContentType(), requestStream).perform();
       reportUpdatedConfiguration(context);
     } catch (RestPortConnectionException e) {
       reportFailure(e);

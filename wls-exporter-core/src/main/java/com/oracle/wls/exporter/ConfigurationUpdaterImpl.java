@@ -32,7 +32,8 @@ class ConfigurationUpdaterImpl implements ConfigurationUpdater {
     ConfigurationUpdaterImpl(QuerySyncConfiguration syncConfiguration, ErrorLog errorLog) {
         this(Clock.systemUTC(), new WebClientFactoryImpl());
         this.errorLog = errorLog;
-        configure(syncConfiguration.getUrl(), syncConfiguration.getRefreshInterval());
+        this.repeaterUrl = syncConfiguration.getUrl();
+        this.refreshInterval = syncConfiguration.getRefreshInterval();
     }
 
     /**
