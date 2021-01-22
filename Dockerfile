@@ -22,8 +22,7 @@ COPY pom.xml .
 COPY wls-exporter-core/ wls-exporter-core/
 COPY wls-exporter-sidecar/ wls-exporter-sidecar/
 
-RUN mvn -B -e -C install -Ddocker-build
-#RUN mvn -X install -Ddocker-build -DskipTests=true
+RUN mvn -B -e -C install -Ddocker-build -DskipTests=true
 
 # Finally, copy the exporter sidecar and create the docker image
 FROM openjdk:11-oracle
