@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.BiFunction;
 
 import com.oracle.wls.exporter.AuthenticatedCall;
+import com.oracle.wls.exporter.ConfigurationDisplay;
 import com.oracle.wls.exporter.ConfigurationPutCall;
 import com.oracle.wls.exporter.ExporterCall;
 import com.oracle.wls.exporter.InvocationContext;
@@ -24,8 +25,9 @@ class MetricsService implements Service {
     private final WebClientFactory webClientFactory;
     private final ExecutorService executorService;
 
-    private final Handler metricsHandler = new Handler(ExporterCall::new);
-    private final Handler configurationHandler = new Handler(ConfigurationPutCall::new);
+    private final AuthenticatedHandler metricsHandler = new AuthenticatedHandler(ExporterCall::new);
+    private final AuthenticatedHandler configurationHandler = new AuthenticatedHandler(ConfigurationPutCall::new);
+    private final MainHandler mainHandler = new MainHandler();
 
     MetricsService(SidecarConfiguration configuration, WebClientFactory webClientFactory) {
         LiveConfiguration.setServer(configuration.getWebLogicHost(), configuration.getWebLogicPort());
@@ -42,30 +44,45 @@ class MetricsService implements Service {
     @Override
     public void update(Routing.Rules rules) {
         rules
+              .get("/", mainHandler::dispatch)
               .get("/metrics", metricsHandler::dispatch)
-              .put("/configuration", configurationHandler::dispatch) ;
+              .put("/configuration", configurationHandler::dispatch);
     }
 
-    class Handler {
-        private final BiFunction<WebClientFactory, InvocationContext, AuthenticatedCall> builder;
-
-        Handler(BiFunction<WebClientFactory, InvocationContext, AuthenticatedCall> builder) {
-            this.builder = builder;
-        }
-
+    abstract class Handler {
         void dispatch(ServerRequest request, ServerResponse response) {
             executorService.submit(() -> {
                 try {
-                    final InvocationContext context = new HelidonInvocationContext(request, response);
-                    builder.apply(webClientFactory, context).doWithAuthentication();
+                    invoke(new HelidonInvocationContext(request, response));
                 } catch (IOException e) {
                     reportServerFailure(response, e);
                 }
             });
         }
 
-        private void reportServerFailure(ServerResponse response, IOException e) {
+        void reportServerFailure(ServerResponse response, IOException e) {
             response.send(e);
+        }
+
+        abstract void invoke(InvocationContext context) throws IOException;
+    }
+
+    class AuthenticatedHandler extends Handler {
+        private final BiFunction<WebClientFactory, InvocationContext, AuthenticatedCall> builder;
+
+        AuthenticatedHandler(BiFunction<WebClientFactory, InvocationContext, AuthenticatedCall> builder) {
+            this.builder = builder;
+        }
+
+        @Override
+        void invoke(InvocationContext context) throws IOException {
+            builder.apply(webClientFactory, context).doWithAuthentication();
+        }
+    }
+
+    class MainHandler extends Handler {
+        void invoke(InvocationContext context) throws IOException {
+            ConfigurationDisplay.displayConfiguration(context.getResponseStream());
         }
     }
 }

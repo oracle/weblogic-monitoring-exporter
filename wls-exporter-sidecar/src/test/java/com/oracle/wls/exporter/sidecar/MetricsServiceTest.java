@@ -21,6 +21,7 @@ import io.helidon.webserver.testsupport.TestClient;
 import io.helidon.webserver.testsupport.TestResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
@@ -164,5 +165,18 @@ class MetricsServiceTest {
         assertThat(metrics, containsString("group_value_test_sample1{name=\"first\"} 12"));
         assertThat(metrics, containsString("group_value_test_sample1{name=\"second\"} -3"));
         assertThat(metrics, containsString("group_value_test_sample2{name=\"second\"} 71.0"));
+    }
+
+    // ---------- get configuration --------
+
+    @Test @Disabled
+    void retrieveConfiguration() throws TimeoutException, InterruptedException, ExecutionException {
+        final TestResponse testResponse = client.path("/").get();
+
+        assertEquals(Http.Status.OK_200, testResponse.status());
+
+        String response = testResponse.asString().get();
+
+        assertThat(response, equalTo(ONE_VALUE_CONFIG));
     }
 }

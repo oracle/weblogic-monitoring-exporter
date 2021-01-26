@@ -288,6 +288,25 @@ public class ExporterConfigTest {
             "      values: [pendingRequests, completedRequests, stuckThreadCount]\n";
 
     @Test
+    void whenRestPortSetAsIntegerString_parseIt() {
+        ExporterConfig config = loadFromString(STRING_REST_PORT_CONFIG);
+
+        assertThat(config.getRestPort(), equalTo(1235));
+
+    }
+
+    private static final String STRING_REST_PORT_CONFIG =
+          "restPort: '1235'\nqueries:";
+
+    @Test
+    void whenRestPortNotParseable_reportError() {
+        assertThrows(ConfigurationException.class, () -> loadFromString(JUNK_REST_PORT_CONFIG));
+    }
+
+    private static final String JUNK_REST_PORT_CONFIG =
+          "restPort: One\nqueries:";
+
+    @Test
     public void afterAppend_configHasOriginalDestination() {
         ExporterConfig config = getAppendedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG);
 

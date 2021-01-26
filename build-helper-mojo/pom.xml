@@ -30,6 +30,11 @@
             <version>3.6.0</version>
         </dependency>
         <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm</artifactId>
             <version>8.0.1</version>
@@ -38,6 +43,11 @@
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>java-hamcrest</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.meterware.simplestub</groupId>
+            <artifactId>simplestub</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

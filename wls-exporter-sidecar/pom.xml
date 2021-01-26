@@ -47,8 +47,18 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter</artifactId>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.meterware.simplestub</groupId>
+            <artifactId>simplestub</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

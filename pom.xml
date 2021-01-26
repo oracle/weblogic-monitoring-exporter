@@ -143,6 +143,18 @@
                 <version>4.5.13</version>
             </dependency>
             <dependency>
+              <groupId>org.junit.jupiter</groupId>
+              <artifactId>junit-jupiter</artifactId>
+              <version>5.7.0</version>
+              <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.meterware.simplestub</groupId>
+                <artifactId>simplestub</artifactId>
+                <version>1.2.12</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.hamcrest</groupId>
                 <artifactId>java-hamcrest</artifactId>
                 <version>2.0.0.0</version>
@@ -153,24 +165,15 @@
                 <artifactId>httpunit</artifactId>
                 <version>1.7.2</version>
                 <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>junit</groupId>
+                        <artifactId>junit</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <dependencies>
-        <dependency>
-          <groupId>org.junit.jupiter</groupId>
-          <artifactId>junit-jupiter</artifactId>
-          <version>5.7.0</version>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.meterware.simplestub</groupId>
-            <artifactId>simplestub</artifactId>
-            <version>1.2.12</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 
     <profiles>
         <profile>
