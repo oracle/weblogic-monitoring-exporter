@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.meterware.simplestub.Memento;
-import com.meterware.simplestub.SystemPropertySupport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,8 +18,10 @@ import static com.oracle.wls.exporter.sidecar.SidecarConfiguration.LISTEN_PORT_P
 import static com.oracle.wls.exporter.sidecar.SidecarConfiguration.POD_NAME_PROPERTY;
 import static com.oracle.wls.exporter.sidecar.SidecarConfiguration.WLS_HOST_PROPERTY;
 import static com.oracle.wls.exporter.sidecar.SidecarConfiguration.WLS_PORT_PROPERTY;
+import static com.oracle.wls.exporter.sidecar.SidecarConfiguration.WLS_SECURE_PROPERTY;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 
 public class SidecarConfigurationTest {
 
@@ -28,15 +29,7 @@ public class SidecarConfigurationTest {
 
   @BeforeEach
   void setUp() {
-    mementos.add(SystemPropertySupport.preserve(LISTEN_PORT_PROPERTY));
-    mementos.add(SystemPropertySupport.preserve(WLS_HOST_PROPERTY));
-    mementos.add(SystemPropertySupport.preserve(WLS_PORT_PROPERTY));
-    mementos.add(SystemPropertySupport.preserve(POD_NAME_PROPERTY));
-
-    System.clearProperty(LISTEN_PORT_PROPERTY);
-    System.clearProperty(WLS_HOST_PROPERTY);
-    System.clearProperty(WLS_PORT_PROPERTY);
-    System.clearProperty(POD_NAME_PROPERTY);
+    SidecarConfigurationTestSupport.preserveConfigurationProperties(mementos);
   }
 
   @AfterEach
@@ -50,7 +43,8 @@ public class SidecarConfigurationTest {
 
     assertThat(configuration.getListenPort(), equalTo(DEFAULT_LISTEN_PORT));
     assertThat(configuration.getWebLogicPort(), equalTo(DEFAULT_WLS_PORT));
-    assertThat(configuration.getWebLogicHost(), equalTo("localhost"));
+    assertThat(configuration.getWebLogicHost(), equalTo(SidecarConfiguration.getDefaultWlsHost()));
+    assertThat(configuration.useWebLogicSsl(), is(false));
     assertThat(configuration.getPodName(), equalTo(DEFAULT_POD_NAME));
   }
 
@@ -82,6 +76,15 @@ public class SidecarConfigurationTest {
     final SidecarConfiguration configuration = new SidecarConfiguration();
 
     assertThat(configuration.getWebLogicHost(), equalTo(host));
+  }
+
+  @Test
+  void whenWebLogicSecurePropertySpecified_useIt() {
+    System.setProperty(WLS_SECURE_PROPERTY, "true");
+
+    final SidecarConfiguration configuration = new SidecarConfiguration();
+
+    assertThat(configuration.useWebLogicSsl(), is(true));
   }
 
   @Test

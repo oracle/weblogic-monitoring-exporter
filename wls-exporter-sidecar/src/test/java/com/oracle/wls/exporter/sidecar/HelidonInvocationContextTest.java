@@ -12,7 +12,6 @@ import java.util.Optional;
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.SystemPropertySupport;
 import com.oracle.wls.exporter.InvocationContext;
-import com.oracle.wls.exporter.LiveConfiguration;
 import com.oracle.wls.exporter.WebAppConstants;
 import io.helidon.common.http.MediaType;
 import io.helidon.webserver.RequestHeaders;
@@ -31,7 +30,7 @@ import static org.hamcrest.Matchers.nullValue;
 class HelidonInvocationContextTest {
 
   private final static String HOST = "localhost";
-  private final static int WLS_PORT = 7001;
+  private final static int WLS_PORT = 8765;
   private final static String REQUEST_URL_PATTERN = "%s://%s:%d/address";
   private static final String POD_NAME = "server2";
 
@@ -39,6 +38,7 @@ class HelidonInvocationContextTest {
   private final List<Memento> mementos = new ArrayList<>();
 
   private InvocationContext invocationContext;
+  private final SidecarConfiguration configuration = new SidecarConfiguration();
 
   @BeforeEach
   void setUp() {
@@ -53,10 +53,10 @@ class HelidonInvocationContextTest {
   }
 
   @Test
-  void requestUrl_usesLiveConfiguration() {
-    LiveConfiguration.setServer(HOST, WLS_PORT);
+  void requestUrl_usesSidecarConfiguration() {
     assertThat(invocationContext.createUrlBuilder().createUrl(REQUEST_URL_PATTERN),
-          equalTo(String.format(REQUEST_URL_PATTERN, "http", HOST, WLS_PORT)));
+               equalTo(String.format(REQUEST_URL_PATTERN,
+                   "http", configuration.getWebLogicHost(), configuration.getWebLogicPort())));
   }
 
   @Test

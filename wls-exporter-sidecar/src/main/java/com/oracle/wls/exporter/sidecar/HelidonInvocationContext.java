@@ -11,7 +11,6 @@ import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
 import com.oracle.wls.exporter.InvocationContext;
-import com.oracle.wls.exporter.LiveConfiguration;
 import com.oracle.wls.exporter.UrlBuilder;
 import com.oracle.wls.exporter.WebAppConstants;
 import io.helidon.common.http.DataChunk;
@@ -27,7 +26,7 @@ public class HelidonInvocationContext implements InvocationContext {
     private final ServerResponse response;
     private final ByteArrayOutputStream baos = new ByteArrayOutputStream(1024);
     private final PrintStream printStream = new PrintStream(baos);
-    private final SidecarConfiguration sidecarConfiguration = new SidecarConfiguration();
+    private final SidecarConfiguration configuration = new SidecarConfiguration();
 
     public HelidonInvocationContext(ServerRequest request, ServerResponse response) {
         this.request = request;
@@ -36,7 +35,8 @@ public class HelidonInvocationContext implements InvocationContext {
 
     @Override
     public UrlBuilder createUrlBuilder() {
-        return LiveConfiguration.createUrlBuilder();
+        return UrlBuilder.create(configuration.getWebLogicHost(), configuration.useWebLogicSsl())
+              .withPort(configuration.getWebLogicPort());
     }
 
     @Override
@@ -56,7 +56,7 @@ public class HelidonInvocationContext implements InvocationContext {
 
     @Override
     public String getInstanceName() {
-        return sidecarConfiguration.getPodName();
+        return configuration.getPodName();
     }
 
     @Override

@@ -103,4 +103,7 @@ public class MessagesServletTest {
 
         assertThat(response.getHtml(), containsString("request 4"));
     }
+
+    // todo report last commit
+    // todo diagnose classpath issues (all should be in the WAR)
 }

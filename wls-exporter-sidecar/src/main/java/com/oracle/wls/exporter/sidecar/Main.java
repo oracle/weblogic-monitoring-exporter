@@ -11,20 +11,16 @@ import io.helidon.webserver.Routing;
 import io.helidon.webserver.WebServer;
 
 
-// use event variables to configure listen port and WLS port.
-
-// what about SSL?
-// what about initial configuration?
+// Main program for the Exporter sidecar using Helidon
 public class Main {
     public static void main(String[] args) {
         LogConfig.configureRuntime();
-        SidecarConfiguration configuration = new SidecarConfiguration();
+        final SidecarConfiguration configuration = new SidecarConfiguration();
+        final MetricsService metricsService = new MetricsService(configuration, new WebClientFactoryImpl());
 
         WebServer.builder()
-                .routing(Routing.builder()
-                                 .register(new MetricsService(configuration, new WebClientFactoryImpl()))
-                                 .build())
-                .port(configuration.getListenPort())
+                .routing(Routing.builder().register(metricsService).build())
+                .port(metricsService.getListenPort())
                 .build()
                 .start()
                 .await(10, TimeUnit.SECONDS);

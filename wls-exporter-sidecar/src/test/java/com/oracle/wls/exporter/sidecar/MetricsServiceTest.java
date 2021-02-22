@@ -11,26 +11,31 @@ import java.util.concurrent.TimeoutException;
 
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
+import com.oracle.wls.exporter.InvocationContext;
 import com.oracle.wls.exporter.LiveConfiguration;
 import com.oracle.wls.exporter.domain.ExporterConfig;
 import io.helidon.common.http.Http;
 import io.helidon.common.http.MediaType;
 import io.helidon.webserver.Routing;
+import io.helidon.webserver.ServerRequest;
+import io.helidon.webserver.ServerResponse;
 import io.helidon.webserver.testsupport.MediaPublisher;
 import io.helidon.webserver.testsupport.TestClient;
 import io.helidon.webserver.testsupport.TestResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import static com.meterware.simplestub.Stub.createStub;
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
+import static com.oracle.wls.exporter.domain.QueryType.RUNTIME_URL_PATTERN;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -40,6 +45,24 @@ class MetricsServiceTest {
     private static final String TWO_VALUE_CONFIG = "queries:" +
             "\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]";
     private static final String NO_CONFIGURATION = "";
+    private static final String DOMAIN_QUALIFIER_CONFIG = "domainQualifier: testDomain\n"
+          + "queries:\n- groups:\n    key: name\n    values: testSample1";
+
+    private static final String JSON_TWO_VALUE_CONFIG = "{\n" +
+          "  \"metricsNameSnakeCase\": true,\n" +
+          "  \"queries\": [\n" +
+          "    {\n" +
+          "      \"groups\": {\n" +
+          "        \"key\": \"name\",\n" +
+          "        \"prefix\": \"group_value_\",\n" +
+          "        \"values\": [\n" +
+          "           \"testSample1\",\n" +
+          "           \"testSample2\"\n" +
+          "          ]\n" +
+          "      }\n" +
+          "    }\n" +
+          "  ]\n" +
+          "}";
 
     private final WebClientFactoryStub clientFactory = new WebClientFactoryStub();
     private TestClient client;
@@ -48,7 +71,7 @@ class MetricsServiceTest {
     @BeforeEach
     void setUp() throws NoSuchFieldException {
         mementos.add(StaticStubSupport.install(ExporterConfig.class, "defaultSnakeCaseSetting", true));
-        LiveConfiguration.setServer("myhost", 7123);
+        SidecarConfigurationTestSupport.preserveConfigurationProperties(mementos);
         LiveConfiguration.loadFromString(ONE_VALUE_CONFIG);
         client = TestClient.create(Routing.builder().register(createMetricsService()));
     }
@@ -62,7 +85,39 @@ class MetricsServiceTest {
         return new MetricsService(new SidecarConfiguration(), clientFactory);
     }
 
-    //------------- metrics --------
+    //------------- sidecar configuration ------
+
+    @Test
+    void usePropertiesToConfigureListeningPort() {
+        System.setProperty(SidecarConfiguration.LISTEN_PORT_PROPERTY, "8000");
+
+        assertThat(createMetricsService().getListenPort(), equalTo(8000));
+    }
+
+    @Test
+    void usePropertiesToConfigurePlaintextWLSUrl() {
+        System.setProperty(SidecarConfiguration.WLS_HOST_PROPERTY, "plainHost");
+        System.setProperty(SidecarConfiguration.WLS_PORT_PROPERTY, "7111");
+
+        assertThat(createHelidonInvocationContext().createUrlBuilder().createUrl(RUNTIME_URL_PATTERN),
+              startsWith("http://plainHost:7111"));
+    }
+
+    private InvocationContext createHelidonInvocationContext() {
+        return new HelidonInvocationContext(createStub(ServerRequest.class), createStub(ServerResponse.class));
+    }
+
+    @Test
+    void usePropertiesToConfigureSecureWLSUrl() {
+        System.setProperty(SidecarConfiguration.WLS_HOST_PROPERTY, "secureHost");
+        System.setProperty(SidecarConfiguration.WLS_PORT_PROPERTY, "7333");
+        System.setProperty(SidecarConfiguration.WLS_SECURE_PROPERTY, "true");
+
+        assertThat(createHelidonInvocationContext().createUrlBuilder().createUrl(RUNTIME_URL_PATTERN),
+              startsWith("https://secureHost:7333"));
+    }
+    
+//------------- metrics --------
 
     @Test
     void whenNoConfiguration_reportTheIssue() throws TimeoutException, InterruptedException, ExecutionException {
@@ -96,7 +151,11 @@ class MetricsServiceTest {
         final TestResponse metricsResponse = getMetricsResponse();
 
         assertThat(metricsResponse.status().code(), equalTo(HTTP_UNAUTHORIZED));
-        assertThat(metricsResponse.headers().first("WWW-Authenticate").orElse(null), equalTo("Basic realm=\"Test-Realm\""));
+        assertThat(getAuthenticationHeader(metricsResponse), equalTo("Basic realm=\"Test-Realm\""));
+    }
+
+    private String getAuthenticationHeader(TestResponse metricsResponse) {
+        return metricsResponse.headers().first("WWW-Authenticate").orElse(null);
     }
 
     @Test
@@ -154,7 +213,6 @@ class MetricsServiceTest {
 
     // -------------- put configuration  ---------
 
-
     @Test
     void afterPutConfiguration_displayMetrics() throws TimeoutException, InterruptedException, ExecutionException {
         client.path("/configuration").put(MediaPublisher.create(MediaType.APPLICATION_YAML, TWO_VALUE_CONFIG));
@@ -167,9 +225,21 @@ class MetricsServiceTest {
         assertThat(metrics, containsString("group_value_test_sample2{name=\"second\"} 71.0"));
     }
 
+    @Test
+    void afterPutJsonConfiguration_displayMetrics() throws TimeoutException, InterruptedException, ExecutionException {
+        client.path("/configuration").put(MediaPublisher.create(MediaType.APPLICATION_YAML, JSON_TWO_VALUE_CONFIG));
+        clientFactory.addJsonResponse(getGroupResponseMap());
+
+        final String metrics = getMetrics();
+
+        assertThat(metrics, containsString("group_value_test_sample1{name=\"first\"} 12"));
+        assertThat(metrics, containsString("group_value_test_sample1{name=\"second\"} -3"));
+        assertThat(metrics, containsString("group_value_test_sample2{name=\"second\"} 71.0"));
+    }
+
     // ---------- get configuration --------
 
-    @Test @Disabled
+    @Test
     void retrieveConfiguration() throws TimeoutException, InterruptedException, ExecutionException {
         final TestResponse testResponse = client.path("/").get();
 
@@ -177,6 +247,6 @@ class MetricsServiceTest {
 
         String response = testResponse.asString().get();
 
-        assertThat(response, equalTo(ONE_VALUE_CONFIG));
+        assertThat(response, containsString(ONE_VALUE_CONFIG));
     }
 }

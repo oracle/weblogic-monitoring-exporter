@@ -17,7 +17,7 @@ import static org.hamcrest.Matchers.equalTo;
 class ConfigurationPutCallTest {
 
   private static final String BAD_BOOLEAN_STRING = "blabla";
-  private static final String CONFIGURATION =
+  private static final String YAML_CONFIGURATION =
         "host: " + HOST + "\n" +
         "port: " + PORT + "\n" +
         "queries:\n" + "" +
@@ -25,10 +25,19 @@ class ConfigurationPutCallTest {
         "    prefix: new_\n" +
         "    key: name\n" +
         "    values: [sample1, sample2]\n";
+  private static final String JSON_CONFIGURATION = replaceQuotes(
+        "{'queries': [{'groups':"
+              + "{'prefix':'new_', 'key':'name', 'values': ['sample1','sample2']}"
+              + "}]}");
 
   private static final String NO_CONFIGURATION = "";
   private final WebClientFactoryStub factory = new WebClientFactoryStub();
   private final InvocationContextStub context = InvocationContextStub.create();
+
+  @SuppressWarnings("SameParameterValue")
+  private static String replaceQuotes(String in) {
+    return in.replace("'", "\"");
+  }
 
   @BeforeEach
   void setUp() {
@@ -38,7 +47,7 @@ class ConfigurationPutCallTest {
 
   @Test
   void whenBadRequestContentType_reportFailure() throws IOException {
-    handleConfigurationPutCall(context.withConfiguration("text/xml", CONFIGURATION));
+    handleConfigurationPutCall(context.withConfiguration("text/xml", YAML_CONFIGURATION));
 
     assertThat(context.getResponseStatus(), equalTo(HttpURLConnection.HTTP_BAD_REQUEST));
   }
@@ -58,9 +67,16 @@ class ConfigurationPutCallTest {
 
   @Test
   public void updateSpecifiedConfiguration() throws Exception {
-    handleConfigurationPutCall(context.withConfiguration("application/yaml", CONFIGURATION));
+    handleConfigurationPutCall(context.withConfiguration("application/yaml", YAML_CONFIGURATION));
 
-    assertThat(LiveConfiguration.asString(), equalTo(CONFIGURATION));
+    assertThat(LiveConfiguration.asString(), equalTo(YAML_CONFIGURATION));
+  }
+
+  @Test
+  public void updateConfigurationWithJson() throws Exception {
+    handleConfigurationPutCall(context.withConfiguration("application/json", JSON_CONFIGURATION));
+
+    assertThat(LiveConfiguration.asString(), equalTo(YAML_CONFIGURATION));
   }
 
   private static final String CONFIGURATION_WITH_BAD_BOOLEAN =

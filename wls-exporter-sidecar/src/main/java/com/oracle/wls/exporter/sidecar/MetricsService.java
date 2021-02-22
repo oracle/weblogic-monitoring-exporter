@@ -28,10 +28,12 @@ class MetricsService implements Service {
     private final AuthenticatedHandler metricsHandler = new AuthenticatedHandler(ExporterCall::new);
     private final AuthenticatedHandler configurationHandler = new AuthenticatedHandler(ConfigurationPutCall::new);
     private final MainHandler mainHandler = new MainHandler();
+    private final int listenPort;
 
     MetricsService(SidecarConfiguration configuration, WebClientFactory webClientFactory) {
-        LiveConfiguration.setServer(configuration.getWebLogicHost(), configuration.getWebLogicPort());
+        this.listenPort = configuration.getListenPort();
         this.webClientFactory = webClientFactory;
+        LiveConfiguration.setServer(configuration.getWebLogicHost(), configuration.getWebLogicPort());
 
         this.executorService = ThreadPoolSupplier.builder()
                 .threadNamePrefix("wls-exporter-sidecar-")
@@ -47,6 +49,10 @@ class MetricsService implements Service {
               .get("/", mainHandler::dispatch)
               .get("/metrics", metricsHandler::dispatch)
               .put("/configuration", configurationHandler::dispatch);
+    }
+
+    int getListenPort() {
+        return listenPort;
     }
 
     abstract class Handler {
@@ -83,6 +89,7 @@ class MetricsService implements Service {
     class MainHandler extends Handler {
         void invoke(InvocationContext context) throws IOException {
             ConfigurationDisplay.displayConfiguration(context.getResponseStream());
+            context.close();
         }
     }
 }

@@ -15,7 +15,7 @@ import com.oracle.wls.exporter.domain.ConfigurationException;
 public class ConfigurationPutCall extends ConfigurationCall {
 
   private static final Set<String> SUPPORTED_CONTENT_TYPES
-        = new HashSet<>(Arrays.asList("application/yaml", "text/yaml"));
+        = new HashSet<>(Arrays.asList("application/yaml", "text/yaml", "application/json", "text/json"));
 
   public ConfigurationPutCall(WebClientFactory webClientFactory, InvocationContext context) {
     super(webClientFactory, context);

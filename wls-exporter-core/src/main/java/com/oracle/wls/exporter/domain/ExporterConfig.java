@@ -24,6 +24,8 @@ import org.yaml.snakeyaml.scanner.ScannerException;
  * @author Russell Gold
  */
 public class ExporterConfig {
+    public static final String DOMAIN_NAME_PROPERTY = "DOMAIN";
+
     private static final String QUERY_SYNC = "query_sync";
     static final String SNAKE_CASE = "metricsNameSnakeCase";
     static final String DOMAIN_QUALIFIER = "domainQualifier";
@@ -46,7 +48,7 @@ public class ExporterConfig {
     private boolean metricsNameSnakeCase = defaultSnakeCaseSetting;
     private QuerySyncConfiguration querySyncConfiguration;
     private boolean useDomainQualifier;
-    private String domainName;
+    private String domainName = System.getProperty(DOMAIN_NAME_PROPERTY);
 
     /**
      * Creates an empty configuration.
@@ -293,6 +295,10 @@ public class ExporterConfig {
         this.restPort = config2.restPort;
         MBeanSelector[] newQueries = config2.getQueries();
         this.queries = Arrays.copyOf(newQueries, newQueries.length);
+        resetDomainName();
+    }
+
+    public void resetDomainName() {
         this.domainName = null;
     }
 
