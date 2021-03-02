@@ -152,6 +152,7 @@ public class WebClientImpl extends WebClientCommon {
                     .build();
 
             client = HttpClientBuilder.create()
+                    .setDefaultHeaders(getDefaultHeaders())
                     .setSSLContext(sslContext)
                     .setConnectionManager(
                             new PoolingHttpClientConnectionManager(
