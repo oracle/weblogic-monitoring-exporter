@@ -33,7 +33,9 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.ssl.TrustStrategy;
 
@@ -138,11 +140,29 @@ public class WebClientImpl extends WebClientCommon {
         private final CloseableHttpClient client;
         public ApacheHttpClient() throws GeneralSecurityException {
             SelfSignedCertificateAcceptor acceptor = new SelfSignedCertificateAcceptor();
+            /*/
             client = HttpClientBuilder.create()
                   .setDefaultHeaders(getDefaultHeaders())
                   .setSSLSocketFactory(acceptor.getSslConnectionSocketFactory())
                   .setConnectionManager(acceptor.getConnectionManager())
                   .build();
+            /*/
+            final SSLContext sslContext = new SSLContextBuilder()
+                    .loadTrustMaterial(null, (x509CertChain, authType) -> true)
+                    .build();
+
+            client = HttpClientBuilder.create()
+                    .setSSLContext(sslContext)
+                    .setConnectionManager(
+                            new PoolingHttpClientConnectionManager(
+                                    RegistryBuilder.<ConnectionSocketFactory>create()
+                                            .register("http", PlainConnectionSocketFactory.INSTANCE)
+                                            .register("https", new SSLConnectionSocketFactory(sslContext,
+                                                    NoopHostnameVerifier.INSTANCE))
+                                            .build()
+                            ))
+                    .build();
+            /**/
         }
 
         @Override
@@ -158,6 +178,7 @@ public class WebClientImpl extends WebClientCommon {
         public void close() throws IOException {
             client.close();
         }
+
     }
 
     @Override
@@ -210,7 +231,7 @@ public class WebClientImpl extends WebClientCommon {
 
         private Registry<ConnectionSocketFactory> createSocketFactoryRegistry() {
             return RegistryBuilder.<ConnectionSocketFactory> create()
-                  .register("http", new PlainConnectionSocketFactory())
+                  .register("http", PlainConnectionSocketFactory.INSTANCE)
                   .register("https", sslConnectionSocketFactory)
                   .build();
         }
