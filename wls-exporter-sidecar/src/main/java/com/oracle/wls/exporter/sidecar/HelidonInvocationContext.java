@@ -1,4 +1,7 @@
-package com.oracle.wls.exporter;
+// Copyright (c) 2021, Oracle and/or its affiliates.
+// Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+
+package com.oracle.wls.exporter.sidecar;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -7,6 +10,9 @@ import java.io.PrintStream;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
+import com.oracle.wls.exporter.InvocationContext;
+import com.oracle.wls.exporter.UrlBuilder;
+import com.oracle.wls.exporter.WebAppConstants;
 import io.helidon.common.http.DataChunk;
 import io.helidon.common.http.Http;
 import io.helidon.common.http.MediaType;
@@ -16,46 +22,46 @@ import io.helidon.webserver.ServerResponse;
 
 public class HelidonInvocationContext implements InvocationContext {
 
-    private final ServerRequest req;
-    private final ServerResponse res;
+    private final ServerRequest request;
+    private final ServerResponse response;
     private final ByteArrayOutputStream baos = new ByteArrayOutputStream(1024);
     private final PrintStream printStream = new PrintStream(baos);
+    private final SidecarConfiguration configuration = new SidecarConfiguration();
 
-    public HelidonInvocationContext(ServerRequest req, ServerResponse res) {
-        this.req = req;
-        this.res = res;
+    public HelidonInvocationContext(ServerRequest request, ServerResponse response) {
+        this.request = request;
+        this.response = response;
     }
 
     @Override
     public UrlBuilder createUrlBuilder() {
-        return UrlBuilder.create(req.localAddress(), req.isSecure())
-                .withPort(LiveConfiguration.getConfiguredRestPort())
-                .withPort(req.webServer().port());
+        return UrlBuilder.create(configuration.getWebLogicHost(), configuration.useWebLogicSsl())
+              .withPort(configuration.getWebLogicPort());
     }
 
     @Override
     public String getApplicationContext() {
-        return req.path().toRawString();
+        return "/";
     }
 
     @Override
     public String getAuthenticationHeader() {
-        return req.headers().first(WebAppConstants.AUTHENTICATION_HEADER).orElse(null);
+        return request.headers().first(WebAppConstants.AUTHENTICATION_HEADER).orElse(null);
     }
 
     @Override
     public String getContentType() {
-        return req.headers().contentType().map(MediaType::toString).orElse("application/json");
+        return request.headers().contentType().map(MediaType::toString).orElse("application/json");
     }
 
     @Override
     public String getInstanceName() {
-        return req.localAddress() + ":" + req.webServer().port();
+        return configuration.getPodName();
     }
 
     @Override
     public InputStream getRequestStream() {
-        return req.content().as(String.class)
+        return request.content().as(String.class)
                 .thenApply(String::getBytes)
                 .thenApply(ByteArrayInputStream::new)
                 .await(10, TimeUnit.SECONDS);
@@ -68,33 +74,28 @@ public class HelidonInvocationContext implements InvocationContext {
 
     @Override
     public void sendError(int status, String msg) {
-        res.status(status)
-                .send(msg);
+        response.status(status).send(msg);
     }
 
     @Override
     public void sendRedirect(String location) {
-        res.headers()
-                .location(URI.create(location));
+        response.headers().location(URI.create(location));
 
-        res.status(Http.Status.FOUND_302)
-                .send();
+        response.status(Http.Status.FOUND_302).send();
     }
 
     @Override
     public void setResponseHeader(String name, String value) {
-        res.headers()
-                .add(name, value);
+        response.headers().add(name, value);
     }
 
     @Override
     public void setStatus(int status) {
-        res.status(status);
+        response.status(status);
     }
 
     @Override
     public void close() {
-        // the lowest level sending of bytes (we could send a string or JsonObject as well)
-        res.send(Single.just(DataChunk.create(baos.toByteArray())));
+        response.send(Single.just(DataChunk.create(baos.toByteArray())));
     }
 }

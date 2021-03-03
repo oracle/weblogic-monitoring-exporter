@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -8,7 +8,7 @@ import com.meterware.simplestub.StaticStubSupport;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
 
-abstract class ConfigurationUpdaterStub implements ConfigurationUpdater {
+public abstract class ConfigurationUpdaterStub implements ConfigurationUpdater {
     private static Memento memento;
     private static ConfigurationUpdaterStub updaterStub;
 
@@ -18,12 +18,12 @@ abstract class ConfigurationUpdaterStub implements ConfigurationUpdater {
     protected ConfigurationUpdaterStub() {
     }
 
-    static void install() throws NoSuchFieldException {
+    public static void install() throws NoSuchFieldException {
         updaterStub = createStrictStub(ConfigurationUpdaterStub.class);
         memento = StaticStubSupport.install(LiveConfiguration.class, "updater", updaterStub);
     }
 
-    static void uninstall() {
+    public static void uninstall() {
         memento.revert();
     }
 
@@ -31,7 +31,7 @@ abstract class ConfigurationUpdaterStub implements ConfigurationUpdater {
         return updaterStub.sharedConfiguration;
     }
 
-    static void newConfiguration(long newTimestamp, String configuration) {
+    public static void newConfiguration(long newTimestamp, String configuration) {
         updaterStub.update = new ConfigurationUpdate(newTimestamp, configuration);
     }
 

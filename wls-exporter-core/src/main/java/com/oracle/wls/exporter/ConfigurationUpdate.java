@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -9,8 +9,8 @@ package com.oracle.wls.exporter;
  * @author Russell Gold
  */
 public class ConfigurationUpdate {
-    private long timestamp;
-    private String configuration;
+    private final long timestamp;
+    private final String configuration;
 
     public ConfigurationUpdate(long timestamp, String configuration) {
         this.timestamp = timestamp;

@@ -3,6 +3,7 @@
 
 package com.oracle.wls.exporter.webapp;
 
+import java.io.IOException;
 import java.io.InputStream;
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
@@ -30,7 +31,11 @@ public class ServletUtils {
    * @param servletConfig a standard servlet configuration which points to an exporter configuration
    */
   public static void initializeConfiguration(ServletConfig servletConfig) {
-      LiveConfiguration.initialize(getConfigurationFile(servletConfig));
+    try (InputStream configurationFile = getConfigurationFile(servletConfig)) {
+      LiveConfiguration.initialize(configurationFile);
+    } catch (IOException ignored) {
+      // this is called only once, when the web application starts up, so if it fails to close, we can ignore it.
+    }
   }
 
   private static InputStream getConfigurationFile(ServletConfig config) {

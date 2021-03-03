@@ -127,19 +127,19 @@ public class MetricsScraperTest {
 
     private static final String CONFIG_RESPONSE = "{\"name\": \"mydomain\"}";
 
-    private final Map<String,Object> leafMap = new HashMap<>(ImmutableMap.of(MBeanSelector.KEY, "servletName",
+    private final Map<String,Object> leafMap = new HashMap<>(ImmutableMap.of(MBeanSelector.QUERY_KEY, "servletName",
             MBeanSelector.PREFIX, "servlet_", MBeanSelector.VALUES, new String[]{"invocationTotalCount","invocationId"}));
 
-    private final Map<String,Object> emptyLeafMap = new HashMap<>(ImmutableMap.of(MBeanSelector.KEY, "servletName",
+    private final Map<String,Object> emptyLeafMap = new HashMap<>(ImmutableMap.of(MBeanSelector.QUERY_KEY, "servletName",
             MBeanSelector.PREFIX, "servlet_"));
 
     private final Map<String,Object> componentMap = new HashMap<>(
-            ImmutableMap.of(MBeanSelector.KEY_NAME, "component", MBeanSelector.KEY, "name", MBeanSelector.PREFIX, "component_",
+            ImmutableMap.of(MBeanSelector.KEY_NAME, "component", MBeanSelector.QUERY_KEY, "name", MBeanSelector.PREFIX, "component_",
                             "servlets", leafMap,
                             MBeanSelector.VALUES, new String[]{"sourceInfo", "internal", "deploymentState"}));
 
     private final Map<String,Object> noPrefixComponentMap = new HashMap<>(
-            ImmutableMap.of(MBeanSelector.KEY_NAME, "component", MBeanSelector.KEY, "name",
+            ImmutableMap.of(MBeanSelector.KEY_NAME, "component", MBeanSelector.QUERY_KEY, "name",
                             "servlets", leafMap,
                             MBeanSelector.VALUES, new String[]{"sourceInfo", "internal", "deploymentState"}));
 
@@ -205,7 +205,7 @@ public class MetricsScraperTest {
     }
 
     private ImmutableMap<String, Object> getServletsMapWithoutQualifierKey() {
-        leafMap.remove(MBeanSelector.KEY);
+        leafMap.remove(MBeanSelector.QUERY_KEY);
         return ImmutableMap.of("servlets", leafMap);
     }
 
@@ -238,7 +238,7 @@ public class MetricsScraperTest {
 
     @SuppressWarnings("SameParameterValue")
     private Map<String, Object> getServletsMapWithKey(String key) {
-        leafMap.put(MBeanSelector.KEY, key);
+        leafMap.put(MBeanSelector.QUERY_KEY, key);
         return ImmutableMap.of("servlets", leafMap);
     }
 
@@ -301,7 +301,7 @@ public class MetricsScraperTest {
 
     private Map<String, Object> getFullMap() {
         return ImmutableMap.of("applicationRuntimes",
-                    ImmutableMap.of(MBeanSelector.KEY_NAME, "application", MBeanSelector.KEY, "name",
+                    ImmutableMap.of(MBeanSelector.KEY_NAME, "application", MBeanSelector.QUERY_KEY, "name",
                                     "componentRuntimes", componentMap));
     }
 
@@ -345,7 +345,7 @@ public class MetricsScraperTest {
 
     private Map<String, Object> getMetricsMap() {
         return ImmutableMap.of("JVMRuntime",
-                    ImmutableMap.of(MBeanSelector.KEY, "name", MBeanSelector.VALUES, new String[]{"processCpuLoad", "heapSizeCurrent"}));
+                    ImmutableMap.of(MBeanSelector.QUERY_KEY, "name", MBeanSelector.VALUES, new String[]{"processCpuLoad", "heapSizeCurrent"}));
     }
 
 

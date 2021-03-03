@@ -1,9 +1,8 @@
-// Copyright (c) 2021, Oracle Corporation and/or its affiliates.
+// Copyright (c) 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -11,7 +10,7 @@ import java.io.PrintStream;
 /**
  * Context for the invocation of AuthenticatedCall objects. This largely acts as a facade for request and response objects.
  */
-public interface InvocationContext extends Closeable {
+public interface InvocationContext {
 
   /**
    * Creates an object that will generate an appropriate URL to contact WebLogic.
@@ -76,4 +75,9 @@ public interface InvocationContext extends Closeable {
    * @param status an HTTP status code
    */
   void setStatus(int status);
+
+  /**
+   * Closes this context and flushes any pending outputs.
+   */
+  void close();
 }

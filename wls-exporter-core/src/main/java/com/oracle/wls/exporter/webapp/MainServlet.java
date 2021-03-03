@@ -1,10 +1,9 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.webapp;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
@@ -12,6 +11,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.oracle.wls.exporter.ConfigurationDisplay;
 import com.oracle.wls.exporter.LiveConfiguration;
 import com.oracle.wls.exporter.WebAppConstants;
 
@@ -40,7 +40,7 @@ public class MainServlet extends HttpServlet {
         resp.getOutputStream().println(WebAppConstants.PAGE_HEADER);
         displayMetricsLink(req, resp.getOutputStream());
         displayForm(req, resp.getOutputStream());
-        displayConfiguration(resp.getOutputStream());
+        ConfigurationDisplay.displayConfiguration(resp.getOutputStream());
 
         resp.getOutputStream().close();
     }
@@ -78,12 +78,4 @@ public class MainServlet extends HttpServlet {
         return getEffectivePath(req, CONFIGURATION_PAGE);
     }
 
-    private void displayConfiguration(ServletOutputStream outputStream) {
-        try (PrintStream ps = new PrintStream(outputStream)) {
-            ps.println("<p>Current Configuration</p>");
-            ps.println("<p><code><pre>");
-            ps.print(LiveConfiguration.asString());
-            ps.println("</pre></code></p>");
-        }
-    }
 }

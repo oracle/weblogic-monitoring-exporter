@@ -1,7 +1,7 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-package com.oracle.wls.exporter;
+package com.oracle.wls.exporter.sidecar;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,6 +11,12 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.gson.Gson;
+import com.oracle.wls.exporter.AuthenticationChallengeException;
+import com.oracle.wls.exporter.ForbiddenException;
+import com.oracle.wls.exporter.WebClient;
+import com.oracle.wls.exporter.WebClientCommon;
+import com.oracle.wls.exporter.WebClientException;
+import com.oracle.wls.exporter.WebClientFactory;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
 
@@ -27,18 +33,6 @@ public class WebClientFactoryStub implements WebClientFactory {
         webClient.addJsonResponse(new Gson().toJson(responseMap));
     }
 
-    void addJsonResponse(String json) {
-        webClient.addJsonResponse(json);
-    }
-
-
-    String getSentQuery() {
-        return webClient.jsonQuery;
-    }
-
-    String getPostedString() {
-        return webClient.postedString;
-    }
 
     Map<String,String> getSentHeaders() {
         return webClient.sentHeaders;
@@ -48,16 +42,8 @@ public class WebClientFactoryStub implements WebClientFactory {
         return webClient.getAuthentication();
     }
 
-    public String getClientUrl() {
-        return webClient.url;
-    }
-
     public void reportNotAuthorized() {
         webClient.reportForbidden();
-    }
-
-    void reportBadQuery() {
-        webClient.reportBadQuery();
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -65,25 +51,14 @@ public class WebClientFactoryStub implements WebClientFactory {
         webClient.reportAuthenticationRequired(basicRealmName);
     }
 
-    @SuppressWarnings("SameParameterValue")
-    public void throwConnectionFailure(String host, int port) {
-        webClient.throwConnectionFailure(host, port);
-    }
-
-    void throwWebClientException(WebClientException e) {
-        webClient.addExceptionResponse(e);
-    }
-
     static abstract class WebClientStub extends WebClientCommon {
         private final static String WLS_SEARCH_PATH = "/management/weblogic/latest/serverRuntime/search";
 
         private String url;
-        private String jsonQuery;
         private final List<TestResponse> testResponses = new ArrayList<>();
         private Iterator<TestResponse> responses;
         private final Map<String, String> addedHeaders = new HashMap<>();
         private Map<String, String> sentHeaders;
-        private String postedString;
 
         private void addJsonResponse(String jsonResponse) {
             addResponse(new JsonResponse(jsonResponse));
@@ -111,17 +86,9 @@ public class WebClientFactoryStub implements WebClientFactory {
             addResponse(new ExceptionResponse(e));
         }
 
-        void reportBadQuery() {
-            addExceptionResponse(new RestQueryException());
-        }
-
         @SuppressWarnings("SameParameterValue")
         void reportAuthenticationRequired(String basicRealmName) {
             addExceptionResponse(new AuthenticationChallengeException(String.format("Basic realm=\"%s\"", basicRealmName)));
-        }
-
-        void throwConnectionFailure(String host, int port) {
-            addExceptionResponse(new RestPortConnectionException(String.format("http://%s:%d", host, port)));
         }
 
         @Override
@@ -139,7 +106,6 @@ public class WebClientFactoryStub implements WebClientFactory {
         public String doPostRequest(String postBody) {
             if (url == null) throw new NullPointerException("No URL specified");
             sentHeaders = Collections.unmodifiableMap(addedHeaders);
-            this.jsonQuery = postBody;
 
             return getResult(getNextResponse());
         }
@@ -148,14 +114,6 @@ public class WebClientFactoryStub implements WebClientFactory {
         public String doGetRequest() {
             if (url == null) throw new NullPointerException("No URL specified");
             if (url.contains(WLS_SEARCH_PATH)) throw new AssertionError("GET to search paths is not supported");
-
-            return getResult(getNextResponse());
-        }
-
-        @Override
-        public String doPutRequest(String putBody) {
-            if (url == null) throw new NullPointerException("No URL specified");
-            postedString = putBody;
 
             return getResult(getNextResponse());
         }

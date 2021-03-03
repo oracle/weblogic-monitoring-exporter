@@ -1,8 +1,9 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -153,9 +154,9 @@ public class WebClientFactoryStub implements WebClientFactory {
         }
 
         @Override
-        public String doPutRequest(String putBody) {
+        public <T> String doPutRequest(T putBody) throws IOException {
             if (url == null) throw new NullPointerException("No URL specified");
-            postedString = putBody;
+            postedString = new Gson().toJson(putBody);
 
             return getResult(getNextResponse());
         }

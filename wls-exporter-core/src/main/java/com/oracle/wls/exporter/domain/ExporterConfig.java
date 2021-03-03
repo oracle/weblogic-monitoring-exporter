@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 
 import com.google.gson.JsonObject;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.scanner.ScannerException;
 
 /**
@@ -23,6 +24,8 @@ import org.yaml.snakeyaml.scanner.ScannerException;
  * @author Russell Gold
  */
 public class ExporterConfig {
+    public static final String DOMAIN_NAME_PROPERTY = "DOMAIN";
+
     private static final String QUERY_SYNC = "query_sync";
     static final String SNAKE_CASE = "metricsNameSnakeCase";
     static final String DOMAIN_QUALIFIER = "domainQualifier";
@@ -33,18 +36,19 @@ public class ExporterConfig {
     private static final String DEFAULT_HOST = "localhost";
     private static final int DEFAULT_PORT = 7001;
 
-
     private static final MBeanSelector[] NO_QUERIES = {};
     private static final String DOMAIN_NAME_QUALIFIER = "domain=\"%s\"";
+
+    private static boolean defaultSnakeCaseSetting;
 
     private MBeanSelector[] queries = {};
     private String host = DEFAULT_HOST;
     private int port = DEFAULT_PORT;
     private Integer restPort;
-    private boolean metricsNameSnakeCase;
+    private boolean metricsNameSnakeCase = defaultSnakeCaseSetting;
     private QuerySyncConfiguration querySyncConfiguration;
     private boolean useDomainQualifier;
-    private String domainName;
+    private String domainName = System.getProperty(DOMAIN_NAME_PROPERTY);
 
     /**
      * Creates an empty configuration.
@@ -60,7 +64,7 @@ public class ExporterConfig {
      */
     public static ExporterConfig loadConfig(InputStream inputStream) {
         try {
-            return loadConfig(asMap(new Yaml().load(inputStream)));
+            return loadConfig(asMap(new Yaml(new SafeConstructor()).load(inputStream)));
         } catch (ScannerException e) {
             throw new YamlParserException(e);
         }
@@ -73,6 +77,10 @@ public class ExporterConfig {
         } catch (ClassCastException e) {
             throw new ConfigurationException(ConfigurationException.NOT_YAML_FORMAT);
         }
+    }
+
+    public static void setDefaultMetricsNameSnakeCase(boolean defaultValue) {
+        defaultSnakeCaseSetting = defaultValue;
     }
 
     /**
@@ -287,6 +295,10 @@ public class ExporterConfig {
         this.restPort = config2.restPort;
         MBeanSelector[] newQueries = config2.getQueries();
         this.queries = Arrays.copyOf(newQueries, newQueries.length);
+        resetDomainName();
+    }
+
+    public void resetDomainName() {
         this.domainName = null;
     }
 

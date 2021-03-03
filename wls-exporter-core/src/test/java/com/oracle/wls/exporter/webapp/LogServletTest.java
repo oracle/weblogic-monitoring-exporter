@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServlet;
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
 import com.oracle.wls.exporter.ErrorLog;
+import com.oracle.wls.exporter.InMemoryFileSystem;
 import com.oracle.wls.exporter.LiveConfiguration;
 import com.oracle.wls.exporter.WebClientException;
 import org.junit.jupiter.api.AfterEach;

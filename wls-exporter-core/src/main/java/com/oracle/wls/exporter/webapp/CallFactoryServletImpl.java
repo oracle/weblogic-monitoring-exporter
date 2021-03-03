@@ -6,7 +6,7 @@ package com.oracle.wls.exporter.webapp;
 import java.io.IOException;
 
 import com.oracle.wls.exporter.CallFactory;
-import com.oracle.wls.exporter.ConfigurationCall;
+import com.oracle.wls.exporter.ConfigurationFormCall;
 import com.oracle.wls.exporter.ExporterCall;
 import com.oracle.wls.exporter.InvocationContext;
 import com.oracle.wls.exporter.WebClientFactory;
@@ -21,7 +21,7 @@ public class CallFactoryServletImpl implements CallFactory {
 
   @Override
   public void invokeConfigurationFormCall(InvocationContext invocationContext) throws IOException {
-    new ConfigurationCall(factory, invocationContext).doWithAuthentication();
+    new ConfigurationFormCall(factory, invocationContext).doWithAuthentication();
   }
 
   @Override
