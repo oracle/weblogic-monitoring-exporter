@@ -25,7 +25,7 @@ import com.google.gson.GsonBuilder;
 public class MBeanSelector {
     static final String TYPE = "type";
     static final String PREFIX = "prefix";
-    static final String KEY = "key";
+    static final String QUERY_KEY = "key";
     static final String KEY_NAME = "keyName";
     static final String VALUES = "values";
     static final String TYPE_FIELD_NAME = "type";
@@ -57,8 +57,8 @@ public class MBeanSelector {
                 case PREFIX:
                     prefix = MapUtils.getStringValue(map, PREFIX);
                     break;
-                case KEY:
-                    this.key = MapUtils.getStringValue(map, KEY);
+                case QUERY_KEY:
+                    this.key = MapUtils.getStringValue(map, QUERY_KEY);
                     break;
                 case KEY_NAME:
                     keyName = MapUtils.getStringValue(map, KEY_NAME);

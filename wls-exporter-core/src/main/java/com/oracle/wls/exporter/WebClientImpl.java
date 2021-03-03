@@ -79,9 +79,9 @@ public class WebClientImpl extends WebClientCommon {
     }
 
     @Override
-    protected WebRequest createPutRequest(String url, String putBody) {
+    protected <T> WebRequest createPutRequest(String url, T putBody) {
         HttpPutRequest query = new HttpPutRequest(url);
-        query.setEntity(new StringEntity(putBody, ContentType.APPLICATION_JSON));
+        query.setEntity(new JsonEntity<>(putBody));
         return query;
     }
 

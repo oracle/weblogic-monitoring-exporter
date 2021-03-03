@@ -1,5 +1,7 @@
-package com.oracle.wls.exporter;// Copyright (c) 2021, Oracle Corporation and/or its affiliates.
+// Copyright (c) 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+
+package com.oracle.wls.exporter;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -18,13 +20,13 @@ abstract class InvocationContextStub implements InvocationContext {
   static final int REST_PORT = 7431;
   private final ByteArrayOutputStream responseStream = new ByteArrayOutputStream();
 
-  private String authenticationHeader = null;
+  private final String authenticationHeader = null;
   private String contentType = "text/plain";
   private String redirectLocation = null;
   private InputStream requestStream = null;
   private int responseStatus = 0;
   private boolean secure;
-  private Map<String, String> responseHeaders = new HashMap<>();
+  private final Map<String, String> responseHeaders = new HashMap<>();
 
   static InvocationContextStub create() {
     return createStrictStub(InvocationContextStub.class);
@@ -35,9 +37,15 @@ abstract class InvocationContextStub implements InvocationContext {
     return this;
   }
 
-  InvocationContextStub withConfiguration(String effect, String configuration) throws IOException {
+  InvocationContextStub withConfigurationForm(String effect, String configuration) throws IOException {
     contentType = MultipartTestUtils.getContentType();
     requestStream = new ByteArrayInputStream(MultipartTestUtils.createEncodedForm(effect, configuration).getBytes());
+    return this;
+  }
+
+  InvocationContextStub withConfiguration(String contentType, String configuration) {
+    this.contentType = contentType;
+    this.requestStream = new ByteArrayInputStream(configuration.getBytes());
     return this;
   }
 
@@ -49,6 +57,7 @@ abstract class InvocationContextStub implements InvocationContext {
     return responseStream.toString();
   }
 
+  @SuppressWarnings("SameParameterValue")
   String getResponseHeader(String name) {
     return responseHeaders.get(name);
   }
@@ -71,6 +80,7 @@ abstract class InvocationContextStub implements InvocationContext {
     return "/unitTest/";
   }
 
+  @SuppressWarnings("ConstantConditions")
   @Override
   public String getAuthenticationHeader() {
     return authenticationHeader;
@@ -87,17 +97,17 @@ abstract class InvocationContextStub implements InvocationContext {
   }
 
   @Override
-  public InputStream getRequestStream() throws IOException {
+  public InputStream getRequestStream() {
     return requestStream;
   }
 
   @Override
-  public void sendError(int status, String msg) throws IOException {
+  public void sendError(int status, String msg) {
     responseStatus = status;
   }
 
   @Override
-  public void sendRedirect(String location) throws IOException {
+  public void sendRedirect(String location) {
     redirectLocation = location;
   }
 
@@ -112,7 +122,7 @@ abstract class InvocationContextStub implements InvocationContext {
   }
 
   @Override
-  public PrintStream getResponseStream() throws IOException {
+  public PrintStream getResponseStream() {
     return new PrintStream(responseStream);
   }
 }

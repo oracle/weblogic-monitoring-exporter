@@ -1,4 +1,4 @@
-// Copyright (c) 2020, Oracle and/or its affiliates.
+// Copyright (c) 2020, 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -22,7 +22,7 @@ class MultipartContentParser implements ParserActions {
 
   MultipartContentParser(String contentType) {
     Header type = new Header("Content-Type: " + contentType);
-    if (!type.getValue().toLowerCase().equals("multipart/form-data")) throw new RuntimeException("Not multipart");
+    if (!type.getValue().equalsIgnoreCase("multipart/form-data")) throw new RuntimeException("Not multipart");
     this.boundary = type.getValue("boundary");
   }
 

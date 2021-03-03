@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -22,26 +22,26 @@ import static com.meterware.simplestub.Stub.createStrictStub;
 /**
  * @author Russell Gold
  */
-class InMemoryFileSystem {
+public class InMemoryFileSystem {
     private static Map<String, InputStream> resources;
     private static final List<Memento> mementos = new ArrayList<>();
 
-    static void install() throws NoSuchFieldException {
+    public static void install() throws NoSuchFieldException {
         resources = new HashMap<>();
         mementos.add(StaticStubSupport.install(LiveConfiguration.class, "config", null));
         mementos.add(StaticStubSupport.install(LiveConfiguration.class, "timestamp", null));
     }
 
-    static void uninstall() {
+    public static void uninstall() {
         for (Memento memento : mementos) memento.revert();
     }
 
-    static ServletConfig withNoParams() {
+    public static ServletConfig withNoParams() {
         return createStrictStub(ServletConfigStub.class, ImmutableMap.of());
     }
 
     @SuppressWarnings("SameParameterValue")
-    static void defineResource(String filePath, String contents) {
+    public static void defineResource(String filePath, String contents) {
         resources.put(filePath, toInputStream(contents));
     }
 

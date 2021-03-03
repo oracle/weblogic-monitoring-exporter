@@ -30,8 +30,7 @@ public class MapUtils {
         try {
             return Integer.parseInt(value.toString());
         } catch (NumberFormatException e) {
-            String expectedType = "an integer";
-            throw createBadTypeException(key, value, expectedType);
+            throw createBadTypeException(key, value, "an integer");
         }
     }
 
@@ -49,7 +48,7 @@ public class MapUtils {
 
         if (inValues(value, TRUE_VALUES)) return true;
         if (inValues(value, FALSE_VALUES)) return false;
-        throw new ConfigurationException("Unable to interpret '" + value + "' as a boolean value");
+        throw createBadTypeException(key, value, "a boolean");
     }
 
     private final static String[] TRUE_VALUES = {"true", "t", "yes", "on", "y"};
@@ -69,8 +68,8 @@ public class MapUtils {
      * @param expectedType a description of the type permitted
      * @return an exception which can be thrown to report a problem
      */
-    static IllegalArgumentException createBadTypeException(String key, Object value, String expectedType) {
-        return new IllegalArgumentException(String.format(ILLEGAL_VALUE_FORMAT, key, value, expectedType));
+    static ConfigurationException createBadTypeException(String key, Object value, String expectedType) {
+        return new ConfigurationException(String.format(ILLEGAL_VALUE_FORMAT, key, value, expectedType));
     }
 
     /**

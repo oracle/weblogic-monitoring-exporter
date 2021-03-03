@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import com.google.gson.Gson;
+
 /**
  * A stripped-down web client that uses classes built into Java 1.8.
  */
@@ -65,8 +67,8 @@ public class WebClient8Impl extends WebClientCommon {
   }
 
   @Override
-  WebRequest createPutRequest(String url, String putBody) {
-    return new Java8WebRequestWithBody("PUT", url, putBody);
+  <T> WebRequest createPutRequest(String url, T putBody) {
+    return new Java8WebRequestWithBody("PUT", url, new Gson().toJson(putBody));
   }
 
   @Override

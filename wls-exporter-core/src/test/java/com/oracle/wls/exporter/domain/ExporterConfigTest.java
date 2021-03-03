@@ -3,17 +3,25 @@
 
 package com.oracle.wls.exporter.domain;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.meterware.simplestub.Memento;
+import com.meterware.simplestub.StaticStubSupport;
+import com.meterware.simplestub.SystemPropertySupport;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.Yaml;
 
+import static com.oracle.wls.exporter.domain.ExporterConfig.DOMAIN_NAME_PROPERTY;
 import static com.oracle.wls.exporter.domain.ExporterConfigTest.QueryHierarchyMatcher.hasQueryFor;
 import static com.oracle.wls.exporter.domain.MetricMatcher.hasMetric;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -53,6 +61,19 @@ public class ExporterConfigTest {
     private static final Map<String, Object> NULL_MAP = null;
 
     private Map<String,Object> yamlConfig = new HashMap<>();
+    private final List<Memento> mementos = new ArrayList<>();
+
+    @BeforeEach
+    void setUp() throws NoSuchFieldException {
+        mementos.add(StaticStubSupport.install(ExporterConfig.class, "defaultSnakeCaseSetting", false));
+        mementos.add(SystemPropertySupport.preserve(DOMAIN_NAME_PROPERTY));
+        System.clearProperty(DOMAIN_NAME_PROPERTY);
+    }
+
+    @AfterEach
+    void tearDown() {
+        mementos.forEach(Memento::revert);
+    }
 
     @Test
     public void whenYamlConfigEmpty_returnNonNullConfiguration() {
@@ -60,10 +81,18 @@ public class ExporterConfigTest {
     }
 
     @Test
-    public void whenYamlConfigEmpty_returnDefaultConfiguration() {
+    public void byDefaultSnakeCase_isDisabled() {
         ExporterConfig config = ExporterConfig.loadConfig(NULL_MAP);
 
         assertThat(config.getMetricsNameSnakeCase(), equalTo(false));
+    }
+
+    @Test
+    public void whenSnakeNameEnabledByDefault_isSetInEmptyConfiguration() {
+        ExporterConfig.setDefaultMetricsNameSnakeCase(true);
+        ExporterConfig config = ExporterConfig.loadConfig(NULL_MAP);
+
+        assertThat(config.getMetricsNameSnakeCase(), equalTo(true));
     }
 
     @Test
@@ -261,6 +290,25 @@ public class ExporterConfigTest {
             "      prefix: workmanager_\n" +
             "      key: applicationName\n" +
             "      values: [pendingRequests, completedRequests, stuckThreadCount]\n";
+
+    @Test
+    void whenRestPortSetAsIntegerString_parseIt() {
+        ExporterConfig config = loadFromString(STRING_REST_PORT_CONFIG);
+
+        assertThat(config.getRestPort(), equalTo(1235));
+
+    }
+
+    private static final String STRING_REST_PORT_CONFIG =
+          "restPort: '1235'\nqueries:";
+
+    @Test
+    void whenRestPortNotParseable_reportError() {
+        assertThrows(ConfigurationException.class, () -> loadFromString(JUNK_REST_PORT_CONFIG));
+    }
+
+    private static final String JUNK_REST_PORT_CONFIG =
+          "restPort: One\nqueries:";
 
     @Test
     public void afterAppend_configHasOriginalDestination() {
@@ -523,6 +571,14 @@ public class ExporterConfigTest {
         config.append(loadFromString(PARTITION_CONFIG));
 
         assertThat(config.toString(), equalTo(PARTITION_CONFIG));
+    }
+
+    @Test
+    void whenEnvironmentVariableDefined_configHasDomainName() {
+        System.setProperty(DOMAIN_NAME_PROPERTY, "envDomain");
+        ExporterConfig exporterConfig = loadFromString(DOMAIN_QUALIFIER_CONFIG);
+
+        assertThat(exporterConfig.getDomainName(), equalTo("envDomain"));
     }
 
     @Test

@@ -6,11 +6,11 @@ package com.oracle.wls.exporter;
 /**
  * An exception indicating that the client could not connect to the REST port.
  */
-class RestPortConnectionException extends WebClientException {
+public class RestPortConnectionException extends WebClientException {
 
     private final String uri;
 
-    RestPortConnectionException(String uri) {
+    public RestPortConnectionException(String uri) {
         this.uri = uri;
     }
 

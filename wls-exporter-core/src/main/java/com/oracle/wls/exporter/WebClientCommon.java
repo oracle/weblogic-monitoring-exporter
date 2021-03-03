@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -16,16 +16,17 @@ import java.util.stream.Stream;
 
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
 import static com.oracle.wls.exporter.WebAppConstants.CONTENT_TYPE_HEADER;
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
+import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 /**
  * A client for sending http requests.  Note that it does not do any authentication by itself.
  *
  * @author Russell Gold
  */
-abstract class WebClientCommon implements WebClient {
+public abstract class WebClientCommon implements WebClient {
 
     private String authentication;
     private boolean retryNeeded;
@@ -91,11 +92,11 @@ abstract class WebClientCommon implements WebClient {
     abstract WebRequest createPostRequest(String url, String postBody);
 
     /**
-     * Creates a PUT requested for the specified URL and body
+     * Creates a PUT requested for the specified URL and body, formatted as JSON.
      * @param url the URL to which the request should be sent
      * @param putBody the body to send in the request
      */
-    abstract WebRequest createPutRequest(String url, String putBody);
+    abstract <T> WebRequest createPutRequest(String url, T putBody);
 
     protected String getContentType() {
         return contentType;
@@ -115,7 +116,7 @@ abstract class WebClientCommon implements WebClient {
     }
 
     @Override
-    public String doPutRequest(String putBody) throws IOException {
+    public <T> String doPutRequest(T putBody) throws IOException {
         defineSessionHeaders();
         return sendRequest(createPutRequest(url, putBody));
     }
@@ -140,11 +141,11 @@ abstract class WebClientCommon implements WebClient {
 
     private void processStatusCode(WebResponse response) {
         switch (response.getResponseCode()) {
-            case SC_BAD_REQUEST:
+            case HTTP_BAD_REQUEST:
                 throw new RestQueryException();
-            case SC_UNAUTHORIZED:
+            case HTTP_UNAUTHORIZED:
                 throw createAuthenticationChallengeException(response);
-            case SC_FORBIDDEN:
+            case HTTP_FORBIDDEN:
                 throw new ForbiddenException();
             default:
                 if (response.getResponseCode() > SC_BAD_REQUEST)
@@ -211,7 +212,7 @@ abstract class WebClientCommon implements WebClient {
         this.retryNeeded = true;
     }
 
-    void clearRetryNeeded() {
+    public void clearRetryNeeded() {
         retryNeeded = false;
     }
 

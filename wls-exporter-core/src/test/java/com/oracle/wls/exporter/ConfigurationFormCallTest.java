@@ -20,7 +20,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class ConfigurationCallTest {
+public class ConfigurationFormCallTest {
 
   private static final String CONFIGURATION =
         "host: " + HOST + "\n" +
@@ -73,39 +73,39 @@ public class ConfigurationCallTest {
 
   @Test
   public void whenNoConfigurationSpecified_reportFailure() {
-    assertThrows(RuntimeException.class, () -> handleConfigurationCall(context));
+    assertThrows(RuntimeException.class, () -> handleConfigurationFormCall(context));
   }
 
-  private void handleConfigurationCall(InvocationContextStub context) throws IOException {
-    final ConfigurationCall call = new ConfigurationCall(factory, context);
+  private void handleConfigurationFormCall(InvocationContextStub context) throws IOException {
+    final ConfigurationFormCall call = new ConfigurationFormCall(factory, context);
 
     call.doWithAuthentication();
   }
 
   @Test
   public void whenRequestUsesHttp_authenticateWithHttp() throws Exception {
-    handleConfigurationCall(context.withConfiguration("replace", CONFIGURATION));
+    handleConfigurationFormCall(context.withConfigurationForm("replace", CONFIGURATION));
 
     assertThat(factory.getClientUrl(), startsWith("http:"));
   }
 
   @Test
   public void whenRequestUsesHttps_authenticateWithHttps() throws Exception {
-    handleConfigurationCall(context.withHttps().withConfiguration("replace", CONFIGURATION));
+    handleConfigurationFormCall(context.withHttps().withConfigurationForm("replace", CONFIGURATION));
 
     assertThat(factory.getClientUrl(), startsWith("https:"));
   }
 
   @Test
   public void afterUploadWithReplace_useNewConfiguration() throws Exception {
-    handleConfigurationCall(context.withConfiguration("replace", CONFIGURATION));
+    handleConfigurationFormCall(context.withConfigurationForm("replace", CONFIGURATION));
 
     assertThat(LiveConfiguration.asString(), equalTo(CONFIGURATION));
   }
 
   @Test
   public void afterUpload_redirectToMainPage() throws Exception {
-    handleConfigurationCall(context.withConfiguration("replace", CONFIGURATION));
+    handleConfigurationFormCall(context.withConfigurationForm("replace", CONFIGURATION));
 
     assertThat(context.getRedirectLocation(), equalTo(WebAppConstants.MAIN_PAGE));
   }
@@ -115,21 +115,21 @@ public class ConfigurationCallTest {
     LiveConfiguration.loadFromString(CONFIGURATION_WITH_REST_PORT);
     factory.throwConnectionFailure("localhost", REST_PORT);
 
-    handleConfigurationCall(context.withConfiguration("replace", CONFIGURATION));
+    handleConfigurationFormCall(context.withConfigurationForm("replace", CONFIGURATION));
 
     assertThat(factory.getClientUrl(), containsString(Integer.toString(PORT)));
   }
 
   @Test
   public void afterUploadWithAppend_useCombinedConfiguration() throws Exception {
-    handleConfigurationCall(context.withConfiguration("append", ADDED_CONFIGURATION));
+    handleConfigurationFormCall(context.withConfigurationForm("append", ADDED_CONFIGURATION));
 
     assertThat(LiveConfiguration.asString(), equalTo(COMBINED_CONFIGURATION));
   }
 
   @Test
   public void whenSelectedFileIsNotYaml_reportError() throws Exception {
-    handleConfigurationCall(context.withConfiguration("replace", NON_YAML));
+    handleConfigurationFormCall(context.withConfigurationForm("replace", NON_YAML));
 
     assertThat(context.getResponse(), containsString(ConfigurationException.NOT_YAML_FORMAT));
   }
@@ -139,7 +139,7 @@ public class ConfigurationCallTest {
 
   @Test
   public void whenSelectedFileHasPartialYaml_reportError() throws Exception {
-    handleConfigurationCall(context.withConfiguration("replace", PARTIAL_YAML));
+    handleConfigurationFormCall(context.withConfigurationForm("replace", PARTIAL_YAML));
 
     assertThat(context.getResponse(), containsString(ConfigurationException.BAD_YAML_FORMAT));
   }
@@ -149,7 +149,7 @@ public class ConfigurationCallTest {
 
   @Test
   public void whenSelectedFileHasBadBooleanValue_reportError() throws Exception {
-    handleConfigurationCall(context.withConfiguration("append", ADDED_CONFIGURATION_WITH_BAD_BOOLEAN));
+    handleConfigurationFormCall(context.withConfigurationForm("append", ADDED_CONFIGURATION_WITH_BAD_BOOLEAN));
 
     assertThat(context.getResponse(), containsString(BAD_BOOLEAN_STRING));
   }
@@ -165,7 +165,7 @@ public class ConfigurationCallTest {
 
   @Test
   public void afterSelectedFileHasBadBooleanValue_configurationIsUnchanged() throws Exception {
-    handleConfigurationCall(context.withConfiguration("append", ADDED_CONFIGURATION_WITH_BAD_BOOLEAN));
+    handleConfigurationFormCall(context.withConfigurationForm("append", ADDED_CONFIGURATION_WITH_BAD_BOOLEAN));
 
     assertThat(LiveConfiguration.asString(), equalTo(CONFIGURATION));
   }
@@ -174,7 +174,7 @@ public class ConfigurationCallTest {
   public void whenServerSends403StatusOnGet_returnToClient() throws Exception {
     factory.reportNotAuthorized();
 
-    handleConfigurationCall(context.withConfiguration("replace", CONFIGURATION));
+    handleConfigurationFormCall(context.withConfigurationForm("replace", CONFIGURATION));
 
     assertThat(context.getResponseStatus(), equalTo(HTTP_FORBIDDEN));
   }
@@ -183,7 +183,7 @@ public class ConfigurationCallTest {
   public void whenServerSends401StatusOnGet_returnToClient() throws Exception {
     factory.reportAuthenticationRequired("Test-Realm");
 
-    handleConfigurationCall(context.withConfiguration("replace", CONFIGURATION));
+    handleConfigurationFormCall(context.withConfigurationForm("replace", CONFIGURATION));
 
     assertThat(context.getResponseStatus(), equalTo(HTTP_UNAUTHORIZED));
     assertThat(context.getResponseHeader("WWW-Authenticate"), equalTo("Basic realm=\"Test-Realm\""));
