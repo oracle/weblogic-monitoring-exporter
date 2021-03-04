@@ -156,7 +156,7 @@ There are two ways to build the sidecar implementation. The first is with Maven,
 requires JDK11 or later. Building the project with JDK8 will skip the sidecar module. The alternative is to
 [build with Docker](#building-a-docker-image) 
 
-After building, execute:
+After building, run:
 ```
 java -jar wls-exporter-sidecar/target/wls-exporter-sidecar.jar
 ```
