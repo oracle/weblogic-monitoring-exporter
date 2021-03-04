@@ -8,7 +8,7 @@ It is available both as a [web application](#web-application) to be deployed to 
 and also as a [sidecar](#sidecar), which runs as its own process, and which is configured to contact a WLS instance.
 
 ## Configuration
-Here is an example `yaml` configuration:
+Here is an example `yaml` file configuration:
 ```
 query_sync:
   url: http://coordinator:8999/
@@ -116,18 +116,20 @@ include the `restPort` configuration to tell the exporter which port to use.
 * [Chart-based sample](samples/kubernetes/end2end): This is an end-to-end sample that shows you the steps to set up monitoring for WebLogic domains using Prometheus and Grafana. Prometheus and Grafana are installed with Helm charts.
 
 
-# Web Application
+# Web application
+
+One way to use the exporter is by creating a WAR with a default configuration and deploying it to a WebLogic Server instance.
 
 ## Setting the configuration
 
-The Web Application has a main landing page which displays the current [configuration](#configuration) and allows
-a user to change it, either by uploading a replacement or an addition to the queries specified with the current one.
+The web application has a main landing page, which displays the current [configuration](#configuration) and allows
+you to change it, either by uploading a replacement or an addition to the queries specified with the current one.
 Metrics will then be available from `<application-root>/metrics`.
 
 
 ## Downloading the release
 
-You can find all the releases on the [Releases page](https://github.com/oracle/weblogic-monitoring-exporter/releases).
+You can find all the releases on the [Releases page](https://github.com/oracle/weblogic-monitoring-exporter/releases/).
 
 To download the web application `wls-exporter.war` and put your configuration file into the WAR, download the `getXXX.sh` script, which is provided with each release and also can be downloaded from the Releases page, and then run:
 
@@ -145,9 +147,14 @@ the version number to simplify deployment to WebLogic Server.
 
 # Sidecar
 
-## Build and run
+The sidecar is a standalone process that runs the exporter. It is primarily intended for use by the
+[WebLogic Kubernetes Operator](https://github.com/oracle/weblogic-kubernetes-operator/).
 
-The sidecar implementation must be built with JDK11 or later. Building the project with JDK8 will skip the sidecar module.
+## Build and run with Maven
+
+There are two ways to build the sidecar implementation. The first is with Maven, using `mvn install`. Note that this
+requires JDK11 or later. Building the project with JDK8 will skip the sidecar module. The alternative is to
+[build with Docker](#building-a-docker-image) 
 
 After building, execute:
 ```
@@ -169,7 +176,8 @@ Use https | false | WLS_SECURE
 ## Configure the exporter
 
 The sidecar does not have a landing page. Configuration is done by sending a PUT request to the path `/configuration`. 
-You can do this with `curl`
+You can do this with `curl`; when used with the [WebLogic Kubernetes Operator](https://github.com/oracle/weblogic-kubernetes-operator/), 
+the operator will automatically configure the exporter. 
 
 ```
 curl -X PUT -i -u myname:mypassword \
@@ -187,22 +195,23 @@ Once the exporter is configured, a GET to `http://localhost:8080/metrics` (or wh
 
 ## Building a docker image
 
-If docker is installed, running 
+If Docker is installed, you can build the image with the following command.
 
 ```
 docker build . -t <image-name>
 ```
 
-will build the project and create a docker image with the specified name. It is not necessary even 
-to do the Maven build first, as that will
-happen as part of creating the image. When running behind a firewall, it is necessary to specify a value for 
-the MAVEN_OPTS variable on the command line. For example
+This will build the project and create a docker image with the specified name. It is not necessary even 
+to do the Maven build first, as that will happen as part of creating the image. When running behind a firewall, 
+it is necessary to specify a value for the `MAVEN_OPTS` and `https_proxy` variables on the command line. For example:
 
 ```
-docker build . --build-arg MAVEN_OPTS="-Dhttps.proxyHost=www-proxy -Dhttps.proxyPort=80" -t <image-name>
+docker build . --build-arg MAVEN_OPTS="-Dhttps.proxyHost=www-proxy -Dhttps.proxyPort=80" \
+               --build-arg https_proxy=www-proxy:80 \
+               -t <image-name>
 ```
 
-To allow the Maven image to download the dependencies. 
+This allows Docker to download the dependencies. 
 
 
  
