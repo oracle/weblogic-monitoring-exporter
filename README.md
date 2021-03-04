@@ -118,7 +118,7 @@ include the `restPort` configuration to tell the exporter which port to use.
 
 # Web application
 
-One way to use the exporter is by creating a WAR with a default configuration and deploying it to a WebLogic Server instance.
+One way to use the exporter is by creating a WAR file with a default configuration and deploying it to a WebLogic Server instance.
 
 ## Setting the configuration
 
@@ -167,11 +167,11 @@ That may be changed by specifying parameters on the command line:
 
 Setting | Default | Property
 ------------ | ------------- | -------------
-Domain name | (use WLS definition) | DOMAIN
-Exporter port | 8080 | EXPORTER_PORT
-WebLogic host | localhost | WLS_HOST
-WebLogic port | 7001 | WLS_PORT
-Use https | false | WLS_SECURE
+Domain name | (use WLS definition) | `DOMAIN`
+Exporter port | `8080` | `EXPORTER_PORT`
+WebLogic host | `localhost` | `WLS_HOST`
+WebLogic port | `7001` | `WLS_PORT`
+Use https | `false` | `WLS_SECURE`
 
 ## Configure the exporter
 
@@ -201,7 +201,7 @@ If Docker is installed, you can build the image with the following command.
 docker build . -t <image-name>
 ```
 
-This will build the project and create a docker image with the specified name. It is not necessary even 
+This will build the project and create a Docker image with the specified name. It is not necessary even 
 to do the Maven build first, as that will happen as part of creating the image. When running behind a firewall, 
 it is necessary to specify a value for the `MAVEN_OPTS` and `https_proxy` variables on the command line. For example:
 
