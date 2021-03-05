@@ -129,7 +129,7 @@ Metrics will then be available from `<application-root>/metrics`.
 
 ## Downloading the release
 
-You can find all the releases on the [Releases page](https://github.com/oracle/weblogic-monitoring-exporter/releases/).
+You can find all the exporter releases on the [Releases page](https://github.com/oracle/weblogic-monitoring-exporter/releases/).
 
 To download the web application `wls-exporter.war` file and put your configuration file into the WAR, download the `getXXX.sh` script, which is provided with each release and also can be downloaded from the Releases page, and then run:
 
@@ -191,9 +191,9 @@ and `<path to yaml>` with the relative path to the configuration to use.
 
 ## Access the metrics
 
-Once the exporter is configured, a GET to `http://localhost:8080/metrics` (or whatever port was chosen) will return the current metrics.
+After the exporter is configured, a GET to `http://localhost:8080/metrics` (or whatever port was chosen) will return the current metrics.
 
-## Building a docker image
+## Building a Docker image
 
 If Docker is installed, you can build the image with the following command.
 
