@@ -152,16 +152,16 @@ The sidecar is a standalone process that runs the exporter. It is primarily inte
 
 ## Build and run with Maven
 
-There are two ways to build the sidecar implementation. The first is with Maven, using `mvn install`. Note that this
-requires JDK11 or later. Building the project with JDK8 will skip the sidecar module. The alternative is to
-[build with Docker](#building-a-docker-image) 
+There are two ways to build the sidecar implementation. The first is with Maven, using the same `mvn install` command 
+specified [above](#building-from-source). Note that this requires JDK11 or later; building the project with JDK8 will 
+skip the sidecar module. The alternative is to [build with Docker](#building-a-docker-image) 
 
 After building, run:
 ```
 java -jar wls-exporter-sidecar/target/wls-exporter-sidecar.jar
 ```
 
-This will start the exporter on port 8080, and expect to find a WebLogic Server instance locally, listening on port 7001.
+This will start the exporter on port 8080, and it will expect to find a local WebLogic Server instance, listening on port 7001.
 
 You can make changes by specifying parameters on the command line:
 
