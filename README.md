@@ -131,7 +131,7 @@ Metrics will then be available from `<application-root>/metrics`.
 
 You can find all the releases on the [Releases page](https://github.com/oracle/weblogic-monitoring-exporter/releases/).
 
-To download the web application `wls-exporter.war` and put your configuration file into the WAR, download the `getXXX.sh` script, which is provided with each release and also can be downloaded from the Releases page, and then run:
+To download the web application `wls-exporter.war` file and put your configuration file into the WAR, download the `getXXX.sh` script, which is provided with each release and also can be downloaded from the Releases page, and then run:
 
 ```
 bash getXXX.sh <your-config-file>
@@ -148,7 +148,7 @@ the version number to simplify deployment to WebLogic Server.
 # Sidecar
 
 The sidecar is a standalone process that runs the exporter. It is primarily intended for use by the
-[WebLogic Kubernetes Operator](https://github.com/oracle/weblogic-kubernetes-operator/).
+[WebLogic Server Kubernetes Operator](https://github.com/oracle/weblogic-kubernetes-operator/).
 
 ## Build and run with Maven
 
@@ -163,7 +163,7 @@ java -jar wls-exporter-sidecar/target/wls-exporter-sidecar.jar
 
 This will start the exporter on port 8080, and expect to find a WebLogic Server instance locally, listening on port 7001.
 
-That may be changed by specifying parameters on the command line:
+You can make changes by specifying parameters on the command line:
 
 Setting | Default | Property
 ------------ | ------------- | -------------
@@ -176,7 +176,7 @@ Use https | `false` | `WLS_SECURE`
 ## Configure the exporter
 
 The sidecar does not have a landing page. Configuration is done by sending a PUT request to the path `/configuration`. 
-You can do this with `curl`; when used with the [WebLogic Kubernetes Operator](https://github.com/oracle/weblogic-kubernetes-operator/), 
+You can do this with `curl`; when used with the [operator](https://github.com/oracle/weblogic-kubernetes-operator/), 
 the operator will automatically configure the exporter. 
 
 ```
@@ -186,8 +186,8 @@ curl -X PUT -i -u myname:mypassword \
     http://localhost:8080/configuration
 ``` 
 
-where you should replace `myname` and `mypassword` with the credentials expected by WebLogic Server for its REST API,
-and `<path to yaml>` is the relative path to the configuration to use.
+Replace `myname` and `mypassword` with the credentials expected by WebLogic Server for its REST API,
+and `<path to yaml>` with the relative path to the configuration to use.
 
 ## Access the metrics
 
