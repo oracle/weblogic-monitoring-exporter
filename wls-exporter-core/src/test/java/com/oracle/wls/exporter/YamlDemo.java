@@ -5,8 +5,6 @@ package com.oracle.wls.exporter;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import com.google.gson.JsonObject;
 import com.oracle.wls.exporter.domain.ExporterConfig;
@@ -14,6 +12,7 @@ import com.oracle.wls.exporter.domain.MBeanSelector;
 
 import static com.google.gson.JsonParser.parseString;
 import static com.oracle.wls.exporter.DemoInputs.RESPONSE;
+import static com.oracle.wls.exporter.DemoInputs.YAML_STRING3;
 import static com.oracle.wls.exporter.DemoInputs.compressedJsonForm;
 
 /**
@@ -22,8 +21,7 @@ import static com.oracle.wls.exporter.DemoInputs.compressedJsonForm;
 public class YamlDemo {
 
     public static void main(String... args) throws IOException {
-        String yamlString = String.join("\n", Files.readAllLines(Paths.get("/Users/rgold/Desktop/mohit.yml")));
-//        String yamlString = YAML_STRING3;
+        String yamlString = YAML_STRING3;
         System.out.println("The following configuration:\n" + yamlString);
         ExporterConfig exporterConfig = ExporterConfig.loadConfig(new ByteArrayInputStream(yamlString.getBytes()));
 
