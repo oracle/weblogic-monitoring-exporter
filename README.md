@@ -3,9 +3,18 @@ WebLogic Monitoring Exporter
 
 [![Build Status](https://travis-ci.org/oracle/weblogic-monitoring-exporter.svg?branch=master)](https://travis-ci.org/oracle/weblogic-monitoring-exporter)
 
-The WebLogic Monitoring Exporter uses the [WLS RESTful Management API](https://docs.oracle.com/middleware/1221/wls/WLRUR/overview.htm#WLRUR111) to scrape runtime information and then exports [Prometheus](http://prometheus.io)-compatible metrics.
-It is available both as a [web application](#web-application) to be deployed to the WebLogic Server (WLS) instance, version 12.2.1 or later, from which you want to get metrics, 
-and also as a [sidecar](#sidecar), which runs as its own process, and which is configured to contact a WLS instance.
+The WebLogic Monitoring Exporter is a [Prometheus](http://prometheus.io)-compatible exporter of metrics from 
+WebLogic Server (WLS) instances, which it obtains via the 
+[WLS RESTful Management API](https://docs.oracle.com/middleware/1221/wls/WLRUR/overview.htm#WLRUR111), available in version 12.2.1 or later. 
+Metrics are selected using a [YAML configuration file](#Configuration).
+
+The exporter is available in two forms:
+ - a [web application](#web-application) that you deploy to the managed server from which metrics are to be extracted. 
+ You may include a configuration file directly in the WAR, and you may temporarily modify the configuration in a 
+ running system via a web form.
+ 
+ - a [separate process](#sidecar) that is run alongside a managed server. You supply the configuration to such a
+process with a PUT command, as described below. 
 
 ## Configuration
 Here is an example `yaml` file configuration:
@@ -41,7 +50,7 @@ Note that there are two parts to the configuration. The optional top portion def
 | `query_sync.interval` | The interval, in seconds, at which the service will be queried. Defaults to 10. |
 | `metricsNameSnakeCase` | If true, metrics names will be converted to snake case. Defaults to false. |
 | `domainQualifier` | If true, the domain name will be included as a qualifier for all metrics. Defaults to false. |
-| `restPort` | Optional. Overrides the port on which the exporter should contact the REST API. Needed if the exporter cannot find the REST API. |
+| `restPort` | Optional, used in the web application only. Overrides the port on which the exporter should contact the REST API. Needed if the exporter cannot find the REST API. The most common case is running on a system with the admin port enabled. In that case, you must specify the admin port in this field and access the exporter via the SSL port. |
 
 The `query` field is more complex. Each query consists of a hierarchy of the [MBeans](https://docs.oracle.com/middleware/1221/wls/WLMBR/core/index.html), starting relative to `ServerRuntimes`.
 Within each section, there are a number of options:
@@ -175,7 +184,7 @@ Use https | `false` | `WLS_SECURE`
 
 ## Configure the exporter
 
-The sidecar does not have a landing page. Configuration is done by sending a PUT request to the path `/configuration`. 
+You configure the sidecar by sending a PUT request to the path `/configuration`. 
 You can do this with `curl`; when used with the [operator](https://github.com/oracle/weblogic-kubernetes-operator/), 
 the operator will automatically configure the exporter. 
 
