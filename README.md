@@ -4,16 +4,17 @@ WebLogic Monitoring Exporter
 [![Build Status](https://travis-ci.org/oracle/weblogic-monitoring-exporter.svg?branch=master)](https://travis-ci.org/oracle/weblogic-monitoring-exporter)
 
 The WebLogic Monitoring Exporter is a [Prometheus](http://prometheus.io)-compatible exporter of metrics from 
-WebLogic Server (WLS) instances, which it obtains via the 
-[WLS RESTful Management API](https://docs.oracle.com/middleware/1221/wls/WLRUR/overview.htm#WLRUR111), available in version 12.2.1 or later. 
+WebLogic Server (WLS) instances, which it obtains by using the 
+[WLS RESTful Management API](https://docs.oracle.com/middleware/12213/wls/WLRUR/overview.htm#WLRUR111), available in version 12.2.1 or later. 
 Metrics are selected using a [YAML configuration file](#Configuration).
 
 The exporter is available in two forms:
- - a [web application](#web-application) that you deploy to the managed server from which metrics are to be extracted. 
- You may include a configuration file directly in the WAR, and you may temporarily modify the configuration in a 
- running system via a web form.
+ - A [web application](#web-application) that you deploy to the Managed Server from which metrics are to be extracted. 
+ You may include a configuration file directly in the WAR file, and you may temporarily modify the configuration in a 
+ running system by using a web form. If a [coordination configurator](config_coordinator/README.md) is running and configured, 
+ that temporary configuration will be sent to all servers configured to use it.
  
- - a [separate process](#sidecar) that is run alongside a managed server. You supply the configuration to such a
+ - A [separate process](#sidecar) that is run alongside a Managed Server. You supply the configuration to such a
 process with a PUT command, as described below. 
 
 ## Configuration
@@ -45,14 +46,14 @@ Note that there are two parts to the configuration. The optional top portion def
 
 | Name | Description |
 | --- | --- |
-| `query_sync` | Optional. Configuration for a [service](config_coordinator/README.md) which coordinates updates to the query configuration. |
+| `query_sync` | Optional, used in the web application only. Configuration for a [service](config_coordinator/README.md) which coordinates updates to the query configuration. |
 | `query_sync.url` | The URL of the service. Required if this section is present. |
 | `query_sync.interval` | The interval, in seconds, at which the service will be queried. Defaults to 10. |
 | `metricsNameSnakeCase` | If true, metrics names will be converted to snake case. Defaults to false. |
 | `domainQualifier` | If true, the domain name will be included as a qualifier for all metrics. Defaults to false. |
-| `restPort` | Optional, used in the web application only. Overrides the port on which the exporter should contact the REST API. Needed if the exporter cannot find the REST API. The most common case is running on a system with the admin port enabled. In that case, you must specify the admin port in this field and access the exporter via the SSL port. |
+| `restPort` | Optional, used in the web application only. Overrides the port on which the exporter should contact the REST API. Needed if the exporter cannot find the REST API. The most common case is running on a system with the administration port enabled. In that case, you must specify the administration port in this field and access the exporter by using the SSL port. |
 
-The `query` field is more complex. Each query consists of a hierarchy of the [MBeans](https://docs.oracle.com/middleware/1221/wls/WLMBR/core/index.html), starting relative to `ServerRuntimes`.
+The `query` field is more complex. Each query consists of a hierarchy of the [MBeans](https://docs.oracle.com/middleware/12213/wls/WLMBR/core/index.html), starting relative to `ServerRuntimes`.
 Within each section, there are a number of options:
 
 | Name | Description |
