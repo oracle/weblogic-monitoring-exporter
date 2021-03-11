@@ -9,13 +9,14 @@ WebLogic Server (WLS) instances, which it obtains by using the
 Metrics are selected using a [YAML configuration file](#Configuration).
 
 The exporter is available in two forms:
- - A [web application](#web-application) that you deploy to the Managed Server from which metrics are to be extracted. 
+ - A [web application](#web-application) that you deploy to the server from which metrics are to be extracted. 
  You may include a configuration file directly in the WAR file, and you may temporarily modify the configuration in a 
  running system by using a web form. If a [coordination configurator](config_coordinator/README.md) is running and configured, 
  that temporary configuration will be sent to all servers configured to use it.
  
- - A [separate process](#sidecar) that is run alongside a Managed Server. You supply the configuration to such a
-process with a PUT command, as described below. 
+ - A [separate process](#sidecar) that is run alongside a server instance. You supply the configuration to such a
+process with a PUT command, as described below. The [WebLogic Server Kubernetes Operator](https://github.com/oracle/weblogic-kubernetes-operator/) has special support for the exporter in this form.
+
 
 ## Configuration
 Here is an example `yaml` file configuration:
@@ -157,8 +158,7 @@ the version number to simplify deployment to WebLogic Server.
 
 # Sidecar
 
-The sidecar is a standalone process that runs the exporter. It is primarily intended for use by the
-[WebLogic Server Kubernetes Operator](https://github.com/oracle/weblogic-kubernetes-operator/).
+The sidecar is a standalone process that runs the exporter.
 
 ## Build and run with Maven
 
@@ -186,8 +186,7 @@ Use https | `false` | `WLS_SECURE`
 ## Configure the exporter
 
 You configure the sidecar by sending a PUT request to the path `/configuration`. 
-You can do this with `curl`; when used with the [operator](https://github.com/oracle/weblogic-kubernetes-operator/), 
-the operator will automatically configure the exporter. 
+You can do this with `curl`; that is how the operator does it. 
 
 ```
 curl -X PUT -i -u myname:mypassword \
