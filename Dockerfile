@@ -25,7 +25,7 @@ COPY wls-exporter-sidecar/ wls-exporter-sidecar/
 RUN mvn -B -e -C install -Ddocker-build -DskipTests=true
 
 # Install Java on top of the linux image
-FROM oraclelinux:8-slim as linux
+FROM ghcr.io/oracle/oraclelinux:8-slim as linux
 WORKDIR /tmp
 
 RUN set -eux; \
@@ -35,8 +35,8 @@ RUN set -eux; \
 ENV LANG="en_US.UTF-8" \
     JAVA_HOME="/usr/local/java" \
     PATH="/operator:$JAVA_HOME/bin:$PATH" \
-    JAVA_VERSION="15" \
-    JAVA_URL="https://download.java.net/java/GA/jdk15.0.2/0d1cfde4252546c6931946de8db48ee2/7/GPL/openjdk-15.0.2_linux-x64_bin.tar.gz"
+    JAVA_VERSION="16" \
+    JAVA_URL="https://download.java.net/java/GA/jdk16/7863447f0ab643c585b9bdebf67c69db/36/GPL/openjdk-16_linux-x64_bin.tar.gz"
 
 RUN set -eux; \
     curl -fL -o /jdk.tar.gz "$JAVA_URL"; \
