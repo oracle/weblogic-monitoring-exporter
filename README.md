@@ -15,7 +15,7 @@ The exporter is available in two forms:
  that temporary configuration will be sent to all servers configured to use it.
  
  - A [separate process](#sidecar) that is run alongside a server instance. You supply the configuration to such a
-process with a PUT command, as described below. The [WebLogic Server Kubernetes Operator](https://github.com/oracle/weblogic-kubernetes-operator/) has special support for the exporter in this form.
+process with a PUT command, as described below. [WebLogic Server Kubernetes Operator](https://github.com/oracle/weblogic-kubernetes-operator/) versions 3.2 and later have special support for the exporter in this form.
 
 
 ## Configuration
