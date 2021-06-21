@@ -30,6 +30,7 @@ WORKDIR /tmp
 
 RUN set -eux; \
     microdnf -y install gzip tar openssl jq; \
+    microdnf -y update; \
     microdnf clean all
 
 ENV LANG="en_US.UTF-8" \
@@ -56,6 +57,14 @@ RUN set -eux; \
 
 # Finally, copy the exporter sidecar and create the docker image
 FROM linux as base
+
+LABEL "org.opencontainers.image.authors"="Ryan Eberhard <ryan.eberhard@oracle.com>, Russell Gold <russell.gold@oracle.com>" \
+      "org.opencontainers.image.url"="https://github.com/oracle/weblogic-monitoring-exporter" \
+      "org.opencontainers.image.source"="https://github.com/oracle/weblogic-monitoring-exporter" \
+      "org.opencontainers.image.vendor"="Oracle Corporation" \
+      "org.opencontainers.image.title"="Oracle WebLogic Monitoring Exporter" \
+      "org.opencontainers.image.description"="Oracle WebLogic Monitoring Exporter" \
+      "org.opencontainers.image.documentation"="https://github.com/oracle/weblogic-monitoring-exporter"
 
 COPY --from=build project/wls-exporter-sidecar/target/wls-exporter-sidecar.jar ./
 COPY --from=build project/wls-exporter-sidecar/target/libs ./libs
