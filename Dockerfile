@@ -30,6 +30,7 @@ WORKDIR /tmp
 
 RUN set -eux; \
     microdnf -y install gzip tar openssl jq; \
+    microdnf -y update; \
     microdnf clean all
 
 ENV LANG="en_US.UTF-8" \
