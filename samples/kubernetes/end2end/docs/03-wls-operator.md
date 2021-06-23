@@ -12,6 +12,7 @@ We need two images, the WebLogic Server Kubernetes Operator image from [Docker H
 Pull the WebLogic Sever Kubernetes Operator 2.3.0 image.
 ```
 docker login
+for logging into oracle registry use with sso creds use:  docker login container-registry.oracle.com
 docker pull oracle/weblogic-kubernetes-operator:2.3.0
 ```
 Pull the WebLogic Server 12.2.1.3 image.
