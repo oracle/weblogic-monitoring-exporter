@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
 import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.HOST;
 import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.PORT;
+import static com.oracle.wls.exporter.webapp.HttpServletResponseStub.SINGLE_ARG_METHOD_CALLED;
 import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -75,6 +76,14 @@ public class ServletInvocationContextTest {
 
     assertThat(response.getStatus(), equalTo(413));
     assertThat(response.getHtml().trim(), equalTo("That's OK"));
+  }
+
+  @Test
+  public void whenNullMessageSent_useSingleArgVersionOfServletResponse() throws IOException {
+    context.sendError(413, null);
+
+    assertThat(response.getStatus(), equalTo(413));
+    assertThat(response.getHtml().trim(), equalTo(SINGLE_ARG_METHOD_CALLED));
   }
 
   @Test

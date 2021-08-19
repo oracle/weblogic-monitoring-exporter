@@ -68,7 +68,11 @@ public class ServletInvocationContext implements InvocationContext {
 
   @Override
   public void sendError(int status, String msg) throws IOException {
+    if (msg == null) {
+      response.sendError(status);
+    } else {
       response.sendError(status, msg);
+    }
   }
 
   @Override
