@@ -3,6 +3,8 @@
 
 package com.oracle.wls.exporter;
 
+import java.util.Optional;
+
 /**
  * An exception thrown when a 5xx status code is received from the server.
  */
@@ -21,5 +23,12 @@ public class ServerErrorException extends WebClientException {
 
   public int getStatus() {
     return status;
+  }
+
+  @Override
+  public String getMessage() {
+    StringBuilder sb = new StringBuilder("Received status ").append(status);
+    Optional.ofNullable(super.getMessage()).ifPresent(m -> sb.append(" - ").append(m));
+    return sb.toString();
   }
 }

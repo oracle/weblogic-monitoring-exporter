@@ -149,7 +149,15 @@ public abstract class WebClientCommon implements WebClient {
                 throw new ForbiddenException();
             default:
                 if (response.getResponseCode() > SC_BAD_REQUEST)
-                    throw new ServerErrorException(response.getResponseCode());
+                    throw createServerErrorException(response);
+        }
+    }
+
+    private ServerErrorException createServerErrorException(WebResponse response) {
+        try {
+            return new ServerErrorException(response.getResponseCode(), toString(response.getContents()));
+        } catch (IOException e) {
+            return new ServerErrorException(response.getResponseCode());
         }
     }
 
