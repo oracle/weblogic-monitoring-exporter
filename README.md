@@ -1,5 +1,4 @@
-WebLogic Monitoring Exporter
-=====
+# WebLogic Monitoring Exporter
 
 [![Build Status](https://travis-ci.org/oracle/weblogic-monitoring-exporter.svg?branch=master)](https://travis-ci.org/oracle/weblogic-monitoring-exporter)
 
@@ -127,11 +126,11 @@ include the `restPort` configuration to tell the exporter which port to use.
 * [Chart-based sample](samples/kubernetes/end2end): This is an end-to-end sample that shows you the steps to set up monitoring for WebLogic domains using Prometheus and Grafana. Prometheus and Grafana are installed with Helm charts.
 
 
-# Web application
+### Web application
 
 One way to use the exporter is by creating a WAR file with a default configuration and deploying it to a WebLogic Server instance.
 
-## Setting the configuration
+#### Setting the configuration
 
 The web application has a main landing page, which displays the current [configuration](#configuration) and allows
 you to change it, either by uploading a replacement or an addition to the queries specified with the current one.
@@ -156,11 +155,11 @@ is the Maven-assigned version number.
 Adding `-Dconfiguration=<some-config-file>` will insert the specified configuration as its default and remove
 the version number to simplify deployment to WebLogic Server.
 
-# Sidecar
+## Sidecar
 
 The sidecar is a standalone process that runs the exporter.
 
-## Build and run with Maven
+### Build and run with Maven
 
 There are two ways to build the sidecar implementation. The first is with Maven, using the same `mvn install` command 
 specified [above](#building-from-source). Note that this requires JDK11 or later; building the project with JDK8 will 
@@ -183,7 +182,7 @@ WebLogic host | `localhost` | `WLS_HOST`
 WebLogic port | `7001` | `WLS_PORT`
 Use https | `false` | `WLS_SECURE`
 
-## Configure the exporter
+### Configure the exporter
 
 You configure the sidecar by sending a PUT request to the path `/configuration`. 
 You can do this with `curl`; that is how the operator does it. 
@@ -223,8 +222,19 @@ docker build . --build-arg MAVEN_OPTS="-Dhttps.proxyHost=www-proxy -Dhttps.proxy
 This allows Docker to download the dependencies. 
 
 
- 
-## Copyright
+## Contributing
 
- Copyright &copy; 2017, 2021, Oracle and/or its affiliates.
- Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+This project welcomes contributions from the community. Before submitting a pull
+request, please [review our contribution guide](./CONTRIBUTING.md).
+
+## Security
+
+Please consult the [security guide](./SECURITY.md) for our responsible security
+vulnerability disclosure process.
+
+## License
+
+Copyright (c) 2019, 2021 Oracle and/or its affiliates.
+
+Released under the Universal Permissive License v1.0 as shown at
+<https://oss.oracle.com/licenses/upl/>.
