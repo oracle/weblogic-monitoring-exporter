@@ -9,7 +9,7 @@ import com.oracle.wls.exporter.domain.ConfigurationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 
-import static com.oracle.wls.exporter.InvocationContextStub.HOST;
+import static com.oracle.wls.exporter.InvocationContextStub.HOST_NAME;
 import static com.oracle.wls.exporter.InvocationContextStub.PORT;
 import static com.oracle.wls.exporter.InvocationContextStub.REST_PORT;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class ConfigurationFormCallTest {
 
   private static final String CONFIGURATION =
-        "host: " + HOST + "\n" +
+        "hostName: " + HOST_NAME + "\n" +
               "port: " + PORT + "\n" +
               "queries:\n" + "" +
               "- groups:\n" +
@@ -32,7 +32,7 @@ public class ConfigurationFormCallTest {
               "    values: [sample1, sample2]\n";
 
   private static final String CONFIGURATION_WITH_REST_PORT =
-        "host: " + HOST + "\n" +
+        "hostName: " + HOST_NAME + "\n" +
               "port: " + PORT + "\n" +
               "restPort: " + REST_PORT + "\n" +
               "queries:\n" + "" +
@@ -42,7 +42,7 @@ public class ConfigurationFormCallTest {
               "    values: [sample1, sample2]\n";
 
   private static final String ADDED_CONFIGURATION =
-        "host: localhost\n" +
+        "hostName: localhost\n" +
               "port: 7001\n" +
               "queries:\n" + "" +
               "- people:\n" +
@@ -50,7 +50,7 @@ public class ConfigurationFormCallTest {
               "    values: [age, sex]\n";
 
   private static final String COMBINED_CONFIGURATION =
-        "host: " + HOST + "\n" +
+        "hostName: " + HOST_NAME + "\n" +
               "port: " + PORT + "\n" +
               "queries:\n" + "" +
               "- groups:\n" +
@@ -67,7 +67,7 @@ public class ConfigurationFormCallTest {
 
   @BeforeEach
   public void setUp() {
-    LiveConfiguration.setServer(HOST, PORT);
+    LiveConfiguration.setServer(HOST_NAME, PORT);
     LiveConfiguration.loadFromString(CONFIGURATION);
   }
 
@@ -155,8 +155,6 @@ public class ConfigurationFormCallTest {
   }
 
   private static final String ADDED_CONFIGURATION_WITH_BAD_BOOLEAN =
-        "host: localhost\n" +
-              "port: 7001\n" +
               "metricsNameSnakeCase: " + BAD_BOOLEAN_STRING + "\n" +
               "queries:\n" + "" +
               "- people:\n" +

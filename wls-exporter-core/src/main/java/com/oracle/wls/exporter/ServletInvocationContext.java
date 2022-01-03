@@ -31,7 +31,9 @@ public class ServletInvocationContext implements InvocationContext {
 
   @Override
   public UrlBuilder createUrlBuilder() {
-    return UrlBuilder.create(request.getLocalName(), request.isSecure())
+    return UrlBuilder.create(request.isSecure())
+          .withHostName(request.getLocalName())
+          .withHostName("localhost")
           .withPort(LiveConfiguration.getConfiguredRestPort())
           .withPort(request.getLocalPort());
   }

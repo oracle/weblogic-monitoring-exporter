@@ -159,16 +159,27 @@ public class ExporterServletTest {
         assertThat(factory.getClientUrl(),  equalTo(String.format(URL_PATTERN, request.getLocalName(), REST_PORT)));
     }
 
-
     @Test
     public void whenRestPortAccessFails_switchToLocalPort() throws IOException {
         initServlet(REST_PORT_CONFIG);
-        factory.throwConnectionFailure("localhost", REST_PORT);
+        factory.throwConnectionFailure(request.getLocalName(), REST_PORT);
         factory.addJsonResponse(new HashMap<>());
 
         servlet.doGet(request, response);
 
         assertThat(factory.getClientUrl(),  equalTo(String.format(URL_PATTERN, request.getLocalName(), LOCAL_PORT)));
+    }
+
+    @Test
+    public void whenRequestHostNameAccessFails_switchToLocalhost() throws IOException {
+        request.withLocalHostName("inaccessibleServer");
+        initServlet(ONE_VALUE_CONFIG);
+        factory.throwConnectionFailure("inaccessibleServer", LOCAL_PORT);
+        factory.addJsonResponse(new HashMap<>());
+
+        servlet.doGet(request, response);
+
+        assertThat(factory.getClientUrl(),  equalTo(String.format(URL_PATTERN, "localhost", LOCAL_PORT)));
     }
 
     @Test
@@ -377,8 +388,14 @@ public class ExporterServletTest {
 
         servlet.doGet(request, response);
 
-        assertThat(toHtml(response), allOf(containsOnlyComments(),containsString("restPort"), containsString("http://myhost:1234")));
+        assertThat(toHtml(response), allOf(
+              containsOnlyComments(),
+              containsString("restPort"),
+              containsString("restHostName"),
+              containsString("http://myhost:1234")));
     }
+
+    // todo test for warning to recommend restHost as well
 
     @Test
     public void whenKeyAlsoListedAsValue_dontDisplayIt() throws Exception {

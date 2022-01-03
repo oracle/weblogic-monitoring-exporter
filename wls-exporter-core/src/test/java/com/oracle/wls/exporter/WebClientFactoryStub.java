@@ -67,8 +67,8 @@ public class WebClientFactoryStub implements WebClientFactory {
     }
 
     @SuppressWarnings("SameParameterValue")
-    public void throwConnectionFailure(String host, int port) {
-        webClient.throwConnectionFailure(host, port);
+    public void throwConnectionFailure(String hostName, int port) {
+        webClient.throwConnectionFailure(hostName, port);
     }
 
     void throwWebClientException(WebClientException e) {
@@ -121,8 +121,8 @@ public class WebClientFactoryStub implements WebClientFactory {
             addExceptionResponse(new AuthenticationChallengeException(String.format("Basic realm=\"%s\"", basicRealmName)));
         }
 
-        void throwConnectionFailure(String host, int port) {
-            addExceptionResponse(new RestPortConnectionException(String.format("http://%s:%d", host, port)));
+        void throwConnectionFailure(String hostName, int port) {
+            addExceptionResponse(new RestPortConnectionException(String.format("http://%s:%d", hostName, port)));
         }
 
         @Override

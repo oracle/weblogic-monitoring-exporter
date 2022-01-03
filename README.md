@@ -179,7 +179,7 @@ Setting | Default | Property
 ------------ | ------------- | -------------
 Domain name | (use WLS definition) | `DOMAIN`
 Exporter port | `8080` | `EXPORTER_PORT`
-WebLogic host | `localhost` | `WLS_HOST`
+WebLogic host name | `localhost` | `WLS_HOST`
 WebLogic port | `7001` | `WLS_PORT`
 Use https | `false` | `WLS_SECURE`
 

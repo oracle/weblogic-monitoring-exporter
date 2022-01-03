@@ -124,7 +124,7 @@ public class LiveConfiguration {
      * @return a human readable representation of the configuration
      */
     public static String asString() {
-        return "host: " + serverName + '\n' +
+        return "hostName: " + serverName + '\n' +
                "port: " + serverPort + '\n' + getConfig();
     }
 

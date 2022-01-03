@@ -127,11 +127,11 @@ public class MainServletTest {
     }
 
     private static final String EMPTY_CONFIGURATION =
-            "host: " + HttpServletRequestStub.HOST + "\n" +
+            "hostName: " + HttpServletRequestStub.HOST_NAME + "\n" +
             "port: " + HttpServletRequestStub.PORT + "\n";
 
     private static final String PARSED_CONFIGURATION =
-            "host: localhost\n" +
+            "hostName: localhost\n" +
             "port: 7001\n" +
             "queries:\n" + "" +
             "- groups:\n" +
@@ -140,7 +140,7 @@ public class MainServletTest {
             "    values: [sample1, sample2]\n";
 
     private static final String EFFECTIVE_CONFIGURATION =
-            "host: " + HttpServletRequestStub.HOST + "\n" +
+            "hostName: " + HttpServletRequestStub.HOST_NAME + "\n" +
             "port: " + HttpServletRequestStub.PORT + "\n" +
             "queries:\n" + "" +
             "- groups:\n" +

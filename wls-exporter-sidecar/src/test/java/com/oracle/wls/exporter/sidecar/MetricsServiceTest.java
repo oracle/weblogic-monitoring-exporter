@@ -136,7 +136,7 @@ class MetricsServiceTest {
         return client.path("/metrics").get();
     }
 
-    // todo test WLS host/port info
+    // todo test WLS hostName/port info
 
     @Test
     public void whenServerSends403StatusOnGet_returnToClient() throws Exception {

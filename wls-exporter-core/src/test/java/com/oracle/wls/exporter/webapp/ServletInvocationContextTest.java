@@ -12,7 +12,7 @@ import com.oracle.wls.exporter.ServletInvocationContext;
 import org.junit.jupiter.api.Test;
 
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
-import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.HOST;
+import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.HOST_NAME;
 import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.PORT;
 import static com.oracle.wls.exporter.webapp.HttpServletResponseStub.SINGLE_ARG_METHOD_CALLED;
 import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
@@ -51,7 +51,7 @@ public class ServletInvocationContextTest {
 
   @Test
   public void obtainInstanceName() {
-    assertThat(context.getInstanceName(), equalTo(HOST + ":" + PORT));
+    assertThat(context.getInstanceName(), equalTo(HOST_NAME + ":" + PORT));
   }
 
   @Test

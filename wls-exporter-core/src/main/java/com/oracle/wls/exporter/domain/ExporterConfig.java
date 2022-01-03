@@ -31,10 +31,6 @@ public class ExporterConfig {
     static final String DOMAIN_QUALIFIER = "domainQualifier";
     static final String REST_PORT = "restPort";
     private static final String QUERIES = "queries";
-    private static final String HOST = "host";
-    private static final String PORT = "port";
-    private static final String DEFAULT_HOST = "localhost";
-    private static final int DEFAULT_PORT = 7001;
 
     private static final MBeanSelector[] NO_QUERIES = {};
     private static final String DOMAIN_NAME_QUALIFIER = "domain=\"%s\"";
@@ -42,8 +38,6 @@ public class ExporterConfig {
     private static boolean defaultSnakeCaseSetting;
 
     private MBeanSelector[] queries = {};
-    private String host = DEFAULT_HOST;
-    private int port = DEFAULT_PORT;
     private Integer restPort;
     private boolean metricsNameSnakeCase = defaultSnakeCaseSetting;
     private QuerySyncConfiguration querySyncConfiguration;
@@ -144,8 +138,6 @@ public class ExporterConfig {
     private ExporterConfig(Map<String, Object> yaml) {
         if (yaml.containsKey(DOMAIN_QUALIFIER)) setDomainQualifier(yaml);
         if (yaml.containsKey(SNAKE_CASE)) setMetricsNameSnakeCase(yaml);
-        if (yaml.containsKey(HOST)) host = MapUtils.getStringValue(yaml, HOST);
-        if (yaml.containsKey(PORT)) port = MapUtils.getIntegerValue(yaml, PORT);
         if (yaml.containsKey(REST_PORT)) restPort = MapUtils.getIntegerValue(yaml, REST_PORT);
         if (yaml.containsKey(QUERY_SYNC)) querySyncConfiguration = loadQuerySync(yaml.get(QUERY_SYNC));
         if (yaml.containsKey(QUERIES)) appendQueries(asList(yaml.get(QUERIES)));
@@ -237,14 +229,6 @@ public class ExporterConfig {
 
     private boolean emptyOrContainsMaps(List<?> list) {
         return list.isEmpty() || list.get(0) instanceof Map;
-    }
-
-    String getHost() {
-        return host;
-    }
-
-    int getPort() {
-        return port;
     }
 
     /**

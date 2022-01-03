@@ -44,7 +44,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 abstract class WebClientTestBase {
     private static final char QUOTE = '"';
 
-    /** A URL on a known host with a port on which no server is listening. */
+    /** A URL on a known hostName with a port on which no server is listening. */
     private static final String UNDEFINED_PORT_URL = "http://localhost:59236";
 
     private final Supplier<WebClient> factory;

@@ -35,7 +35,8 @@ public class HelidonInvocationContext implements InvocationContext {
 
     @Override
     public UrlBuilder createUrlBuilder() {
-        return UrlBuilder.create(configuration.getWebLogicHost(), configuration.useWebLogicSsl())
+        return UrlBuilder.create(configuration.useWebLogicSsl())
+              .withHostName(configuration.getWebLogicHost())
               .withPort(configuration.getWebLogicPort());
     }
 

@@ -77,7 +77,7 @@ public abstract class AuthenticatedCall {
             context.sendError(status, e.getMessage());
         } catch (RestPortConnectionException e) {
             context.setStatus(HTTP_INTERNAL_ERROR);
-            reportUnableToContactRestApi(e.getUri());
+            reportUnableToContactRestApiPort(e.getUri());
         } finally {
             context.close();
         }
@@ -104,15 +104,17 @@ public abstract class AuthenticatedCall {
         } while (webClient.isRetryNeeded());
     }
 
-    private void reportUnableToContactRestApi(String uri) throws IOException {
+    private void reportUnableToContactRestApiPort(String uri) throws IOException {
         try (PrintStream out = context.getResponseStream()) {
-            out.println("# Unable to contact the REST API at " + uri + ". May be using the wrong port.");
+            out.println("# Unable to contact the REST API at " + uri + ". May be using the wrong host name or port.");
             out.println("#");
-            out.println("# This most commonly occurs when the exporter is accessed via a load balancer");
-            out.println("# configured on a different port than the managed server.");
+            out.println("# This can happen when the exporter is accessed via a load balancer");
+            out.println("# configured on a different port than the server's REST API,");
+            out.println("# or when the remote server DNS name is not resolvable from the server itself.");
             out.println("#");
             out.println("# You can correct this by giving the exporter WAR an initial configuration with the");
-            out.println("# restPort field set to the managed server's plain text port.");
+            out.println("# restPort field set to the managed server's plain text port and/or");
+            out.println("# restHostName field set to the managed server's locally resolvable name.");
         }
     }
 

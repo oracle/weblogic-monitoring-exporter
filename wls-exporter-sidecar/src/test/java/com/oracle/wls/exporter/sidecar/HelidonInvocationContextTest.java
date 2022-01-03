@@ -29,8 +29,6 @@ import static org.hamcrest.Matchers.nullValue;
 
 class HelidonInvocationContextTest {
 
-  private final static String HOST = "localhost";
-  private final static int WLS_PORT = 8765;
   private final static String REQUEST_URL_PATTERN = "%s://%s:%d/address";
   private static final String POD_NAME = "server2";
 

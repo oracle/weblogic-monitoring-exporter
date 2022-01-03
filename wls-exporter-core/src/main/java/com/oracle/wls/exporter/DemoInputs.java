@@ -10,8 +10,6 @@ class DemoInputs {
     @SuppressWarnings("unused")
     static final String YAML_STRING = "---\n" +
             "startDelaySeconds: 5\n" +
-            "host: localhost\n" +
-            "port: 7001\n" +
             "username: system\n" +
             "password: gumby1234\n" +
             "\n" +
@@ -35,8 +33,6 @@ class DemoInputs {
     @SuppressWarnings("unused")
     static final String YAML_STRING2 = "---\n" +
             "startDelaySeconds: 5\n" +
-            "host: localhost\n" +
-            "port: 7001\n" +
             "username: system\n" +
             "password: gumby1234\n" +
             "queries:\n" +

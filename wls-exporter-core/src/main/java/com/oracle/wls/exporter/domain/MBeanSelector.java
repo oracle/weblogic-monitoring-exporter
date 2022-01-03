@@ -282,8 +282,8 @@ public class MBeanSelector {
         return nestedSelectors.get(selectorKey).mayMergeWith(other.nestedSelectors.get(selectorKey));
     }
 
-    public String getUrl(Protocol protocol, String host, int port) {
-        return protocol.format(queryType.getUrlPattern(), host, port);
+    public String getUrl(Protocol protocol, String hostName, int port) {
+        return protocol.format(queryType.getUrlPattern(), hostName, port);
     }
 
     public QueryType getQueryType() {

@@ -26,13 +26,13 @@ public class SidecarConfiguration {
 
   public SidecarConfiguration() {
     listenPort = Integer.getInteger(LISTEN_PORT_PROPERTY, DEFAULT_LISTEN_PORT);
-    webLogicHost = System.getProperty(WLS_HOST_PROPERTY, getDefaultWlsHost());
+    webLogicHost = System.getProperty(WLS_HOST_PROPERTY, getDefaultWlsHostName());
     webLogicPort = Integer.getInteger(WLS_PORT_PROPERTY, DEFAULT_WLS_PORT);
     podName = System.getProperty(POD_NAME_PROPERTY, DEFAULT_POD_NAME);
     secure = Boolean.getBoolean(WLS_SECURE_PROPERTY);
   }
 
-  static String getDefaultWlsHost() {
+  static String getDefaultWlsHostName() {
     try {
       return InetAddress.getLocalHost().getHostAddress();
     } catch (UnknownHostException e) {

@@ -6,8 +6,8 @@ package com.oracle.wls.exporter.domain;
 public enum Protocol {
   HTTP, HTTPS;
 
-  public String format(String urlPattern, String host, int port) {
-      return String.format(urlPattern, toString().toLowerCase(), host, port);
+  public String format(String urlPattern, String hostName, int port) {
+      return String.format(urlPattern, toString().toLowerCase(), hostName, port);
   }
 
   public static Protocol getProtocol(boolean secure) {

@@ -25,13 +25,14 @@ import static com.meterware.simplestub.Stub.createStrictStub;
  */
 @SuppressWarnings("SameParameterValue")
 public abstract class HttpServletRequestStub implements HttpServletRequest {
-    public final static String HOST = "myhost";
+    public final static String HOST_NAME = "myhost";
     public final static int PORT = 7654;
     public final static int LOCAL_PORT = 7631;
 
     private final static String DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded";
     private final Map<String,String> headers = new HashMap<>();
     private final String method;
+    private String localhostName = "localhost";
     private String contentType = DEFAULT_CONTENT_TYPE;
     private String contents;
     private ServletInputStream inputStream;
@@ -39,7 +40,7 @@ public abstract class HttpServletRequestStub implements HttpServletRequest {
     private String servletPath = "";
     private HttpSessionStub session;
     private boolean secure;
-    private String host = HOST;
+    private String hostName = HOST_NAME;
     private int port = PORT;
 
     public static HttpServletRequestStub createGetRequest() {
@@ -50,8 +51,13 @@ public abstract class HttpServletRequestStub implements HttpServletRequest {
         return createStrictStub(HttpServletRequestStub.class, "POST");
     }
 
-    public HttpServletRequestStub withHost(String host) {
-        this.host = host;
+    public HttpServletRequestStub withHostName(String hostName) {
+        this.hostName = hostName;
+        return this;
+    }
+
+    public HttpServletRequestStub withLocalHostName(String localhostName) {
+        this.localhostName = localhostName;
         return this;
     }
 
@@ -129,7 +135,7 @@ public abstract class HttpServletRequestStub implements HttpServletRequest {
 
     @Override
     public String getServerName() {
-        return host;
+        return hostName;
     }
 
     @Override
@@ -139,7 +145,7 @@ public abstract class HttpServletRequestStub implements HttpServletRequest {
 
     @Override
     public String getLocalName() {
-        return "localhost";
+        return localhostName;
     }
 
     @Override

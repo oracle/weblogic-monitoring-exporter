@@ -75,7 +75,7 @@ public class ConfigurationServletTest {
 
 
     private static final String CONFIGURATION =
-            "host: " + HttpServletRequestStub.HOST + "\n" +
+            "hostName: " + HttpServletRequestStub.HOST_NAME + "\n" +
             "port: " + HttpServletRequestStub.PORT + "\n" +
             "queries:\n" + "" +
             "- groups:\n" +
@@ -84,7 +84,7 @@ public class ConfigurationServletTest {
             "    values: [sample1, sample2]\n";
 
     private static final String CONFIGURATION_WITH_REST_PORT =
-            "host: " + HttpServletRequestStub.HOST + "\n" +
+            "hostName: " + HttpServletRequestStub.HOST_NAME + "\n" +
             "port: " + HttpServletRequestStub.PORT + "\n" +
             "restPort: " + REST_PORT + "\n" +
             "queries:\n" + "" +
@@ -94,7 +94,7 @@ public class ConfigurationServletTest {
             "    values: [sample1, sample2]\n";
 
     private static final String ADDED_CONFIGURATION =
-            "host: localhost\n" +
+            "hostName: localhost\n" +
             "port: 7001\n" +
             "queries:\n" + "" +
             "- people:\n" +
@@ -102,7 +102,7 @@ public class ConfigurationServletTest {
             "    values: [age, sex]\n";
 
     private static final String COMBINED_CONFIGURATION =
-            "host: " + HttpServletRequestStub.HOST + "\n" +
+            "hostName: " + HttpServletRequestStub.HOST_NAME + "\n" +
             "port: " + HttpServletRequestStub.PORT + "\n" +
             "queries:\n" + "" +
             "- groups:\n" +
@@ -224,8 +224,6 @@ public class ConfigurationServletTest {
     }
 
     private static final String ADDED_CONFIGURATION_WITH_BAD_BOOLEAN =
-            "host: localhost\n" +
-            "port: 7001\n" +
             "metricsNameSnakeCase: blabla\n" +
             "queries:\n" + "" +
             "- people:\n" +

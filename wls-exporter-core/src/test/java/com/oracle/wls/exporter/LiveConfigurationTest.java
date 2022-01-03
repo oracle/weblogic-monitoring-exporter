@@ -15,7 +15,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import static com.oracle.wls.exporter.InMemoryFileSystem.withNoParams;
-import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.HOST;
+import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.HOST_NAME;
 import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.PORT;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -28,7 +28,7 @@ import static org.hamcrest.Matchers.is;
  */
 public class LiveConfigurationTest {
     private static final String CONFIGURATION =
-            "host: " + HOST + "\n" +
+            "hostName: " + HOST_NAME + "\n" +
             "port: " + PORT + "\n" +
             "queries:\n" + "" +
             "- groups:\n" +
@@ -37,7 +37,7 @@ public class LiveConfigurationTest {
             "    values: [sample1, sample2]\n";
 
     private static final String ADDED_CONFIGURATION =
-            "host: " + HOST + "\n" +
+            "hostName: " + HOST_NAME + "\n" +
             "port: " + PORT + "\n" +
             "queries:\n" + "" +
             "- people:\n" +
@@ -45,7 +45,7 @@ public class LiveConfigurationTest {
             "    values: [age, sex]\n";
 
     private static final String COMBINED_CONFIGURATION =
-            "host: " + HOST + "\n" +
+            "hostName: " + HOST_NAME + "\n" +
             "port: " + PORT + "\n" +
             "queries:\n" + "" +
             "- groups:\n" +
