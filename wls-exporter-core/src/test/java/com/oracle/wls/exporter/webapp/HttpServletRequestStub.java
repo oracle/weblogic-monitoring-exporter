@@ -33,6 +33,7 @@ public abstract class HttpServletRequestStub implements HttpServletRequest {
     private final Map<String,String> headers = new HashMap<>();
     private final String method;
     private String localhostName = "localhost";
+    private int localPort = LOCAL_PORT;
     private String contentType = DEFAULT_CONTENT_TYPE;
     private String contents;
     private ServletInputStream inputStream;
@@ -56,8 +57,14 @@ public abstract class HttpServletRequestStub implements HttpServletRequest {
         return this;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public HttpServletRequestStub withLocalHostName(String localhostName) {
         this.localhostName = localhostName;
+        return this;
+    }
+
+    public HttpServletRequestStub withLocalPort(int port) {
+        this.localPort = port;
         return this;
     }
 
@@ -150,7 +157,7 @@ public abstract class HttpServletRequestStub implements HttpServletRequest {
 
     @Override
     public int getLocalPort() {
-        return LOCAL_PORT;
+        return localPort;
     }
 
     @Override

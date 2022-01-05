@@ -11,6 +11,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.stream.Collectors;
 
 import com.oracle.wls.exporter.domain.Protocol;
 
@@ -32,6 +33,11 @@ public class UrlBuilder {
     }
 
     @Override
+    public String toString() {
+      return hostName + ':' + port;
+    }
+
+    @Override
     public int compareTo(WebHost o) {
       if (hostName.equals(o.hostName)) {
         return Integer.compare(port, o.port);
@@ -50,6 +56,7 @@ public class UrlBuilder {
   private final Protocol protocol;
   private final List<Integer> ports = new ArrayList<>();
   private final List<String> hostNames = new ArrayList<>();
+  private final List<WebHost> failedHosts = new ArrayList<>();
 
   private Queue<WebHost> hosts;
   private WebHost lastCandidate;
@@ -126,25 +133,44 @@ public class UrlBuilder {
   // Informs the builder that the last URL it supplied failed.
   public void reportFailure(WebClientException connectionException) {
     successes.clear();
+    failedHosts.add(lastCandidate);
     hosts.remove();
     if (hosts.isEmpty()) throw connectionException;
+  }
+
+  // Returns a collection of failed hosts.
+  public List<String> getFailedHosts() {
+    return failedHosts.stream().map(this::toHostString).collect(Collectors.toList());
+  }
+
+  private String toHostString(WebHost host) {
+    return host.format(protocol, "%s://%s:%d");
   }
 
   private static final int SELECT_FIRST = -1;
   private static final int NO_PREFERENCE = 0;
   private static final int SELECT_LAST = 1;
 
-  private static class PreferSuccesses implements Comparator<WebHost> {
+  private class PreferSuccesses implements Comparator<WebHost> {
 
     @Override
-    public int compare(WebHost first, WebHost last) {
-      if (wasSuccessful(first) == wasSuccessful(last)) {
-        return NO_PREFERENCE;
+    public int compare(WebHost first, WebHost second) {
+      if (wasSuccessful(first) == wasSuccessful(second)) {
+        return hostsFirst(first, second);
       } else if (wasSuccessful(first)) {
         return SELECT_FIRST;
       } else {
         return SELECT_LAST;
       }
+    }
+
+    private int hostsFirst(WebHost first, WebHost second) {
+      int result = Integer.compare(hostNames.indexOf(first.hostName), hostNames.indexOf(second.hostName));
+      return result == NO_PREFERENCE ? comparePorts(first, second) : result;
+    }
+
+    private int comparePorts(WebHost first, WebHost second) {
+      return Integer.compare(ports.indexOf(first.port), ports.indexOf(second.port));
     }
   }
 

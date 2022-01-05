@@ -6,6 +6,8 @@ package com.oracle.wls.exporter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,6 +20,7 @@ public class ServletInvocationContext implements InvocationContext {
 
   private final HttpServletRequest request;
   private final HttpServletResponse response;
+  private final String localHostName = getLocalHostName();
 
   public ServletInvocationContext(HttpServletRequest request, HttpServletResponse response) {
     this.request = request;
@@ -33,9 +36,17 @@ public class ServletInvocationContext implements InvocationContext {
   public UrlBuilder createUrlBuilder() {
     return UrlBuilder.create(request.isSecure())
           .withHostName(request.getLocalName())
-          .withHostName("localhost")
+          .withHostName(localHostName)
           .withPort(LiveConfiguration.getConfiguredRestPort())
           .withPort(request.getLocalPort());
+  }
+
+  static String getLocalHostName() {
+    try {
+      return InetAddress.getLocalHost().getHostName();
+    } catch (UnknownHostException e) {
+      return "localhost";
+    }
   }
 
   @Override

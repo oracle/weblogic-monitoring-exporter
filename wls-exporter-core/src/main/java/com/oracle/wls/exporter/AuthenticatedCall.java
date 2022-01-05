@@ -5,6 +5,7 @@ package com.oracle.wls.exporter;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.List;
 
 import com.oracle.wls.exporter.domain.MBeanSelector;
 import com.oracle.wls.exporter.domain.QueryType;
@@ -77,9 +78,18 @@ public abstract class AuthenticatedCall {
             context.sendError(status, e.getMessage());
         } catch (RestPortConnectionException e) {
             context.setStatus(HTTP_INTERNAL_ERROR);
-            reportUnableToContactRestApiPort(e.getUri());
+            reportUnableToContactRestApiPort(getFailedHosts());
         } finally {
             context.close();
+        }
+    }
+
+    private String getFailedHosts() {
+        final List<String> hosts = urlBuilder.getFailedHosts();
+        if (hosts.size() < 3) {
+            return String.join(" or ", hosts);
+        } else {
+            return String.join(", ", hosts.subList(0, hosts.size()-1)) + " or " + hosts.get(hosts.size() - 1);
         }
     }
 
