@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -282,8 +282,8 @@ public class MBeanSelector {
         return nestedSelectors.get(selectorKey).mayMergeWith(other.nestedSelectors.get(selectorKey));
     }
 
-    public String getUrl(Protocol protocol, String host, int port) {
-        return protocol.format(queryType.getUrlPattern(), host, port);
+    public String getUrl(Protocol protocol, String hostName, int port) {
+        return protocol.format(queryType.getUrlPattern(), hostName, port);
     }
 
     public QueryType getQueryType() {

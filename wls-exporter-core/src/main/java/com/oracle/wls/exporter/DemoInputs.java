@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -10,8 +10,6 @@ class DemoInputs {
     @SuppressWarnings("unused")
     static final String YAML_STRING = "---\n" +
             "startDelaySeconds: 5\n" +
-            "host: localhost\n" +
-            "port: 7001\n" +
             "username: system\n" +
             "password: gumby1234\n" +
             "\n" +
@@ -35,8 +33,6 @@ class DemoInputs {
     @SuppressWarnings("unused")
     static final String YAML_STRING2 = "---\n" +
             "startDelaySeconds: 5\n" +
-            "host: localhost\n" +
-            "port: 7001\n" +
             "username: system\n" +
             "password: gumby1234\n" +
             "queries:\n" +

@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.webapp;
@@ -127,11 +127,11 @@ public class MainServletTest {
     }
 
     private static final String EMPTY_CONFIGURATION =
-            "host: " + HttpServletRequestStub.HOST + "\n" +
+            "hostName: " + HttpServletRequestStub.HOST_NAME + "\n" +
             "port: " + HttpServletRequestStub.PORT + "\n";
 
     private static final String PARSED_CONFIGURATION =
-            "host: localhost\n" +
+            "hostName: localhost\n" +
             "port: 7001\n" +
             "queries:\n" + "" +
             "- groups:\n" +
@@ -140,7 +140,7 @@ public class MainServletTest {
             "    values: [sample1, sample2]\n";
 
     private static final String EFFECTIVE_CONFIGURATION =
-            "host: " + HttpServletRequestStub.HOST + "\n" +
+            "hostName: " + HttpServletRequestStub.HOST_NAME + "\n" +
             "port: " + HttpServletRequestStub.PORT + "\n" +
             "queries:\n" + "" +
             "- groups:\n" +

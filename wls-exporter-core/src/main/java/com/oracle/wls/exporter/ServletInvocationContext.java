@@ -1,4 +1,4 @@
-// Copyright (c) 2021, Oracle and/or its affiliates.
+// Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -6,6 +6,8 @@ package com.oracle.wls.exporter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,6 +20,7 @@ public class ServletInvocationContext implements InvocationContext {
 
   private final HttpServletRequest request;
   private final HttpServletResponse response;
+  private final String localHostName = getLocalHostName();
 
   public ServletInvocationContext(HttpServletRequest request, HttpServletResponse response) {
     this.request = request;
@@ -31,9 +34,19 @@ public class ServletInvocationContext implements InvocationContext {
 
   @Override
   public UrlBuilder createUrlBuilder() {
-    return UrlBuilder.create(request.getLocalName(), request.isSecure())
+    return UrlBuilder.create(request.isSecure())
+          .withHostName(request.getLocalName())
+          .withHostName(localHostName)
           .withPort(LiveConfiguration.getConfiguredRestPort())
           .withPort(request.getLocalPort());
+  }
+
+  static String getLocalHostName() {
+    try {
+      return InetAddress.getLocalHost().getHostName();
+    } catch (UnknownHostException e) {
+      return "localhost";
+    }
   }
 
   @Override
@@ -68,7 +81,11 @@ public class ServletInvocationContext implements InvocationContext {
 
   @Override
   public void sendError(int status, String msg) throws IOException {
+    if (msg == null) {
+      response.sendError(status);
+    } else {
       response.sendError(status, msg);
+    }
   }
 
   @Override

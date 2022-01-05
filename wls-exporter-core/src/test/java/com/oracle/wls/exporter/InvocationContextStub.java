@@ -1,4 +1,4 @@
-// Copyright (c) 2021, Oracle and/or its affiliates.
+// Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -15,7 +15,7 @@ import static com.meterware.simplestub.Stub.createStrictStub;
 
 abstract class InvocationContextStub implements InvocationContext {
 
-  static final String HOST = "myhost";
+  static final String HOST_NAME = "myhost";
   static final int PORT = 7123;
   static final int REST_PORT = 7431;
   private final ByteArrayOutputStream responseStream = new ByteArrayOutputStream();
@@ -72,7 +72,7 @@ abstract class InvocationContextStub implements InvocationContext {
 
   @Override
   public UrlBuilder createUrlBuilder() {
-    return UrlBuilder.create(HOST, secure).withPort(PORT);
+    return UrlBuilder.create(secure).withHostName(HOST_NAME).withPort(PORT);
   }
 
   @Override

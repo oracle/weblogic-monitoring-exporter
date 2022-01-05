@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.webapp;
@@ -20,6 +20,8 @@ import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
  * @author Russell Gold
  */
 public abstract class HttpServletResponseStub implements HttpServletResponse {
+
+    static final String SINGLE_ARG_METHOD_CALLED = "called with single arg";
     private int status = SC_OK;
     private final ServletOutputStreamStub out = createStrictStub(ServletOutputStreamStub.class);
     private final Map<String,List<String>> headers = new HashMap<>();
@@ -40,6 +42,13 @@ public abstract class HttpServletResponseStub implements HttpServletResponse {
     @Override
     public ServletOutputStream getOutputStream() {
         return out;
+    }
+
+    @Override
+    public void sendError(int sc) throws IOException {
+        status = sc;
+        responseSent = true;
+        out.html = SINGLE_ARG_METHOD_CALLED;
     }
 
     @Override

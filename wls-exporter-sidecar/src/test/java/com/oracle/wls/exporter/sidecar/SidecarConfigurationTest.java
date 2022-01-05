@@ -1,4 +1,4 @@
-// Copyright (c) 2021, Oracle and/or its affiliates.
+// Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.sidecar;
@@ -43,7 +43,7 @@ public class SidecarConfigurationTest {
 
     assertThat(configuration.getListenPort(), equalTo(DEFAULT_LISTEN_PORT));
     assertThat(configuration.getWebLogicPort(), equalTo(DEFAULT_WLS_PORT));
-    assertThat(configuration.getWebLogicHost(), equalTo(SidecarConfiguration.getDefaultWlsHost()));
+    assertThat(configuration.getWebLogicHost(), equalTo(SidecarConfiguration.getDefaultWlsHostName()));
     assertThat(configuration.useWebLogicSsl(), is(false));
     assertThat(configuration.getPodName(), equalTo(DEFAULT_POD_NAME));
   }
@@ -70,12 +70,12 @@ public class SidecarConfigurationTest {
 
   @Test
   void whenWebLogicHostPropertySpecified_useIt() {
-    final String host = "webLogicHost";
-    System.setProperty(WLS_HOST_PROPERTY, host);
+    final String hostName = "webLogicHost";
+    System.setProperty(WLS_HOST_PROPERTY, hostName);
 
     final SidecarConfiguration configuration = new SidecarConfiguration();
 
-    assertThat(configuration.getWebLogicHost(), equalTo(host));
+    assertThat(configuration.getWebLogicHost(), equalTo(hostName));
   }
 
   @Test

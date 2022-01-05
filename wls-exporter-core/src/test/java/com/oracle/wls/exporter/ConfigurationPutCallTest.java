@@ -1,4 +1,4 @@
-// Copyright (c) 2021, Oracle and/or its affiliates.
+// Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -9,7 +9,7 @@ import java.net.HttpURLConnection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static com.oracle.wls.exporter.InvocationContextStub.HOST;
+import static com.oracle.wls.exporter.InvocationContextStub.HOST_NAME;
 import static com.oracle.wls.exporter.InvocationContextStub.PORT;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -18,7 +18,7 @@ class ConfigurationPutCallTest {
 
   private static final String BAD_BOOLEAN_STRING = "blabla";
   private static final String YAML_CONFIGURATION =
-        "host: " + HOST + "\n" +
+        "hostName: " + HOST_NAME + "\n" +
         "port: " + PORT + "\n" +
         "queries:\n" + "" +
         "- groups:\n" +
@@ -41,7 +41,7 @@ class ConfigurationPutCallTest {
 
   @BeforeEach
   void setUp() {
-    LiveConfiguration.setServer(HOST, PORT);
+    LiveConfiguration.setServer(HOST_NAME, PORT);
     LiveConfiguration.loadFromString(NO_CONFIGURATION);
   }
 
@@ -80,8 +80,6 @@ class ConfigurationPutCallTest {
   }
 
   private static final String CONFIGURATION_WITH_BAD_BOOLEAN =
-        "host: localhost\n" +
-              "port: 7001\n" +
               "metricsNameSnakeCase: " + BAD_BOOLEAN_STRING + "\n" +
               "queries:\n" + "" +
               "- people:\n" +

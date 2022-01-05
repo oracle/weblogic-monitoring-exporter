@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -28,7 +28,6 @@ import static com.oracle.wls.exporter.matchers.CommentsOnlyMatcher.containsOnlyC
 import static com.oracle.wls.exporter.matchers.MetricsNamesSnakeCaseMatcher.usesSnakeCase;
 import static com.oracle.wls.exporter.matchers.PrometheusMetricsMatcher.followsPrometheusRules;
 import static com.oracle.wls.exporter.matchers.ResponseHeaderMatcher.containsHeader;
-import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.LOCAL_PORT;
 import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.createGetRequest;
 import static com.oracle.wls.exporter.webapp.HttpServletResponseStub.createServletResponse;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
@@ -49,7 +48,10 @@ import static org.hamcrest.Matchers.notNullValue;
  * @author Russell Gold
  */
 public class ExporterServletTest {
+    private static final String localHostName = ServletInvocationContext.getLocalHostName();
     private static final int REST_PORT = 7654;
+    private static final int LOCAL_PORT = 7001;
+    private static final String WLS_HOST = "myhost";
     private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
     private static final String SECURE_URL_PATTERN = "https://%s:%d/management/weblogic/latest/serverRuntime/search";
     private static final String ONE_VALUE_CONFIG = "queries:\n- groups:\n    key: name\n    values: testSample1";
@@ -64,7 +66,7 @@ public class ExporterServletTest {
             "\n- colors:                         \n    key: hue \n    values: wavelength";
     private final WebClientFactoryStub factory = new WebClientFactoryStub();
     private final ExporterServlet servlet = new ExporterServlet(factory);
-    private final HttpServletRequestStub request = createGetRequest();
+    private final HttpServletRequestStub request = createGetRequest().withLocalHostName(WLS_HOST).withLocalPort(LOCAL_PORT);
     private final HttpServletResponseStub response = createServletResponse();
     private Locale locale;
 
@@ -73,7 +75,7 @@ public class ExporterServletTest {
         locale = Locale.getDefault();
         InMemoryFileSystem.install();
         ConfigurationUpdaterStub.install();
-        LiveConfiguration.loadFromString("");
+        LiveConfiguration.setServer(WLS_HOST, LOCAL_PORT);
         WlsRestExchanges.clear();
         UrlBuilder.clearHistory();
     }
@@ -136,7 +138,7 @@ public class ExporterServletTest {
         servlet.doGet(request, response);
         
         assertThat(factory.getClientUrl(),
-                   equalTo(String.format(URL_PATTERN, request.getLocalName(), HttpServletRequestStub.LOCAL_PORT)));
+                   equalTo(String.format(URL_PATTERN, request.getLocalName(), LOCAL_PORT)));
     }
 
     @Test
@@ -147,7 +149,7 @@ public class ExporterServletTest {
         servlet.doGet(request, response);
 
         assertThat(factory.getClientUrl(),
-                   equalTo(String.format(SECURE_URL_PATTERN, request.getLocalName(), HttpServletRequestStub.LOCAL_PORT)));
+                   equalTo(String.format(SECURE_URL_PATTERN, request.getLocalName(), LOCAL_PORT)));
     }
 
     @Test
@@ -159,16 +161,27 @@ public class ExporterServletTest {
         assertThat(factory.getClientUrl(),  equalTo(String.format(URL_PATTERN, request.getLocalName(), REST_PORT)));
     }
 
-
     @Test
     public void whenRestPortAccessFails_switchToLocalPort() throws IOException {
         initServlet(REST_PORT_CONFIG);
-        factory.throwConnectionFailure("localhost", REST_PORT);
+        factory.throwConnectionFailure(request.getLocalName(), REST_PORT);
         factory.addJsonResponse(new HashMap<>());
 
         servlet.doGet(request, response);
 
         assertThat(factory.getClientUrl(),  equalTo(String.format(URL_PATTERN, request.getLocalName(), LOCAL_PORT)));
+    }
+
+    @Test
+    public void whenRequestHostNameAccessFails_switchToLocalhost() throws IOException {
+        request.withLocalHostName("inaccessibleServer");
+        initServlet(ONE_VALUE_CONFIG);
+        factory.throwConnectionFailure("inaccessibleServer", LOCAL_PORT);
+        factory.addJsonResponse(new HashMap<>());
+
+        servlet.doGet(request, response);
+
+        assertThat(factory.getClientUrl(),  equalTo(String.format(URL_PATTERN, localHostName, LOCAL_PORT)));
     }
 
     @Test
@@ -373,11 +386,16 @@ public class ExporterServletTest {
     @Test
     public void whenHttpConnectionFails_produceConnectionWarning() throws Exception {
         initServlet(CONFIG_WITH_CATEGORY_VALUE);
-        factory.throwConnectionFailure("myhost", 1234);
+        factory.throwConnectionFailure(WLS_HOST, LOCAL_PORT);
+        factory.throwConnectionFailure("localhost", LOCAL_PORT);
 
         servlet.doGet(request, response);
 
-        assertThat(toHtml(response), allOf(containsOnlyComments(),containsString("restPort"), containsString("http://myhost:1234")));
+        assertThat(toHtml(response), allOf(
+              containsOnlyComments(),
+              containsString("restPort"),
+              containsString("restHostName"),
+              containsString("http://" + WLS_HOST + ':' + LOCAL_PORT)));
     }
 
     @Test

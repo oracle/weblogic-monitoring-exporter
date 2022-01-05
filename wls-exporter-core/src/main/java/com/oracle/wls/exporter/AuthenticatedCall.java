@@ -1,10 +1,11 @@
-// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.List;
 
 import com.oracle.wls.exporter.domain.MBeanSelector;
 import com.oracle.wls.exporter.domain.QueryType;
@@ -77,9 +78,18 @@ public abstract class AuthenticatedCall {
             context.sendError(status, e.getMessage());
         } catch (RestPortConnectionException e) {
             context.setStatus(HTTP_INTERNAL_ERROR);
-            reportUnableToContactRestApi(e.getUri());
+            reportUnableToContactRestApiPort(getFailedHosts());
         } finally {
             context.close();
+        }
+    }
+
+    private String getFailedHosts() {
+        final List<String> hosts = urlBuilder.getFailedHosts();
+        if (hosts.size() < 3) {
+            return String.join(" or ", hosts);
+        } else {
+            return String.join(", ", hosts.subList(0, hosts.size()-1)) + " or " + hosts.get(hosts.size() - 1);
         }
     }
 
@@ -104,15 +114,17 @@ public abstract class AuthenticatedCall {
         } while (webClient.isRetryNeeded());
     }
 
-    private void reportUnableToContactRestApi(String uri) throws IOException {
+    private void reportUnableToContactRestApiPort(String uri) throws IOException {
         try (PrintStream out = context.getResponseStream()) {
-            out.println("# Unable to contact the REST API at " + uri + ". May be using the wrong port.");
+            out.println("# Unable to contact the REST API at " + uri + ". May be using the wrong host name or port.");
             out.println("#");
-            out.println("# This most commonly occurs when the exporter is accessed via a load balancer");
-            out.println("# configured on a different port than the managed server.");
+            out.println("# This can happen when the exporter is accessed via a load balancer");
+            out.println("# configured on a different port than the server's REST API,");
+            out.println("# or when the remote server DNS name is not resolvable from the server itself.");
             out.println("#");
             out.println("# You can correct this by giving the exporter WAR an initial configuration with the");
-            out.println("# restPort field set to the managed server's plain text port.");
+            out.println("# restPort field set to the managed server's plain text port and/or");
+            out.println("# restHostName field set to the managed server's locally resolvable name.");
         }
     }
 

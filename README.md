@@ -53,6 +53,8 @@ Note that there are two parts to the configuration. The optional top portion def
 | `domainQualifier` | If true, the domain name will be included as a qualifier for all metrics. Defaults to false. |
 | `restPort` | Optional, used in the web application only. Overrides the port on which the exporter should contact the REST API. Needed if the exporter cannot find the REST API. The most common case is running on a system with the administration port enabled. In that case, you must specify the administration port in this field and access the exporter by using the SSL port. |
 
+Note that if unable to contact the REST API using the inferred host and port, the exporter will try the local host name and, if the REST port is specified, the local port. 
+
 The `query` field is more complex. Each query consists of a hierarchy of the [MBeans](https://docs.oracle.com/middleware/12213/wls/WLMBR/core/index.html), starting relative to `ServerRuntimes`.
 Within each section, there are a number of options:
 
@@ -178,7 +180,7 @@ Setting | Default | Property
 ------------ | ------------- | -------------
 Domain name | (use WLS definition) | `DOMAIN`
 Exporter port | `8080` | `EXPORTER_PORT`
-WebLogic host | `localhost` | `WLS_HOST`
+WebLogic host name | `localhost` | `WLS_HOST`
 WebLogic port | `7001` | `WLS_PORT`
 Use https | `false` | `WLS_SECURE`
 
@@ -234,7 +236,7 @@ vulnerability disclosure process.
 
 ## License
 
-Copyright (c) 2019, 2021 Oracle and/or its affiliates.
+Copyright (c) 2019, 2022 Oracle and/or its affiliates.
 
 Released under the Universal Permissive License v1.0 as shown at
 <https://oss.oracle.com/licenses/upl/>.

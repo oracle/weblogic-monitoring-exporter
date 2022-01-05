@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -149,7 +149,15 @@ public abstract class WebClientCommon implements WebClient {
                 throw new ForbiddenException();
             default:
                 if (response.getResponseCode() > SC_BAD_REQUEST)
-                    throw new ServerErrorException(response.getResponseCode());
+                    throw createServerErrorException(response);
+        }
+    }
+
+    private ServerErrorException createServerErrorException(WebResponse response) {
+        try {
+            return new ServerErrorException(response.getResponseCode(), toString(response.getContents()));
+        } catch (IOException e) {
+            return new ServerErrorException(response.getResponseCode());
         }
     }
 

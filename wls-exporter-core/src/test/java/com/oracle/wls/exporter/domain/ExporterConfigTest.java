@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -44,8 +44,6 @@ public class ExporterConfigTest {
     private static final String EXPECTED_HOST = "somehost";
     private static final int EXPECTED_PORT = 3456;
     private static final String SERVLET_CONFIG = "---\n" +
-            "host: " + EXPECTED_HOST + "\n" +
-            "port: " + EXPECTED_PORT + "\n" +
             "queries:\n" +
             "- applicationRuntimes:\n" +
             "    key: name\n" +
@@ -310,14 +308,6 @@ public class ExporterConfigTest {
     private static final String JUNK_REST_PORT_CONFIG =
           "restPort: One\nqueries:";
 
-    @Test
-    public void afterAppend_configHasOriginalDestination() {
-        ExporterConfig config = getAppendedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG);
-
-        assertThat(config.getHost(), equalTo(EXPECTED_HOST));
-        assertThat(config.getPort(), equalTo(EXPECTED_PORT));
-    }
-
     private ExporterConfig getAppendedConfiguration(String firstConfiguration, String secondConfiguration) {
         ExporterConfig config = loadFromString(firstConfiguration);
         ExporterConfig config2 = loadFromString(secondConfiguration);
@@ -326,8 +316,6 @@ public class ExporterConfigTest {
     }
 
     private static final String WORK_MANAGER_CONFIG = "---\n" +
-            "host: otherhost\n" +
-            "port: 9876\n" +
             "metricsNameSnakeCase: true\n" +
             "queries:\n" +
             "- applicationRuntimes:\n" +
@@ -375,14 +363,6 @@ public class ExporterConfigTest {
         ExporterConfig config = getAppendedConfiguration(SERVLET_CONFIG, "");
 
         assertThat(config, hasQueryFor("applicationRuntimes", "componentRuntimes", "servlets"));
-    }
-
-    @Test
-    public void afterReplace_configHasOriginalDestination() {
-        ExporterConfig config = getReplacedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG);
-
-        assertThat(config.getHost(), equalTo(EXPECTED_HOST));
-        assertThat(config.getPort(), equalTo(EXPECTED_PORT));
     }
 
     private ExporterConfig getReplacedConfiguration(String firstConfiguration, String secondConfiguration) {
@@ -440,8 +420,6 @@ public class ExporterConfigTest {
     }
 
     private static final String MERGEABLE_CONFIG =
-            "host: otherhost\n" +
-            "port: 9876\n" +
             "metricsNameSnakeCase: true\n" +
             "queries:\n" +
             "- applicationRuntimes:\n" +

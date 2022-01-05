@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -32,7 +32,7 @@ public class MetricsStreamTest {
     private static final String LINE_SEPARATOR = "line.separator";
     private static final String WINDOWS_LINE_SEPARATOR = "\r\n";
     private final PerformanceProbeStub performanceProbe = new PerformanceProbeStub();
-    private final HttpServletRequestStub postRequest = HttpServletRequestStub.createPostRequest().withHost("wlshost").withPort(7201);
+    private final HttpServletRequestStub postRequest = HttpServletRequestStub.createPostRequest().withHostName("wlshost").withPort(7201);
     private ByteArrayOutputStream baos;
     private MetricsStream metrics;
     private final List<Memento> mementos = new ArrayList<>();

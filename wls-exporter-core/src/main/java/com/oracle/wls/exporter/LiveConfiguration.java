@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -124,7 +124,7 @@ public class LiveConfiguration {
      * @return a human readable representation of the configuration
      */
     public static String asString() {
-        return "host: " + serverName + '\n' +
+        return "hostName: " + serverName + '\n' +
                "port: " + serverPort + '\n' + getConfig();
     }
 

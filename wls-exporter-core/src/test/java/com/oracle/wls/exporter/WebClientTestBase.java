@@ -1,4 +1,4 @@
-// Copyright 2017, 2021, Oracle and/or its affiliates.
+// Copyright 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -26,14 +26,17 @@ import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_GATEWAY_TIMEOUT;
 import static javax.servlet.http.HttpServletResponse.SC_HTTP_VERSION_NOT_SUPPORTED;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_IMPLEMENTED;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @author Russell Gold
@@ -41,7 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 abstract class WebClientTestBase {
     private static final char QUOTE = '"';
 
-    /** A URL on a known host with a port on which no server is listening. */
+    /** A URL on a known hostName with a port on which no server is listening. */
     private static final String UNDEFINED_PORT_URL = "http://localhost:59236";
 
     private final Supplier<WebClient> factory;
@@ -390,7 +393,24 @@ abstract class WebClientTestBase {
         });
 
         assertThrows(ForbiddenException.class,
-                      () -> withWebClient("forbidden").doPostRequest("abced"));
+                      () -> withWebClient("forbidden").doPostRequest("abcde"));
+    }
+
+    @Test
+    public void when404ReceivedFromServer_whatHappens() throws IOException {
+        defineResource("missing", new PseudoServlet() {
+            @Override
+            public WebResource getPostResponse() {
+                return new WebResource("not where I left it", "text/plain", SC_NOT_FOUND);
+            }
+        });
+
+        try {
+            withWebClient("missing").doPostRequest("abcde");
+            fail("should have gotten an exception");
+        } catch (ServerErrorException e) {
+            assertThat(e.toString(), containsString("404"));
+        }
     }
 
     @Test

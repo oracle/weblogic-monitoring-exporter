@@ -1,4 +1,4 @@
-// Copyright (c) 2021, Oracle and/or its affiliates.
+// Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 package com.oracle.wls.exporter;
 
@@ -7,7 +7,7 @@ import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static com.oracle.wls.exporter.InvocationContextStub.HOST;
+import static com.oracle.wls.exporter.InvocationContextStub.HOST_NAME;
 import static com.oracle.wls.exporter.InvocationContextStub.PORT;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -23,7 +23,7 @@ public class ExporterCallTest {
 
   @BeforeEach
   public void setUp() {
-    LiveConfiguration.setServer(HOST, PORT);
+    LiveConfiguration.setServer(HOST_NAME, PORT);
 //    LiveConfiguration.loadFromString(CONFIGURATION);
   }
 
@@ -48,7 +48,7 @@ public class ExporterCallTest {
 
     handleMetricsCall(context);
 
-      assertThat(factory.getClientUrl(), equalTo(String.format(URL_PATTERN, HOST, PORT)));
+      assertThat(factory.getClientUrl(), equalTo(String.format(URL_PATTERN, HOST_NAME, PORT)));
   }
 
   @Test
@@ -57,6 +57,6 @@ public class ExporterCallTest {
 
     handleMetricsCall(context.withHttps());
 
-      assertThat(factory.getClientUrl(), equalTo(String.format(SECURE_URL_PATTERN, HOST, PORT)));
+      assertThat(factory.getClientUrl(), equalTo(String.format(SECURE_URL_PATTERN, HOST_NAME, PORT)));
   }
 }
