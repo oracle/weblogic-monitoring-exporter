@@ -15,11 +15,7 @@ The exporter is available in two forms:
 
  - A [separate process](#sidecar) that is run alongside a server instance. You supply the configuration to such a
 process with a PUT command, as described below. [WebLogic Server Kubernetes Operator](https://github.com/oracle/weblogic-kubernetes-operator/) versions 3.2 and later have special support for the exporter in this form.
-
-   - If you are running operator-managed WebLogic Server domains in Kubernetes, adding the [`monitoringExporter`](https://github.com/oracle/weblogic-kubernetes-operator/blob/main/documentation/domains/Domain.md) configuration element in the domain resource enables the Monitoring Exporter. For an example, see https://github.com/oracle/weblogic-kubernetes-operator/blob/main/operator/src/test/resources/oracle/kubernetes/weblogic/domain/model/domain-sample-3.yaml.
-   - To use the Monitoring Exporter with Prometheus, see the directions [here](https://blogs.oracle.com/weblogicserver/post/using-prometheus-and-grafana-to-monitor-weblogic-server-on-kubernetes).
-
-
+For more information, see [Use the Monitoring Exporter with WebLogic Kubernetes Operator](#use-the-monitoring-exporter-with-weblogic-kubernetes-operator).
 
 ## Configuration
 Here is an example `yaml` file configuration:
@@ -124,6 +120,12 @@ however, if the metrics request is made using a load balancer or Kubernetes Node
 original request was made might not be the same as the instance's HTTP port. In such a case, the configuration should
 include the `restPort` configuration to tell the exporter which port to use.
 
+## Use the Monitoring Exporter with WebLogic Kubernetes Operator
+
+If you are running operator-managed WebLogic Server domains in Kubernetes, simply add the [`monitoringExporter`](https://github.com/oracle/weblogic-kubernetes-operator/blob/main/documentation/domains/Domain.md) configuration element in the domain resource to enable the Monitoring Exporter. For an example, see https://github.com/oracle/weblogic-kubernetes-operator/blob/main/operator/src/test/resources/oracle/kubernetes/weblogic/domain/model/domain-sample-3.yaml.
+
+To use the Monitoring Exporter with Prometheus, see the directions [here](https://blogs.oracle.com/weblogicserver/post/using-prometheus-and-grafana-to-monitor-weblogic-server-on-kubernetes).
+
 
 ## Samples
 
@@ -143,7 +145,7 @@ you to change it, either by uploading a replacement or an addition to the querie
 Metrics will then be available from `<application-root>/metrics`.
 
 
-## Downloading the release
+## Download the release
 
 You can find all the exporter releases on the [Releases page](https://github.com/oracle/weblogic-monitoring-exporter/releases/).
 
@@ -153,7 +155,7 @@ To download the web application `wls-exporter.war` file and put your configurati
 bash getXXX.sh <your-config-file>
 ```
 
-## Building from source
+## Build from source
 
 Use `mvn install` to build the web application. This will create `wls-exporter-<version>`, where _version_
 is the Maven-assigned version number.
@@ -168,8 +170,16 @@ The sidecar is a standalone process that runs the exporter.
 ### Build and run with Maven
 
 There are two ways to build the sidecar implementation. The first is with Maven, using the same `mvn install` command
-specified [above](#building-from-source). Note that this requires JDK11 or later; building the project with JDK8 will
-skip the sidecar module. The alternative is to [build with Docker](#building-a-docker-image)
+specified [above](#build-from-source). Note that this requires JDK11 or later; building the project with JDK8 will
+skip the sidecar module. The alternative is to [build with Docker](#build-a-docker-image).
+
+Instead of manually building them, if you want to use pre-built images, then you can pull a pre-created image from
+the [Oracle Container Registry](https://container-registry.oracle.com/ords/f?p=113:10::::::) (OCR), as follows:
+```
+docker pull container-registry.oracle.com/middleware/weblogic-monitoring-exporter:x.x.x
+OR
+docker pull ghcr.io/oracle/weblogic-monitoring-exporter:x.x.x
+```
 
 After building, run:
 ```
@@ -207,9 +217,9 @@ and `<path to yaml>` with the relative path to the configuration to use.
 
 After the exporter is configured, a GET to `http://localhost:8080/metrics` (or whatever port was chosen) will return the current metrics.
 
-## Building a Docker image
+## Build a Docker image
 
-If Docker is installed, you can build the image with the following command.
+If you don't want to use a pre-built image from OCR, you can use the following Docker command to build the Monitoring Exporter image.
 
 ```
 docker build . -t <image-name>
