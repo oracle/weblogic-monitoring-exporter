@@ -2,20 +2,20 @@
 
 [![Build Status](https://travis-ci.org/oracle/weblogic-monitoring-exporter.svg?branch=master)](https://travis-ci.org/oracle/weblogic-monitoring-exporter)
 
-The WebLogic Monitoring Exporter is a [Prometheus](http://prometheus.io)-compatible exporter of metrics from 
-WebLogic Server (WLS) instances, which it obtains by using the 
-[WLS RESTful Management API](https://docs.oracle.com/middleware/12213/wls/WLRUR/overview.htm#WLRUR111), available in version 12.2.1 or later. 
+The WebLogic Monitoring Exporter is a [Prometheus](http://prometheus.io)-compatible exporter of metrics from
+WebLogic Server (WLS) instances, which it obtains by using the
+[WLS RESTful Management API](https://docs.oracle.com/middleware/12213/wls/WLRUR/overview.htm#WLRUR111), available in version 12.2.1 or later.
 Metrics are selected using a [YAML configuration file](#Configuration).
 
 The exporter is available in two forms:
- - A [web application](#web-application) that you deploy to the server from which metrics are to be extracted. 
- You may include a configuration file directly in the WAR file, and you may temporarily modify the configuration in a 
- running system by using a web form. If a [coordination configurator](config_coordinator/README.md) is running and configured, 
+ - A [web application](#web-application) that you deploy to the server from which metrics are to be extracted.
+ You may include a configuration file directly in the WAR file, and you may temporarily modify the configuration in a
+ running system by using a web form. If a [coordination configurator](config_coordinator/README.md) is running and configured,
  that temporary configuration will be sent to all servers configured to use it.
- 
+
  - A [separate process](#sidecar) that is run alongside a server instance. You supply the configuration to such a
 process with a PUT command, as described below. [WebLogic Server Kubernetes Operator](https://github.com/oracle/weblogic-kubernetes-operator/) versions 3.2 and later have special support for the exporter in this form.
-
+For more information, see [Use the Monitoring Exporter with WebLogic Kubernetes Operator](#use-the-monitoring-exporter-with-weblogic-kubernetes-operator).
 
 ## Configuration
 Here is an example `yaml` file configuration:
@@ -53,7 +53,7 @@ Note that there are two parts to the configuration. The optional top portion def
 | `domainQualifier` | If true, the domain name will be included as a qualifier for all metrics. Defaults to false. |
 | `restPort` | Optional, used in the web application only. Overrides the port on which the exporter should contact the REST API. Needed if the exporter cannot find the REST API. The most common case is running on a system with the administration port enabled. In that case, you must specify the administration port in this field and access the exporter by using the SSL port. |
 
-Note that if unable to contact the REST API using the inferred host and port, the exporter will try the local host name and, if the REST port is specified, the local port. 
+Note that if unable to contact the REST API using the inferred host and port, the exporter will try the local host name and, if the REST port is specified, the local port.
 
 The `query` field is more complex. Each query consists of a hierarchy of the [MBeans](https://docs.oracle.com/middleware/12213/wls/WLMBR/core/index.html), starting relative to `ServerRuntimes`.
 Within each section, there are a number of options:
@@ -120,6 +120,40 @@ however, if the metrics request is made using a load balancer or Kubernetes Node
 original request was made might not be the same as the instance's HTTP port. In such a case, the configuration should
 include the `restPort` configuration to tell the exporter which port to use.
 
+## Use the Monitoring Exporter with WebLogic Kubernetes Operator
+
+If you are running operator-managed WebLogic Server domains in Kubernetes, simply add the [`monitoringExporter`](https://github.com/oracle/weblogic-kubernetes-operator/blob/main/documentation/domains/Domain.md) configuration element in the domain resource to enable the Monitoring Exporter. For an example, see the following `yaml` file configuration:
+
+```
+kind: Domain
+metadata:
+  name: domain2
+  namespace: domain_ns
+spec:
+  monitoringExporter:
+    configuration:
+      metricsNameSnakeCase: true
+      domainQualifier: true
+      queries:
+      - key: name
+        keyName: server
+        applicationRuntimes:
+          key: name
+          keyName: app
+          componentRuntimes:
+            type: WebAppComponentRuntime
+            prefix: webapp_config_
+            key: name
+            values: [deploymentState, contextRoot, sourceInfo, openSessionsHighCount]
+            servlets:
+              prefix: weblogic_servlet_
+              key: servletName
+              values: invocationTotalCount
+```
+
+
+To use the Monitoring Exporter with Prometheus, see the directions [here](https://blogs.oracle.com/weblogicserver/post/using-prometheus-and-grafana-to-monitor-weblogic-server-on-kubernetes).
+
 
 ## Samples
 
@@ -139,7 +173,7 @@ you to change it, either by uploading a replacement or an addition to the querie
 Metrics will then be available from `<application-root>/metrics`.
 
 
-## Downloading the release
+## Download the release
 
 You can find all the exporter releases on the [Releases page](https://github.com/oracle/weblogic-monitoring-exporter/releases/).
 
@@ -149,7 +183,7 @@ To download the web application `wls-exporter.war` file and put your configurati
 bash getXXX.sh <your-config-file>
 ```
 
-## Building from source
+## Build from source
 
 Use `mvn install` to build the web application. This will create `wls-exporter-<version>`, where _version_
 is the Maven-assigned version number.
@@ -163,9 +197,18 @@ The sidecar is a standalone process that runs the exporter.
 
 ### Build and run with Maven
 
-There are two ways to build the sidecar implementation. The first is with Maven, using the same `mvn install` command 
-specified [above](#building-from-source). Note that this requires JDK11 or later; building the project with JDK8 will 
-skip the sidecar module. The alternative is to [build with Docker](#building-a-docker-image) 
+There are two ways to build the sidecar implementation. The first is with Maven, using the same `mvn install` command
+specified [above](#build-from-source). Note that this requires JDK11 or later; building the project with JDK8 will
+skip the sidecar module. The alternative is to [build with Docker](#build-a-docker-image).
+
+Instead of manually building them, if you want to use pre-built images, then you can pull a pre-created image from
+the [Oracle Container Registry](https://container-registry.oracle.com/ords/f?p=113:10::::::) (OCR) or from
+Google Container Registry (https://ghcr.io/), as follows:
+```
+docker pull container-registry.oracle.com/middleware/weblogic-monitoring-exporter:x.x.x
+OR
+docker pull ghcr.io/oracle/weblogic-monitoring-exporter:x.x.x
+```
 
 After building, run:
 ```
@@ -186,15 +229,15 @@ Use https | `false` | `WLS_SECURE`
 
 ### Configure the exporter
 
-You configure the sidecar by sending a PUT request to the path `/configuration`. 
-You can do this with `curl`; that is how the operator does it. 
+You configure the sidecar by sending a PUT request to the path `/configuration`.
+You can do this with `curl`; that is how the operator does it.
 
 ```
 curl -X PUT -i -u myname:mypassword \
     -H "content-type: application/yaml" \
     --data-binary "@<path to yaml>" \
     http://localhost:8080/configuration
-``` 
+```
 
 Replace `myname` and `mypassword` with the credentials expected by WebLogic Server for its REST API,
 and `<path to yaml>` with the relative path to the configuration to use.
@@ -203,16 +246,16 @@ and `<path to yaml>` with the relative path to the configuration to use.
 
 After the exporter is configured, a GET to `http://localhost:8080/metrics` (or whatever port was chosen) will return the current metrics.
 
-## Building a Docker image
+## Build a Docker image
 
-If Docker is installed, you can build the image with the following command.
+If you don't want to use a pre-built image from OCR, you can use the following Docker command to build the Monitoring Exporter image.
 
 ```
 docker build . -t <image-name>
 ```
 
-This will build the project and create a Docker image with the specified name. It is not necessary even 
-to do the Maven build first, as that will happen as part of creating the image. When running behind a firewall, 
+This will build the project and create a Docker image with the specified name. It is not necessary even
+to do the Maven build first, as that will happen as part of creating the image. When running behind a firewall,
 it is necessary to specify a value for the `MAVEN_OPTS` and `https_proxy` variables on the command line. For example:
 
 ```
@@ -221,7 +264,7 @@ docker build . --build-arg MAVEN_OPTS="-Dhttps.proxyHost=www-proxy -Dhttps.proxy
                -t <image-name>
 ```
 
-This allows Docker to download the dependencies. 
+This allows Docker to download the dependencies.
 
 
 ## Contributing
