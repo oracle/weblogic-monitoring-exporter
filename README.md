@@ -122,7 +122,35 @@ include the `restPort` configuration to tell the exporter which port to use.
 
 ## Use the Monitoring Exporter with WebLogic Kubernetes Operator
 
-If you are running operator-managed WebLogic Server domains in Kubernetes, simply add the [`monitoringExporter`](https://github.com/oracle/weblogic-kubernetes-operator/blob/main/documentation/domains/Domain.md) configuration element in the domain resource to enable the Monitoring Exporter. For an example, see https://github.com/oracle/weblogic-kubernetes-operator/blob/main/operator/src/test/resources/oracle/kubernetes/weblogic/domain/model/domain-sample-3.yaml.
+If you are running operator-managed WebLogic Server domains in Kubernetes, simply add the [`monitoringExporter`](https://github.com/oracle/weblogic-kubernetes-operator/blob/main/documentation/domains/Domain.md) configuration element in the domain resource to enable the Monitoring Exporter. For an example, see the following `yaml` file configuration:
+
+```
+kind: Domain
+metadata:
+  name: domain2
+  namespace: domain_ns
+spec:
+  monitoringExporter:
+    configuration:
+      metricsNameSnakeCase: true
+      domainQualifier: true
+      queries:
+      - key: name
+        keyName: server
+        applicationRuntimes:
+          key: name
+          keyName: app
+          componentRuntimes:
+            type: WebAppComponentRuntime
+            prefix: webapp_config_
+            key: name
+            values: [deploymentState, contextRoot, sourceInfo, openSessionsHighCount]
+            servlets:
+              prefix: weblogic_servlet_
+              key: servletName
+              values: invocationTotalCount
+```
+
 
 To use the Monitoring Exporter with Prometheus, see the directions [here](https://blogs.oracle.com/weblogicserver/post/using-prometheus-and-grafana-to-monitor-weblogic-server-on-kubernetes).
 
@@ -174,7 +202,8 @@ specified [above](#build-from-source). Note that this requires JDK11 or later; b
 skip the sidecar module. The alternative is to [build with Docker](#build-a-docker-image).
 
 Instead of manually building them, if you want to use pre-built images, then you can pull a pre-created image from
-the [Oracle Container Registry](https://container-registry.oracle.com/ords/f?p=113:10::::::) (OCR), as follows:
+the [Oracle Container Registry](https://container-registry.oracle.com/ords/f?p=113:10::::::) (OCR) or from
+Google Container Registry (https://ghcr.io/), as follows:
 ```
 docker pull container-registry.oracle.com/middleware/weblogic-monitoring-exporter:x.x.x
 OR
