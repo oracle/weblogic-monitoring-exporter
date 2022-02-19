@@ -197,7 +197,7 @@ public class ExporterConfig {
 
         for (String key : first.getNestedSelectors().keySet())
             if (!first.getNestedSelectors().get(key).mayMergeWith(second.getNestedSelectors().get(key))) return false;
-        
+
         return true;
     }
 

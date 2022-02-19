@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParser;
 import com.meterware.pseudoserver.PseudoServer;
 import com.meterware.pseudoserver.PseudoServlet;
 import com.meterware.pseudoserver.WebResource;
@@ -138,7 +139,9 @@ abstract class WebClientTestBase {
 
         withWebClient("unprotected_put").doPutRequest(QUERY);
 
-        assertThat(sentInfo, equalTo(QUERY.getAsJson()));
+        JsonParser parser = new JsonParser();
+
+        assertThat(parser.parse(sentInfo), equalTo(parser.parse(QUERY.getAsJson())));
     }
 
     @SuppressWarnings({"FieldCanBeLocal", "unused"})
