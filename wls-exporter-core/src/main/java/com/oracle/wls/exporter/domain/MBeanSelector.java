@@ -85,7 +85,7 @@ public class MBeanSelector {
 
     private void setValues(String[] values) {
         if (values.length == 0) throw new ConfigurationException("Values specified as empty array");
-
+        
         Set<String> uniqueValues = new HashSet<>(Arrays.asList(values));
         if (values.length != uniqueValues.size())
             reportDuplicateValues(values, uniqueValues);
