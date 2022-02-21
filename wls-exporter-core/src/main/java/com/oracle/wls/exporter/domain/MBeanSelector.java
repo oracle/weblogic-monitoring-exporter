@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ public class MBeanSelector {
     private String key;
     private String keyName;
     private String[] values = null;
-    private Map<String, MBeanSelector> nestedSelectors = new HashMap<>();
+    private Map<String, MBeanSelector> nestedSelectors = new LinkedHashMap<>();
     private QueryType queryType = QueryType.RUNTIME;
 
     private static MBeanSelector createDomainNameSelector() {
@@ -257,7 +258,7 @@ public class MBeanSelector {
         mergedValues.addAll(second.getValuesAsList());
         values = mergedValues.toArray(new String[0]);
 
-        nestedSelectors = new HashMap<>();
+        nestedSelectors = new LinkedHashMap<>();
         nestedSelectors.putAll(first.nestedSelectors);
         for (String key : second.nestedSelectors.keySet()) {
             if (!nestedSelectors.containsKey(key))

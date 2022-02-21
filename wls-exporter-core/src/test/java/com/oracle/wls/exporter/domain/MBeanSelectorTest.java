@@ -10,6 +10,7 @@ import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
+import com.google.gson.JsonParser;
 import org.junit.jupiter.api.Test;
 
 import static com.oracle.wls.exporter.domain.JsonPathMatcher.hasJsonPath;
@@ -311,8 +312,9 @@ public class MBeanSelectorTest {
     @Test
     public void generateJsonRequest() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of("applicationRuntimes", getApplicationMap()));
+        JsonParser parser = new JsonParser();
 
-        assertThat(selector.getRequest(), equalTo(compressedJsonForm(EXPECTED_JSON_REQUEST)));
+        assertThat(parser.parse(selector.getRequest()), equalTo(parser.parse(compressedJsonForm(EXPECTED_JSON_REQUEST))));
     }
 
     private Map<String, Object> getApplicationMap() {
@@ -374,8 +376,9 @@ public class MBeanSelectorTest {
     @Test
     public void whenNoValuesListedForSerlvets_generateJsonRequest() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of("applicationRuntimes", getNoServletValuesApplicationMap()));
+        JsonParser parser = new JsonParser();
 
-        assertThat(selector.getRequest(), equalTo(compressedJsonForm(EXPECTED_ALL_SERVLET_VALUES_JSON_REQUEST)));
+        assertThat(parser.parse(selector.getRequest()), equalTo(parser.parse(compressedJsonForm(EXPECTED_ALL_SERVLET_VALUES_JSON_REQUEST))));
     }
 
     private Map<String, Object> getNoServletValuesApplicationMap() {
