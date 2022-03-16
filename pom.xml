@@ -42,6 +42,9 @@
     </developers>
 
     <properties>
+        <sonar.organization>oracle</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <apache.http.version>4.5.3</apache.http.version>
         <version.plugin.surefire>3.0.0-M5</version.plugin.surefire>
