@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -17,7 +17,7 @@ public class ConfigurationException extends RuntimeException {
     static final String NO_QUERY_SYNC_URL = "query_sync defined without url";
     private final List<String> context = new ArrayList<>();
 
-    ConfigurationException(String description) {
+    public ConfigurationException(String description) {
         super(description);
     }
 

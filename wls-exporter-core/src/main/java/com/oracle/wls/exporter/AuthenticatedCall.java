@@ -24,7 +24,7 @@ public abstract class AuthenticatedCall {
     private final UrlBuilder urlBuilder;
 
 
-    public AuthenticatedCall(WebClientFactory webClientFactory, InvocationContext context) {
+    protected AuthenticatedCall(WebClientFactory webClientFactory, InvocationContext context) {
         this.webClientFactory = webClientFactory;
         this.context = context;
         this.urlBuilder = context.createUrlBuilder();

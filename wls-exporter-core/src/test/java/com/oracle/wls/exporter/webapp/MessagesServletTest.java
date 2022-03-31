@@ -1,4 +1,4 @@
-// Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2019, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.webapp;
@@ -9,6 +9,7 @@ import java.util.stream.IntStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 
+import com.oracle.wls.exporter.WebClientFactoryStub;
 import com.oracle.wls.exporter.WlsRestExchanges;
 import org.hamcrest.Matcher;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,83 +28,87 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
-public class MessagesServletTest {
-    private static final int EXCESS_EXCHANGES = 3;
-    private static final String URL = "http://localhost:7001";
-    private final MessagesServlet servlet = new MessagesServlet();
-    private final HttpServletRequestStub request = createGetRequest();
-    private final HttpServletResponseStub response = createServletResponse();
+class MessagesServletTest {
 
-    @BeforeEach
-    public void setUp() {
-        WlsRestExchanges.clear();
-    }
+  private static final int EXCESS_EXCHANGES = 3;
+  private static final String URL = "http://localhost:7001";
+  private final WebClientFactoryStub factory = new WebClientFactoryStub();
+  private final MessagesServlet servlet = new MessagesServlet(factory);
+  private final HttpServletRequestStub request = createGetRequest();
+  private final HttpServletResponseStub response = createServletResponse();
 
-    @Test
-    public void diagnostics_isHttpServlet() {
-        assertThat(servlet, instanceOf(HttpServlet.class));
-    }
+  @BeforeEach
+  public void setUp() {
+    WlsRestExchanges.clear();
+  }
 
-    @Test
-    public void servlet_isPublic() {
-        assertThat(Modifier.isPublic(MessagesServlet.class.getModifiers()), is(true));
-    }
+  @Test
+  void diagnostics_isHttpServlet() {
+    assertThat(servlet, instanceOf(HttpServlet.class));
+  }
 
-    @Test
-    public void servlet_hasWebServletAnnotation() {
-        assertThat(MessagesServlet.class.getAnnotation(WebServlet.class), notNullValue());
-    }
+  @Test
+  void servlet_isPublic() {
+    assertThat(Modifier.isPublic(MessagesServlet.class.getModifiers()), is(true));
+  }
 
-    @Test
-    public void servletAnnotationIndicatesMetricsPage() {
-        WebServlet annotation = MessagesServlet.class.getAnnotation(WebServlet.class);
+  @Test
+  void servlet_hasWebServletAnnotation() {
+    assertThat(MessagesServlet.class.getAnnotation(WebServlet.class), notNullValue());
+  }
 
-        assertThat(annotation.value(), arrayContaining("/messages"));
-    }
+  @Test
+  void servletAnnotationIndicatesMetricsPage() {
+    WebServlet annotation = MessagesServlet.class.getAnnotation(WebServlet.class);
 
-    @Test
-    public void afterExchangeAdded_retrieveExchange() {
-        WlsRestExchanges.addExchange(URL, "request 1", "response1");
+    assertThat(annotation.value(), arrayContaining("/messages"));
+  }
 
-      assertThat(WlsRestExchanges.getExchanges(), hasItem(both(containsString("request 1")).and(containsString("response1"))));
-    }
+  @Test
+  void afterExchangeAdded_retrieveExchange() {
+    WlsRestExchanges.addExchange(URL, "request 1", "response1");
 
-    @Test
-    public void afterMaximumExchangesAdded_retrieveAllExchanges() {
-        IntStream.rangeClosed(1, MAX_EXCHANGES).forEach(this::addTestExchange);
+    assertThat(WlsRestExchanges.getExchanges(),
+          hasItem(both(containsString("request 1")).and(containsString("response1"))));
+  }
 
-      assertThat(WlsRestExchanges.getExchanges(), contains(getExchangeMatchers(1, MAX_EXCHANGES)));
-    }
+  @Test
+  void afterMaximumExchangesAdded_retrieveAllExchanges() {
+    IntStream.rangeClosed(1, MAX_EXCHANGES).forEach(this::addTestExchange);
 
-    private void addTestExchange(int i) {
-        WlsRestExchanges.addExchange(URL, "request " + i, "response " + i);
-    }
+    assertThat(WlsRestExchanges.getExchanges(), contains(getExchangeMatchers(1, MAX_EXCHANGES)));
+  }
 
-    @SuppressWarnings("unchecked")
-    private Matcher<String>[] getExchangeMatchers(int first, int last) {
-        return IntStream.rangeClosed(first, last).mapToObj(this::getExchangeMatcher).toArray(Matcher[]::new);
-    }
+  private void addTestExchange(int i) {
+    WlsRestExchanges.addExchange(URL, "request " + i, "response " + i);
+  }
 
-    private Matcher<String> getExchangeMatcher(int i)  {
-        return containsString("request " + i);
-    }
+  @SuppressWarnings("unchecked")
+  private Matcher<String>[] getExchangeMatchers(int first, int last) {
+    return IntStream.rangeClosed(first, last).mapToObj(this::getExchangeMatcher).toArray(Matcher[]::new);
+  }
 
-    @Test
-    public void afterMoreThanMaximumExchangesAdded_retrieveLastMExchanges() {
-        IntStream.rangeClosed(1, MAX_EXCHANGES+EXCESS_EXCHANGES).forEach(this::addTestExchange);
+  private Matcher<String> getExchangeMatcher(int i) {
+    return containsString("request " + i);
+  }
 
-      assertThat(WlsRestExchanges.getExchanges(), contains(getExchangeMatchers(EXCESS_EXCHANGES+1, MAX_EXCHANGES+EXCESS_EXCHANGES)));
-    }
+  @Test
+  void afterMoreThanMaximumExchangesAdded_retrieveLastMExchanges() {
+    IntStream.rangeClosed(1, MAX_EXCHANGES + EXCESS_EXCHANGES).forEach(this::addTestExchange);
 
-    @Test
-    public void whenServletInvoked_responseDisplaysRecentExchanges() throws IOException {
-        IntStream.rangeClosed(1, MAX_EXCHANGES).forEach(this::addTestExchange);
+    assertThat(WlsRestExchanges.getExchanges(),
+          contains(getExchangeMatchers(EXCESS_EXCHANGES + 1, MAX_EXCHANGES + EXCESS_EXCHANGES)));
+  }
 
-        servlet.doGet(request, response);
+  @Test
+  void whenServletInvoked_responseDisplaysRecentExchanges() throws IOException {
+    IntStream.rangeClosed(1, MAX_EXCHANGES).forEach(this::addTestExchange);
 
-        assertThat(response.getHtml(), containsString("request 4"));
-    }
+    servlet.doGet(request, response);
 
-    // todo report last commit
-    // todo diagnose classpath issues (all should be in the WAR)
+    assertThat(response.getHtml(), containsString("request 4"));
+  }
+
+  // todo report last commit
+  // todo diagnose classpath issues (all should be in the WAR)
 }

@@ -4,6 +4,7 @@
 package com.oracle.wls.exporter.sidecar;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -36,6 +37,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.Matchers.stringContainsInOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -45,8 +47,6 @@ class MetricsServiceTest {
     private static final String TWO_VALUE_CONFIG = "queries:" +
             "\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]";
     private static final String NO_CONFIGURATION = "";
-    private static final String DOMAIN_QUALIFIER_CONFIG = "domainQualifier: testDomain\n"
-          + "queries:\n- groups:\n    key: name\n    values: testSample1";
 
     private static final String JSON_TWO_VALUE_CONFIG = "{\n" +
           "  \"metricsNameSnakeCase\": true,\n" +
@@ -139,14 +139,14 @@ class MetricsServiceTest {
     // todo test WLS hostName/port info
 
     @Test
-    public void whenServerSends403StatusOnGet_returnToClient() throws Exception {
+    void whenServerSends403StatusOnGet_returnToClient() throws Exception {
         clientFactory.reportNotAuthorized();
 
         assertThat(getMetricsResponse().status().code(), equalTo(HTTP_FORBIDDEN));
     }
 
     @Test
-    public void whenServerSends401StatusOnGet_returnToClient() throws Exception {
+    void whenServerSends401StatusOnGet_returnToClient() throws Exception {
         clientFactory.reportAuthenticationRequired("Test-Realm");
         final TestResponse metricsResponse = getMetricsResponse();
 
@@ -159,7 +159,7 @@ class MetricsServiceTest {
     }
 
     @Test
-    public void whenClientSendsAuthenticationHeader_passToServer() throws Exception {
+    void whenClientSendsAuthenticationHeader_passToServer() throws Exception {
         client.path("/metrics").header(AUTHENTICATION_HEADER, "auth-credentials").get();
 
         assertThat(clientFactory.getSentAuthentication(), equalTo("auth-credentials"));
@@ -173,7 +173,7 @@ class MetricsServiceTest {
     }
 
     @Test
-    public void onGet_displayMetrics() throws Exception {
+    void onGet_displayMetrics() throws Exception {
         LiveConfiguration.loadFromString(TWO_VALUE_CONFIG);
         clientFactory.addJsonResponse(getGroupResponseMap());
 
@@ -249,4 +249,24 @@ class MetricsServiceTest {
 
         assertThat(response, containsString(ONE_VALUE_CONFIG));
     }
+
+    // -------------- get interactions ----------
+
+
+    @Test
+    void afterMetricsReceived_viewMessages() throws TimeoutException, InterruptedException, ExecutionException {
+        client.path("/configuration").put(MediaPublisher.create(MediaType.APPLICATION_YAML, JSON_TWO_VALUE_CONFIG));
+        clientFactory.addJsonResponse(getGroupResponseMap());
+        getMetrics();
+
+        final TestResponse testResponse = client.path("/messages").get();
+
+        assertEquals(Http.Status.OK_200, testResponse.status());
+
+        String response = testResponse.asString().get();
+
+        assertThat(response, stringContainsInOrder(Arrays.asList("REQUEST to", "fields", "testSample1")));
+    }
+
+
 }
