@@ -34,9 +34,13 @@ public class MessagesServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        ServletUtils.setServer(req);
-        MessagesCall call = new MessagesCall(webClientFactory, new ServletInvocationContext(req, resp));
-        call.doWithAuthentication();
+        try {
+            ServletUtils.setServer(req);
+            MessagesCall call = new MessagesCall(webClientFactory, new ServletInvocationContext(req, resp));
+            call.doWithAuthentication();
+        } catch (IOException e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
     }
 
 }
