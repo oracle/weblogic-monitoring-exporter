@@ -1,4 +1,4 @@
-// Copyright (c) 2021, Oracle and/or its affiliates.
+// Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.sidecar;
@@ -13,6 +13,7 @@ import com.oracle.wls.exporter.ConfigurationPutCall;
 import com.oracle.wls.exporter.ExporterCall;
 import com.oracle.wls.exporter.InvocationContext;
 import com.oracle.wls.exporter.LiveConfiguration;
+import com.oracle.wls.exporter.MessagesCall;
 import com.oracle.wls.exporter.WebClientFactory;
 import io.helidon.common.configurable.ThreadPoolSupplier;
 import io.helidon.webserver.Routing;
@@ -28,6 +29,7 @@ class MetricsService implements Service {
     private final AuthenticatedHandler metricsHandler = new AuthenticatedHandler(ExporterCall::new);
     private final AuthenticatedHandler configurationHandler = new AuthenticatedHandler(ConfigurationPutCall::new);
     private final MainHandler mainHandler = new MainHandler();
+    private final AuthenticatedHandler messagesHandler = new AuthenticatedHandler(MessagesCall::new);
     private final int listenPort;
 
     MetricsService(SidecarConfiguration configuration, WebClientFactory webClientFactory) {
@@ -48,6 +50,7 @@ class MetricsService implements Service {
         rules
               .get("/", mainHandler::dispatch)
               .get("/metrics", metricsHandler::dispatch)
+              .get("/messages", messagesHandler::dispatch)
               .put("/configuration", configurationHandler::dispatch);
     }
 
@@ -92,4 +95,5 @@ class MetricsService implements Service {
             context.close();
         }
     }
+
 }

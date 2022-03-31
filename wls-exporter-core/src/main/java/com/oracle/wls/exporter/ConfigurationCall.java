@@ -1,4 +1,4 @@
-// Copyright (c) 2021, Oracle and/or its affiliates.
+// Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -11,7 +11,7 @@ import com.oracle.wls.exporter.domain.ExporterConfig;
 
 public abstract class ConfigurationCall extends AuthenticatedCall {
 
-  public ConfigurationCall(WebClientFactory webClientFactory, InvocationContext context) {
+  protected ConfigurationCall(WebClientFactory webClientFactory, InvocationContext context) {
     super(webClientFactory, context);
   }
 
@@ -40,7 +40,7 @@ public abstract class ConfigurationCall extends AuthenticatedCall {
 
   abstract void reportUnableToUpdateConfiguration(InvocationContext context, ConfigurationException e) throws IOException;
 
-  static abstract class ConfigurationAction {
+  abstract static class ConfigurationAction {
 
     private ExporterConfig uploadedConfig;
 
@@ -49,8 +49,8 @@ public abstract class ConfigurationCall extends AuthenticatedCall {
         uploadedConfig = ExporterConfig.loadConfig(inputStream);
       } catch (ConfigurationException e) {
         throw e;
-      } catch (Throwable e) {
-        throw new RuntimeException("Unable to understand specified configuration");
+      } catch (Exception e) {
+        throw new ConfigurationException("Unable to understand specified configuration");
       }
     }
 
@@ -60,4 +60,6 @@ public abstract class ConfigurationCall extends AuthenticatedCall {
       return uploadedConfig;
     }
   }
+
+
 }

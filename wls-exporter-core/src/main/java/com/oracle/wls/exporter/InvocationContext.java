@@ -1,4 +1,4 @@
-// Copyright (c) 2021, Oracle and/or its affiliates.
+// Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -71,7 +71,7 @@ public interface InvocationContext {
   void setResponseHeader(String name, String value);
 
   /**
-   * Updates the response with a status but does not close he response stream.
+   * Updates the response with a status but does not close the response stream.
    * @param status an HTTP status code
    */
   void setStatus(int status);
