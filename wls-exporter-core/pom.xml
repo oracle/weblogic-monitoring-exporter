@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+    Copyright (c) 2020, 2022, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -8,7 +8,7 @@
     <parent>
         <artifactId>wls-exporter-parent</artifactId>
         <groupId>com.oracle.wls.exporter</groupId>
-        <version>2.0.4</version>
+        <version>2.0.5</version>
     </parent>
 
     <artifactId>wls-exporter-core</artifactId>
@@ -94,11 +94,6 @@
     <profiles>
         <profile>
             <id>jdk11Client</id>
-<!--
-            <activation>
-                <jdk>[11,)</jdk>
-            </activation>
--->
             <build>
                 <plugins>
                     <plugin>
