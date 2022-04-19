@@ -120,7 +120,7 @@ class MetricsScraper {
         String qualifiers = parentQualifiers;
         if (object.has(beanSelector.getKey())) {
             if (!isNullOrEmptyString(qualifiers)) qualifiers += ',';
-            qualifiers += (beanSelector.getKeyName() + '=' + asQuotedString(object.get(beanSelector.getKey())));
+            qualifiers += (beanSelector.getKeyName() + (parentQualifiers.startsWith(beanSelector.getKeyName()+'=') ? '2': "")+'=' + asQuotedString(object.get(beanSelector.getKey())));
         }
         return qualifiers;
     }

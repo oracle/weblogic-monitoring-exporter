@@ -198,6 +198,14 @@ class MetricsScraperTest {
     }
 
     @Test
+    void generateLeafMetricsWhileResolvingDuplicateQualifiers() {
+        generateNestedMetrics(getServletsMap(), SERVLET_RESPONSE, "servletName=\"wls\"");
+
+        assertThat(scraper.getMetrics(),
+                   hasMetric("servlet_invocationTotalCount{servletName=\"wls\",servletName2=\"JspServlet\"}", 0));
+    }
+
+    @Test
     void generateLeafMetricsWithNoQualifiers() {
         generateNestedMetrics(getServletsMapWithoutQualifierKey(), SINGLE_SERVLET_RESPONSE);
 
