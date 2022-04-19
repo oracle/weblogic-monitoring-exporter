@@ -1,4 +1,4 @@
-#   Copyright (c) 2021, Oracle and/or its affiliates.
+#   Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 #   Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 # First layer: dependencies for the project, cached in the /root/.m2 directory
@@ -36,7 +36,7 @@ RUN set -eux; \
 ENV LANG="en_US.UTF-8" \
     JAVA_HOME="/usr/local/java" \
     PATH="/operator:$JAVA_HOME/bin:$PATH" \
-    JAVA_URL="https://download.java.net/java/GA/jdk16.0.2/d4a915d82b4c4fbb9bde534da945d746/7/GPL/openjdk-16.0.2_linux-x64_bin.tar.gz"
+    JAVA_URL="https://download.java.net/java/GA/jdk17.0.2/dfd4a8d0985749f896bed50d7138ee7f/8/GPL/openjdk-17.0.2_linux-x64_bin.tar.gz"
 
 RUN set -eux; \
     curl -fL -o /jdk.tar.gz "$JAVA_URL"; \
