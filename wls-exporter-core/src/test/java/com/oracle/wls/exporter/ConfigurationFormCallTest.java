@@ -20,7 +20,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class ConfigurationFormCallTest {
+class ConfigurationFormCallTest {
 
   private static final String CONFIGURATION =
         "hostName: " + HOST_NAME + "\n" +
@@ -72,7 +72,7 @@ public class ConfigurationFormCallTest {
   }
 
   @Test
-  public void whenNoConfigurationSpecified_reportFailure() {
+  void whenNoConfigurationSpecified_reportFailure() {
     assertThrows(RuntimeException.class, () -> handleConfigurationFormCall(context));
   }
 
@@ -83,35 +83,35 @@ public class ConfigurationFormCallTest {
   }
 
   @Test
-  public void whenRequestUsesHttp_authenticateWithHttp() throws Exception {
+  void whenRequestUsesHttp_authenticateWithHttp() throws Exception {
     handleConfigurationFormCall(context.withConfigurationForm("replace", CONFIGURATION));
 
     assertThat(factory.getClientUrl(), startsWith("http:"));
   }
 
   @Test
-  public void whenRequestUsesHttps_authenticateWithHttps() throws Exception {
+  void whenRequestUsesHttps_authenticateWithHttps() throws Exception {
     handleConfigurationFormCall(context.withHttps().withConfigurationForm("replace", CONFIGURATION));
 
     assertThat(factory.getClientUrl(), startsWith("https:"));
   }
 
   @Test
-  public void afterUploadWithReplace_useNewConfiguration() throws Exception {
+  void afterUploadWithReplace_useNewConfiguration() throws Exception {
     handleConfigurationFormCall(context.withConfigurationForm("replace", CONFIGURATION));
 
     assertThat(LiveConfiguration.asString(), equalTo(CONFIGURATION));
   }
 
   @Test
-  public void afterUpload_redirectToMainPage() throws Exception {
+  void afterUpload_redirectToMainPage() throws Exception {
     handleConfigurationFormCall(context.withConfigurationForm("replace", CONFIGURATION));
 
     assertThat(context.getRedirectLocation(), equalTo(WebAppConstants.MAIN_PAGE));
   }
 
   @Test
-  public void whenRestPortInaccessible_switchToSpecifiedPort() throws Exception {
+  void whenRestPortInaccessible_switchToSpecifiedPort() throws Exception {
     LiveConfiguration.loadFromString(CONFIGURATION_WITH_REST_PORT);
     factory.throwConnectionFailure("localhost", REST_PORT);
 
@@ -121,14 +121,14 @@ public class ConfigurationFormCallTest {
   }
 
   @Test
-  public void afterUploadWithAppend_useCombinedConfiguration() throws Exception {
+  void afterUploadWithAppend_useCombinedConfiguration() throws Exception {
     handleConfigurationFormCall(context.withConfigurationForm("append", ADDED_CONFIGURATION));
 
     assertThat(LiveConfiguration.asString(), equalTo(COMBINED_CONFIGURATION));
   }
 
   @Test
-  public void whenSelectedFileIsNotYaml_reportError() throws Exception {
+  void whenSelectedFileIsNotYaml_reportError() throws Exception {
     handleConfigurationFormCall(context.withConfigurationForm("replace", NON_YAML));
 
     assertThat(context.getResponse(), containsString(ConfigurationException.NOT_YAML_FORMAT));
@@ -138,7 +138,7 @@ public class ConfigurationFormCallTest {
         "this is not yaml\n";
 
   @Test
-  public void whenSelectedFileHasPartialYaml_reportError() throws Exception {
+  void whenSelectedFileHasPartialYaml_reportError() throws Exception {
     handleConfigurationFormCall(context.withConfigurationForm("replace", PARTIAL_YAML));
 
     assertThat(context.getResponse(), containsString(ConfigurationException.BAD_YAML_FORMAT));
@@ -148,7 +148,7 @@ public class ConfigurationFormCallTest {
         "queries:\nkey name\n";
 
   @Test
-  public void whenSelectedFileHasBadBooleanValue_reportError() throws Exception {
+  void whenSelectedFileHasBadBooleanValue_reportError() throws Exception {
     handleConfigurationFormCall(context.withConfigurationForm("append", ADDED_CONFIGURATION_WITH_BAD_BOOLEAN));
 
     assertThat(context.getResponse(), containsString(BAD_BOOLEAN_STRING));
@@ -162,14 +162,14 @@ public class ConfigurationFormCallTest {
               "    values: [age, sex]\n";
 
   @Test
-  public void afterSelectedFileHasBadBooleanValue_configurationIsUnchanged() throws Exception {
+  void afterSelectedFileHasBadBooleanValue_configurationIsUnchanged() throws Exception {
     handleConfigurationFormCall(context.withConfigurationForm("append", ADDED_CONFIGURATION_WITH_BAD_BOOLEAN));
 
     assertThat(LiveConfiguration.asString(), equalTo(CONFIGURATION));
   }
 
   @Test
-  public void whenServerSends403StatusOnGet_returnToClient() throws Exception {
+  void whenServerSends403StatusOnGet_returnToClient() throws Exception {
     factory.reportNotAuthorized();
 
     handleConfigurationFormCall(context.withConfigurationForm("replace", CONFIGURATION));
@@ -178,7 +178,7 @@ public class ConfigurationFormCallTest {
   }
 
   @Test
-  public void whenServerSends401StatusOnGet_returnToClient() throws Exception {
+  void whenServerSends401StatusOnGet_returnToClient() throws Exception {
     factory.reportAuthenticationRequired("Test-Realm");
 
     handleConfigurationFormCall(context.withConfigurationForm("replace", CONFIGURATION));

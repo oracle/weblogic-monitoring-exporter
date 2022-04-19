@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.sameInstance;
 
-public class WebClientFactoryImplTest {
+class WebClientFactoryImplTest {
 
   private final List<Memento> mementos = new ArrayList<>();
   private final Function<String, Class<? extends WebClient>> apacheClassesMissing = WebClientFactoryImplTest::reportApacheClassesMissing;
@@ -35,12 +35,12 @@ public class WebClientFactoryImplTest {
   }
 
   @Test
-  public void whenApacheClientDependentClassesFound_selectApacheClient() {
+  void whenApacheClientDependentClassesFound_selectApacheClient() {
     assertThat(WebClientFactoryImpl.getClientConstructor().getDeclaringClass(), sameInstance(WebClientImpl.class));
   }
 
   @Test
-  public void whenApacheClientDependentClassesMissing_selectJKD8Client() throws NoSuchFieldException {
+  void whenApacheClientDependentClassesMissing_selectJKD8Client() throws NoSuchFieldException {
     mementos.add(StaticStubSupport.install(WebClientFactoryImpl.class, "loadClientClass", apacheClassesMissing));
 
     assertThat(WebClientFactoryImpl.getClientConstructor().getDeclaringClass(), sameInstance(WebClient8Impl.class));

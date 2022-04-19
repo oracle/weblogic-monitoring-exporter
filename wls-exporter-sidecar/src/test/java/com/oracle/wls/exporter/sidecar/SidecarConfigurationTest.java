@@ -23,7 +23,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
-public class SidecarConfigurationTest {
+class SidecarConfigurationTest {
 
   private final List<Memento> mementos = new ArrayList<>();
 

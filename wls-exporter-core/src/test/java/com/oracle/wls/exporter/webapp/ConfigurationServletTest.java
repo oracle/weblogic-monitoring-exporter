@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * @author Russell Gold
  */
-public class ConfigurationServletTest {
+class ConfigurationServletTest {
 
     private final static int REST_PORT = 7651;
 
@@ -57,17 +57,17 @@ public class ConfigurationServletTest {
     }
 
     @Test
-    public void configuration_isHttpServlet() {
+    void configuration_isHttpServlet() {
         assertThat(servlet, instanceOf(HttpServlet.class));
     }
 
     @Test
-    public void servlet_hasWebServletAnnotation() {
+    void servlet_hasWebServletAnnotation() {
         assertThat(ConfigurationServlet.class.getAnnotation(WebServlet.class), notNullValue());
     }
 
     @Test
-    public void servletAnnotationIndicatesConfigurationPage() {
+    void servletAnnotationIndicatesConfigurationPage() {
         WebServlet annotation = ConfigurationServlet.class.getAnnotation(WebServlet.class);
 
         assertThat(annotation.value(), arrayContaining("/" + CONFIGURATION_PAGE));
@@ -114,19 +114,19 @@ public class ConfigurationServletTest {
             "    values: [age, sex]\n";
 
     @Test
-    public void whenPostWithoutFile_reportFailure() {
+    void whenPostWithoutFile_reportFailure() {
         assertThrows(ServletException.class, () -> servlet.doPost(createPostRequest(), response));
     }
 
     @Test
-    public void whenRequestUsesHttp_authenticateWithHttp() throws Exception {
+    void whenRequestUsesHttp_authenticateWithHttp() throws Exception {
         servlet.doPost(createUploadRequest(createEncodedForm("replace", CONFIGURATION)), response);
 
         assertThat(factory.getClientUrl(), Matchers.startsWith("http:"));
     }
 
     @Test
-    public void whenRequestUsesHttps_authenticateWithHttps() throws Exception {
+    void whenRequestUsesHttps_authenticateWithHttps() throws Exception {
         HttpServletRequestStub request = createUploadRequest(createEncodedForm("replace", CONFIGURATION));
         request.setSecure(true);
         servlet.doPost(request, response);
@@ -135,21 +135,21 @@ public class ConfigurationServletTest {
     }
 
     @Test
-    public void afterUploadWithReplace_useNewConfiguration() throws Exception {
+    void afterUploadWithReplace_useNewConfiguration() throws Exception {
         servlet.doPost(createUploadRequest(createEncodedForm("replace", CONFIGURATION)), response);
 
         assertThat(LiveConfiguration.asString(), equalTo(CONFIGURATION));
     }
 
     @Test
-    public void afterUpload_redirectToMainPage() throws Exception {
+    void afterUpload_redirectToMainPage() throws Exception {
         servlet.doPost(createUploadRequest(createEncodedForm("replace", CONFIGURATION)), response);
 
         assertThat(response.getRedirectLocation(), equalTo(""));
     }
 
     @Test
-    public void whenRestPortInaccessible_switchToLocalPort() throws Exception {
+    void whenRestPortInaccessible_switchToLocalPort() throws Exception {
         LiveConfiguration.loadFromString(CONFIGURATION_WITH_REST_PORT);
         factory.throwConnectionFailure("localhost", REST_PORT);
 
@@ -178,7 +178,7 @@ public class ConfigurationServletTest {
     }
 
     @Test
-    public void afterUploadWithAppend_useBothConfiguration() throws Exception {
+    void afterUploadWithAppend_useBothConfiguration() throws Exception {
         LiveConfiguration.loadFromString(CONFIGURATION);
         servlet.doPost(createUploadRequest(createEncodedForm("append", ADDED_CONFIGURATION)), createServletResponse());
 
@@ -186,7 +186,7 @@ public class ConfigurationServletTest {
     }
 
     @Test
-    public void whenSelectedFileIsNotYaml_reportError() throws Exception {
+    void whenSelectedFileIsNotYaml_reportError() throws Exception {
         LiveConfiguration.loadFromString(CONFIGURATION);
         servlet.doPost(createUploadRequest(createEncodedForm("append", NON_YAML)), response);
 
@@ -197,7 +197,7 @@ public class ConfigurationServletTest {
             "this is not yaml\n";
 
     @Test
-    public void whenSelectedFileHasPartialYaml_reportError() throws Exception {
+    void whenSelectedFileHasPartialYaml_reportError() throws Exception {
         LiveConfiguration.loadFromString(CONFIGURATION);
         servlet.doPost(createUploadRequest(createEncodedForm("append", PARTIAL_YAML)), response);
 
@@ -208,7 +208,7 @@ public class ConfigurationServletTest {
             "queries:\nkey name\n";
 
     @Test
-    public void whenSelectedFileHasBadBooleanValue_reportError() throws Exception {
+    void whenSelectedFileHasBadBooleanValue_reportError() throws Exception {
         LiveConfiguration.loadFromString(CONFIGURATION);
         servlet.doPost(createUploadRequest(createEncodedForm("append", ADDED_CONFIGURATION_WITH_BAD_BOOLEAN)), response);
 
@@ -216,7 +216,7 @@ public class ConfigurationServletTest {
     }
 
     @Test
-    public void afterSelectedFileHasBadBooleanValue_configurationIsUnchanged() throws Exception {
+    void afterSelectedFileHasBadBooleanValue_configurationIsUnchanged() throws Exception {
         LiveConfiguration.loadFromString(CONFIGURATION);
         servlet.doPost(createUploadRequest(createEncodedForm("append", ADDED_CONFIGURATION_WITH_BAD_BOOLEAN)), response);
 
@@ -231,7 +231,7 @@ public class ConfigurationServletTest {
             "    values: [age, sex]\n";
 
     @Test
-    public void whenServerSends403StatusOnGet_returnToClient() throws Exception {
+    void whenServerSends403StatusOnGet_returnToClient() throws Exception {
         factory.reportNotAuthorized();
         servlet.doPost(request, response);
 
@@ -239,7 +239,7 @@ public class ConfigurationServletTest {
     }
 
     @Test
-    public void whenServerSends401StatusOnGet_returnToClient() throws Exception {
+    void whenServerSends401StatusOnGet_returnToClient() throws Exception {
         factory.reportAuthenticationRequired("Test-Realm");
         servlet.doPost(request, response);
 

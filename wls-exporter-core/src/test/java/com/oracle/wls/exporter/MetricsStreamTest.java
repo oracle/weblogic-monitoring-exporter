@@ -27,7 +27,7 @@ import static org.hamcrest.Matchers.hasItems;
 /**
  * @author Russell Gold
  */
-public class MetricsStreamTest {
+class MetricsStreamTest {
     private static final long NANOSEC_PER_SECONDS = 1000000000;
     private static final String LINE_SEPARATOR = "line.separator";
     private static final String WINDOWS_LINE_SEPARATOR = "\r\n";
@@ -56,7 +56,7 @@ public class MetricsStreamTest {
     }
 
     @Test
-    public void whenNoMetricsScraped_reportNoneScraped() {
+    void whenNoMetricsScraped_reportNoneScraped() {
         assertThat(getPrintedMetrics(),
                 containsString("wls_scrape_mbeans_count_total{instance=\"wlshost:7201\"} 0"));
     }
@@ -67,7 +67,7 @@ public class MetricsStreamTest {
     }
 
     @Test
-    public void whenMetricsPrinted_eachHasItsOwnLineSeparatedByCarriageReturns() {
+    void whenMetricsPrinted_eachHasItsOwnLineSeparatedByCarriageReturns() {
         metrics.printMetric("a", 12);
         metrics.printMetric("b", 120);
         metrics.printMetric("c", 0);
@@ -76,7 +76,7 @@ public class MetricsStreamTest {
     }
 
     @Test
-    public void whenMetricsPrintedOnWindows_eachHasItsOwnLineSeparatedByCarriageReturns() throws NoSuchFieldException {
+    void whenMetricsPrintedOnWindows_eachHasItsOwnLineSeparatedByCarriageReturns() throws NoSuchFieldException {
         simulateWindows();
 
         metrics.printMetric("a", 12);
@@ -97,7 +97,7 @@ public class MetricsStreamTest {
     }
 
     @Test
-    public void afterMetricsScraped_reportScrapedCount() {
+    void afterMetricsScraped_reportScrapedCount() {
         metrics.printMetric("a", 12);
         metrics.printMetric("b", 120);
         metrics.printMetric("c", 0);
@@ -107,7 +107,7 @@ public class MetricsStreamTest {
     }
 
     @Test
-    public void afterTimePasses_reportScrapeDuration() {
+    void afterTimePasses_reportScrapeDuration() {
         performanceProbe.incrementElapsedTime(12.4);
 
         assertThat(getPrintedMetrics(),
@@ -115,7 +115,7 @@ public class MetricsStreamTest {
     }
 
     @Test
-    public void afterProcessing_reportCpuPercent() {
+    void afterProcessing_reportCpuPercent() {
         performanceProbe.incrementCpuTime(3.2);
 
         assertThat(getPrintedMetrics(),
@@ -123,7 +123,7 @@ public class MetricsStreamTest {
     }
 
     @Test
-    public void producedMetricsAreCompliant() {
+    void producedMetricsAreCompliant() {
         performanceProbe.incrementElapsedTime(20);
         performanceProbe.incrementCpuTime(3);
 

@@ -24,6 +24,10 @@ import org.yaml.snakeyaml.Yaml;
  */
 public class LiveConfiguration {
 
+    private LiveConfiguration() {
+        // no-op
+    }
+
     /** The address used to access WLS (cannot use the address found in the request due to potential server-side request forgery. */
     static final String WLS_HOST;
     
@@ -190,7 +194,7 @@ public class LiveConfiguration {
             installNewConfiguration(updater.getUpdate());
     }
 
-    private synchronized static void installNewConfiguration(ConfigurationUpdate update) {
+    private static synchronized void installNewConfiguration(ConfigurationUpdate update) {
         if (update.getTimestamp() > timestamp) {
             getConfig().replace(toConfiguration(update.getConfiguration()));
             timestamp = update.getTimestamp();

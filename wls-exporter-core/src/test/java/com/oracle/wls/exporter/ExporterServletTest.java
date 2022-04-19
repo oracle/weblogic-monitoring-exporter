@@ -47,7 +47,7 @@ import static org.hamcrest.Matchers.notNullValue;
 /**
  * @author Russell Gold
  */
-public class ExporterServletTest {
+class ExporterServletTest {
     private static final String localHostName = ServletInvocationContext.getLocalHostName();
     private static final int REST_PORT = 7654;
     private static final int LOCAL_PORT = 7001;
@@ -88,24 +88,24 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void exporter_isHttpServlet() {
+    void exporter_isHttpServlet() {
         assertThat(servlet, instanceOf(HttpServlet.class));
     }
 
     @Test
-    public void servlet_hasWebServletAnnotation() {
+    void servlet_hasWebServletAnnotation() {
         assertThat(ExporterServlet.class.getAnnotation(WebServlet.class), notNullValue());
     }
 
     @Test
-    public void servletAnnotationIndicatesMetricsPage() {
+    void servletAnnotationIndicatesMetricsPage() {
         WebServlet annotation = ExporterServlet.class.getAnnotation(WebServlet.class);
 
         assertThat(annotation.value(), arrayContaining("/metrics"));
     }
 
     @Test
-    public void whenConfigParamNotFound_configurationHasNoQueries() throws Exception {
+    void whenConfigParamNotFound_configurationHasNoQueries() throws Exception {
         servlet.init(withNoParams());
 
         servlet.doGet(request, response);
@@ -114,7 +114,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void whenConfigFileNameNotAbsolute_getReportsTheIssue() throws Exception {
+    void whenConfigFileNameNotAbsolute_getReportsTheIssue() throws Exception {
         servlet.init(withNoParams());
 
         servlet.doGet(request, response);
@@ -123,7 +123,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void whenConfigFileNotFound_getReportsTheIssue() throws Exception {
+    void whenConfigFileNotFound_getReportsTheIssue() throws Exception {
         servlet.init(withNoParams());
 
         servlet.doGet(request, response);
@@ -132,7 +132,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void onPlaintextGet_defineConnectionUrlFromContext() throws Exception {
+    void onPlaintextGet_defineConnectionUrlFromContext() throws Exception {
         initServlet(ONE_VALUE_CONFIG);
 
         servlet.doGet(request, response);
@@ -142,7 +142,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void onSecurePlaintextGet_defineConnectionUrlFromContext() throws Exception {
+    void onSecurePlaintextGet_defineConnectionUrlFromContext() throws Exception {
         initServlet(ONE_VALUE_CONFIG);
         request.setSecure(true);
 
@@ -153,7 +153,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void whenRestPortDefined_connectionUrlUsesRestPort() throws IOException {
+    void whenRestPortDefined_connectionUrlUsesRestPort() throws IOException {
         initServlet(REST_PORT_CONFIG);
 
         servlet.doGet(request, response);
@@ -162,7 +162,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void whenRestPortAccessFails_switchToLocalPort() throws IOException {
+    void whenRestPortAccessFails_switchToLocalPort() throws IOException {
         initServlet(REST_PORT_CONFIG);
         factory.throwConnectionFailure(request.getLocalName(), REST_PORT);
         factory.addJsonResponse(new HashMap<>());
@@ -173,7 +173,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void whenRequestHostNameAccessFails_switchToLocalhost() throws IOException {
+    void whenRequestHostNameAccessFails_switchToLocalhost() throws IOException {
         request.withLocalHostName("inaccessibleServer");
         initServlet(ONE_VALUE_CONFIG);
         factory.throwConnectionFailure("inaccessibleServer", LOCAL_PORT);
@@ -185,7 +185,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void whenServerSends403StatusOnGet_returnToClient() throws Exception {
+    void whenServerSends403StatusOnGet_returnToClient() throws Exception {
         initServlet(ONE_VALUE_CONFIG);
 
         factory.reportNotAuthorized();
@@ -195,7 +195,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void whenServerSends400StatusOnGet_reportErrorInComments() throws Exception {
+    void whenServerSends400StatusOnGet_reportErrorInComments() throws Exception {
         initServlet(ONE_VALUE_CONFIG);
 
         factory.reportBadQuery();
@@ -205,7 +205,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void whenServerSends401StatusOnGet_returnToClient() throws Exception {
+    void whenServerSends401StatusOnGet_returnToClient() throws Exception {
         initServlet(ONE_VALUE_CONFIG);
 
         factory.reportAuthenticationRequired("Test-Realm");
@@ -216,7 +216,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void whenClientSendsAuthenticationHeader_passToServer() throws Exception {
+    void whenClientSendsAuthenticationHeader_passToServer() throws Exception {
         initServlet(ONE_VALUE_CONFIG);
 
         request.setHeader(AUTHENTICATION_HEADER, "auth-credentials");
@@ -226,7 +226,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void onGet_sendJsonQuery() throws Exception {
+    void onGet_sendJsonQuery() throws Exception {
         initServlet(ONE_VALUE_CONFIG);
 
         servlet.doGet(request, response);
@@ -241,7 +241,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void onGet_recordJsonQuery() throws Exception {
+    void onGet_recordJsonQuery() throws Exception {
         initServlet(ONE_VALUE_CONFIG);
 
         servlet.doGet(request, response);
@@ -250,7 +250,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void onGet_sendXRequestedHeader() throws Exception {
+    void onGet_sendXRequestedHeader() throws Exception {
         initServlet(ONE_VALUE_CONFIG);
 
         servlet.doGet(request, response);
@@ -259,7 +259,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void onGet_displayMetrics() throws Exception {
+    void onGet_displayMetrics() throws Exception {
         factory.addJsonResponse(getGroupResponseMap());
         initServlet(TWO_VALUE_CONFIG);
 
@@ -283,7 +283,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void whenNewConfigAvailable_loadBeforeGeneratingMetrics() throws Exception {
+    void whenNewConfigAvailable_loadBeforeGeneratingMetrics() throws Exception {
         factory.addJsonResponse(getGroupResponseMap());
         initServlet(ONE_VALUE_CONFIG);
         ConfigurationUpdaterStub.newConfiguration(1, TWO_VALUE_CONFIG);
@@ -294,7 +294,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void onGet_displayMetricsInSnakeCase() throws Exception {
+    void onGet_displayMetricsInSnakeCase() throws Exception {
         factory.addJsonResponse(getGroupResponseMap());
         initServlet("metricsNameSnakeCase: true\nqueries:\n- groups:\n" +
                 "    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]");
@@ -305,7 +305,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void onGet_metricsArePrometheusCompliant() throws Exception {
+    void onGet_metricsArePrometheusCompliant() throws Exception {
         factory.addJsonResponse(getGroupResponseMap());
         initServlet(CONFIG_WITH_CATEGORY_VALUE);
 
@@ -315,7 +315,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void onGet_producePerformanceMetrics() throws Exception {
+    void onGet_producePerformanceMetrics() throws Exception {
         factory.addJsonResponse(getGroupResponseMap());
         initServlet(CONFIG_WITH_CATEGORY_VALUE);
 
@@ -325,7 +325,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void onGetInForeignLocale_performanceMetricsUsePeriodForFloatingPoint() throws Exception {
+    void onGetInForeignLocale_performanceMetricsUsePeriodForFloatingPoint() throws Exception {
         factory.addJsonResponse(getGroupResponseMap());
         initServlet(CONFIG_WITH_CATEGORY_VALUE);
 
@@ -347,7 +347,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void onGetWithMultipleQueries_displayMetrics() throws Exception {
+    void onGetWithMultipleQueries_displayMetrics() throws Exception {
         factory.addJsonResponse(getGroupResponseMap());
         factory.addJsonResponse(getColorResponseMap());
         initServlet(MULTI_QUERY_CONFIG);
@@ -368,7 +368,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void whenNoQueries_produceNoOutput() throws Exception {
+    void whenNoQueries_produceNoOutput() throws Exception {
         initServlet("");
 
         servlet.doGet(request, response);
@@ -377,14 +377,14 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void whenNoConfiguration_produceNoOutput() throws Exception {
+    void whenNoConfiguration_produceNoOutput() throws Exception {
         servlet.doGet(request, response);
 
         assertThat(toHtml(response), containsOnlyComments());
     }
 
     @Test
-    public void whenHttpConnectionFails_produceConnectionWarning() throws Exception {
+    void whenHttpConnectionFails_produceConnectionWarning() throws Exception {
         initServlet(CONFIG_WITH_CATEGORY_VALUE);
         factory.throwConnectionFailure(WLS_HOST, LOCAL_PORT);
         factory.throwConnectionFailure("localhost", LOCAL_PORT);
@@ -399,7 +399,7 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void whenKeyAlsoListedAsValue_dontDisplayIt() throws Exception {
+    void whenKeyAlsoListedAsValue_dontDisplayIt() throws Exception {
         factory.addJsonResponse(getGroupResponseMap());
         initServlet("queries:" +
                 "\n- groups:\n    prefix: groupValue_\n    key: testSample1\n    values: [testSample1]");
@@ -410,14 +410,11 @@ public class ExporterServletTest {
     }
 
     @Test
-    public void whenSessionActiveDuringGet_invalidateOnExit() throws Exception {
+    void whenSessionActiveDuringGet_invalidateOnExit() throws Exception {
         request.getSession(true);
 
         servlet.doGet(request, response);
 
         assertThat(request.hasInvalidatedSession(), is(true));
     }
-
-
-
 }

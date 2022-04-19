@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -13,6 +13,9 @@ import java.util.Map;
  */
 public class MapUtils {
 
+    private MapUtils() {
+        // no-op
+    }
     private static final String ILLEGAL_VALUE_FORMAT = "Illegal value for %s: %s. Value must be %s";
 
     /**
@@ -51,8 +54,8 @@ public class MapUtils {
         throw createBadTypeException(key, value, "a boolean");
     }
 
-    private final static String[] TRUE_VALUES = {"true", "t", "yes", "on", "y"};
-    private final static String[] FALSE_VALUES = {"false", "f", "no", "off", "n"};
+    private static final String[] TRUE_VALUES = {"true", "t", "yes", "on", "y"};
+    private static final String[] FALSE_VALUES = {"false", "f", "no", "off", "n"};
 
     private static boolean inValues(Object candidate, String... matches) {
         for (String match : matches)

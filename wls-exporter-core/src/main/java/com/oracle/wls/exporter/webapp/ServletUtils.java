@@ -1,4 +1,4 @@
-// Copyright (c) 2021, Oracle and/or its affiliates.
+// Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.webapp;
@@ -11,6 +11,10 @@ import javax.servlet.http.HttpServletRequest;
 import com.oracle.wls.exporter.LiveConfiguration;
 
 public class ServletUtils {
+
+  private ServletUtils() {
+    // no-op
+  }
 
   /** The path to the configuration file within the web application. */
   public static final String CONFIG_YML = "/config.yml";

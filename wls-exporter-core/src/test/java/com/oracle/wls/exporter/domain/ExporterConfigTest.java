@@ -40,8 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * @author Russell Gold
  */
-public class ExporterConfigTest {
-    private static final String EXPECTED_HOST = "somehost";
+class ExporterConfigTest {
     private static final int EXPECTED_PORT = 3456;
     private static final String SERVLET_CONFIG = "---\n" +
             "queries:\n" +
@@ -74,19 +73,19 @@ public class ExporterConfigTest {
     }
 
     @Test
-    public void whenYamlConfigEmpty_returnNonNullConfiguration() {
+    void whenYamlConfigEmpty_returnNonNullConfiguration() {
         assertThat(ExporterConfig.loadConfig(NULL_MAP), notNullValue());
     }
 
     @Test
-    public void byDefaultSnakeCase_isDisabled() {
+    void byDefaultSnakeCase_isDisabled() {
         ExporterConfig config = ExporterConfig.loadConfig(NULL_MAP);
 
         assertThat(config.getMetricsNameSnakeCase(), equalTo(false));
     }
 
     @Test
-    public void whenSnakeNameEnabledByDefault_isSetInEmptyConfiguration() {
+    void whenSnakeNameEnabledByDefault_isSetInEmptyConfiguration() {
         ExporterConfig.setDefaultMetricsNameSnakeCase(true);
         ExporterConfig config = ExporterConfig.loadConfig(NULL_MAP);
 
@@ -94,14 +93,14 @@ public class ExporterConfigTest {
     }
 
     @Test
-    public void whenYamlConfigEmpty_queryReturnsEmptyArray() {
+    void whenYamlConfigEmpty_queryReturnsEmptyArray() {
         ExporterConfig config = ExporterConfig.loadConfig(NULL_MAP);
 
         assertThat(config.getQueries(), emptyArray());
     }
 
     @Test
-    public void whenSpecified_readSnakeCaseSettingFromYaml() {
+    void whenSpecified_readSnakeCaseSettingFromYaml() {
         yamlConfig.put(ExporterConfig.SNAKE_CASE, true);
 
         ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
@@ -110,7 +109,7 @@ public class ExporterConfigTest {
      }
 
     @Test
-    public void whenDomainQualifierNotSpecified_dontModifyQueries() {
+    void whenDomainQualifierNotSpecified_dontModifyQueries() {
         ExporterConfig config = loadFromString(SERVLET_CONFIG);
 
         MBeanSelector[] queries = config.getEffectiveQueries();
@@ -120,7 +119,7 @@ public class ExporterConfigTest {
      }
 
     @Test
-    public void whenSpecified_prependConfigurationQuery() {
+    void whenSpecified_prependConfigurationQuery() {
         ExporterConfig config = loadFromString(DOMAIN_QUALIFIER_CONFIG);
 
         MBeanSelector[] queries = config.getEffectiveQueries();
@@ -131,21 +130,21 @@ public class ExporterConfigTest {
      }
 
     @Test
-    public void whenNotSpecified_wlsPortIsNull() {
+    void whenNotSpecified_wlsPortIsNull() {
         ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
 
         assertThat(config.getRestPort(), nullValue());
     }
 
     @Test
-    public void whenNotSpecified_wlsPortIsNotIncludedInToString() {
+    void whenNotSpecified_wlsPortIsNotIncludedInToString() {
         ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
 
         assertThat(config.toString(), not(containsString(ExporterConfig.REST_PORT)));
     }
 
     @Test
-    public void whenSpecified_readWlsPortFromYaml() {
+    void whenSpecified_readWlsPortFromYaml() {
         yamlConfig.put(ExporterConfig.REST_PORT, EXPECTED_PORT);
 
         ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
@@ -154,7 +153,7 @@ public class ExporterConfigTest {
     }
 
     @Test
-    public void whenSpecified_wlsPortIsIncludedInToString() {
+    void whenSpecified_wlsPortIsIncludedInToString() {
         yamlConfig.put(ExporterConfig.REST_PORT, EXPECTED_PORT);
 
         ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
@@ -163,14 +162,14 @@ public class ExporterConfigTest {
     }
 
     @Test
-    public void whenNotSpecified_querySyncConfigurationIsNull() {
+    void whenNotSpecified_querySyncConfigurationIsNull() {
         ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
 
         assertThat(config.getQuerySyncConfiguration(), nullValue());
     }
 
     @Test
-    public void whenQuerySyncDefinedWithoutProperties_throwException() {
+    void whenQuerySyncDefinedWithoutProperties_throwException() {
         assertThrows(ConfigurationException.class, () -> loadFromString(CONFIG_WITH_MISSING_SYNC_PROPERTIES));
     }
 
@@ -179,7 +178,7 @@ public class ExporterConfigTest {
 
 
     @Test
-    public void whenQuerySyncDefinedWithoutUrl_throwException() {
+    void whenQuerySyncDefinedWithoutUrl_throwException() {
         assertThrows(ConfigurationException.class, () -> loadFromString(CONFIG_WITH_MISSING_SYNC_URL));
     }
 
@@ -188,7 +187,7 @@ public class ExporterConfigTest {
 
 
     @Test
-    public void whenQuerySyncDefined_returnIt() {
+    void whenQuerySyncDefined_returnIt() {
         ExporterConfig config = loadFromString(CONFIG_WITH_SYNC_SPEC);
         final QuerySyncConfiguration syncConfiguration = config.getQuerySyncConfiguration();
 
@@ -201,7 +200,7 @@ public class ExporterConfigTest {
 
 
     @Test
-    public void whenQuerySyncDefinedWithoutInterval_useDefault() {
+    void whenQuerySyncDefinedWithoutInterval_useDefault() {
         ExporterConfig config = loadFromString(CONFIG_WITH_SYNC_URL);
         final QuerySyncConfiguration syncConfiguration = config.getQuerySyncConfiguration();
 
@@ -213,7 +212,7 @@ public class ExporterConfigTest {
             "query_sync:\n  url: http://sync:8999/\n";
 
     @Test
-    public void whenSpecified_readQueriesFromYaml() {
+    void whenSpecified_readQueriesFromYaml() {
         ExporterConfig config = loadFromString(SERVLET_CONFIG);
 
         assertThat(config.getQueries(), arrayWithSize(1));
@@ -226,21 +225,21 @@ public class ExporterConfigTest {
     }
 
     @Test
-    public void afterLoad_hasExpectedQuery() {
+    void afterLoad_hasExpectedQuery() {
         ExporterConfig config = loadFromString(SERVLET_CONFIG);
 
         assertThat(config, hasQueryFor("applicationRuntimes", "componentRuntimes"));
     }
 
     @Test
-    public void afterLoad_convertToString() {
+    void afterLoad_convertToString() {
         ExporterConfig config = loadFromString(SNAKE_CASE_CONFIG);
 
         assertThat(config.toString(), equalToIgnoringWhiteSpace(SNAKE_CASE_CONFIG));
     }
 
     @Test
-    public void includeTopLevelFieldsInString() {
+    void includeTopLevelFieldsInString() {
         ExporterConfig config = loadFromString(CONFIG_WITH_TOP_LEVEL_FIELDS);
 
         assertThat(config.toString(), equalToIgnoringWhiteSpace(CONFIG_WITH_TOP_LEVEL_FIELDS));
@@ -256,7 +255,7 @@ public class ExporterConfigTest {
             "    values: [heapFreeCurrent, heapFreePercent, heapSizeCurrent]\n";
 
     @Test
-    public void includeSnakeCaseTrueSettingInToString() {
+    void includeSnakeCaseTrueSettingInToString() {
         ExporterConfig config = loadFromString(SNAKE_CASE_CONFIG);
 
         assertThat(config.toString(), equalToIgnoringWhiteSpace(SNAKE_CASE_CONFIG));
@@ -273,7 +272,7 @@ public class ExporterConfigTest {
             "      values: [pendingRequests, completedRequests, stuckThreadCount]\n";
 
     @Test
-    public void includeRestPortSettingInToString() {
+    void includeRestPortSettingInToString() {
         ExporterConfig config = loadFromString(REST_PORT_CONFIG);
 
         assertThat(config.toString(), equalToIgnoringWhiteSpace(REST_PORT_CONFIG));
@@ -326,40 +325,40 @@ public class ExporterConfigTest {
             "      values: [pendingRequests, completedRequests, stuckThreadCount]\n";
 
     @Test
-    public void afterAppend_configHasOriginalSnakeCase() {
+    void afterAppend_configHasOriginalSnakeCase() {
         assertThat(getAppendedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG).getMetricsNameSnakeCase(), is(false));
         assertThat(getAppendedConfiguration(WORK_MANAGER_CONFIG, SERVLET_CONFIG).getMetricsNameSnakeCase(), is(true));
      }
 
     @Test
-    public void afterAppend_configHasOriginalRestPort() {
+    void afterAppend_configHasOriginalRestPort() {
         assertThat(getAppendedConfiguration(SERVLET_CONFIG, REST_PORT_CONFIG).getRestPort(), nullValue());
         assertThat(getAppendedConfiguration(REST_PORT_CONFIG, SERVLET_CONFIG).getRestPort(), equalTo(1234));
      }
 
     @Test
-    public void afterAppend_configHasOriginalQuery() {
+    void afterAppend_configHasOriginalQuery() {
         ExporterConfig config = getAppendedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG);
 
         assertThat(config, hasQueryFor("applicationRuntimes", "componentRuntimes", "servlets"));
     }
 
     @Test
-    public void afterAppend_configContainsNewQuery() {
+    void afterAppend_configContainsNewQuery() {
         ExporterConfig config = getAppendedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG);
 
         assertThat(config, hasQueryFor("applicationRuntimes", "workManagerRuntimes"));
     }
 
     @Test
-    public void whenAppendToNoQueries_configHasNewQuery() {
+    void whenAppendToNoQueries_configHasNewQuery() {
         ExporterConfig config = getAppendedConfiguration("", WORK_MANAGER_CONFIG);
 
         assertThat(config, hasQueryFor("applicationRuntimes", "workManagerRuntimes"));
     }
 
     @Test
-    public void whenAppendedConfigurationHasNoQueries_configHasOriginalQuery() {
+    void whenAppendedConfigurationHasNoQueries_configHasOriginalQuery() {
         ExporterConfig config = getAppendedConfiguration(SERVLET_CONFIG, "");
 
         assertThat(config, hasQueryFor("applicationRuntimes", "componentRuntimes", "servlets"));
@@ -373,39 +372,39 @@ public class ExporterConfigTest {
     }
 
     @Test
-    public void afterReplace_configHasChangedSnakeCase() {
+    void afterReplace_configHasChangedSnakeCase() {
         assertThat(getReplacedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG).getMetricsNameSnakeCase(), is(true));
         assertThat(getReplacedConfiguration(WORK_MANAGER_CONFIG, SERVLET_CONFIG).getMetricsNameSnakeCase(), is(false));
      }
 
     @Test
-    public void afterReplace_configHasChangedRestPort() {
+    void afterReplace_configHasChangedRestPort() {
         assertThat(getReplacedConfiguration(SERVLET_CONFIG, REST_PORT_CONFIG).getRestPort(), equalTo(1234));
         assertThat(getReplacedConfiguration(REST_PORT_CONFIG, SERVLET_CONFIG).getRestPort(), nullValue());
      }
 
     @Test
-    public void afterReplace_configHasChangedDomainQualifier() {
+    void afterReplace_configHasChangedDomainQualifier() {
         assertThat(getReplacedConfiguration(SERVLET_CONFIG, DOMAIN_QUALIFIER_CONFIG).useDomainQualifier(), is(true));
         assertThat(getReplacedConfiguration(DOMAIN_QUALIFIER_CONFIG, SERVLET_CONFIG).useDomainQualifier(), is(false));
      }
 
     @Test
-    public void afterReplace_configHasNewQuery() {
+    void afterReplace_configHasNewQuery() {
         ExporterConfig config = getReplacedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG);
 
         assertThat(config, hasQueryFor("applicationRuntimes", "workManagerRuntimes"));
     }
 
     @Test
-    public void afterReplace_configDoesNotHaveOriginalQuery() {
+    void afterReplace_configDoesNotHaveOriginalQuery() {
         ExporterConfig config = getReplacedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG);
 
         assertThat(config, not(hasQueryFor("applicationRuntimes", "componentRuntimes", "servlets")));
     }
 
     @Test
-    public void afterReplaceWithEmptyConfig_configHasNoQueries() {
+    void afterReplaceWithEmptyConfig_configHasNoQueries() {
         ExporterConfig config = getReplacedConfiguration(SERVLET_CONFIG, "");
 
         assertThat(config.getQueries(), arrayWithSize(0));
@@ -413,7 +412,7 @@ public class ExporterConfigTest {
 
 
     @Test
-    public void whenYamlContainsMergeableQueries_MergeThem() {
+    void whenYamlContainsMergeableQueries_MergeThem() {
         ExporterConfig config = loadFromString(MERGEABLE_CONFIG);
 
         assertThat(config.toString(), equalTo(MERGED_CONFIG));
@@ -460,7 +459,7 @@ public class ExporterConfigTest {
             "        values: [invocationTotalCount, executionTimeTotal]\n";
 
     @Test
-    public void afterAppendWithNewTopLevelQuery_configHasMultipleTopLevelQueries() {
+    void afterAppendWithNewTopLevelQuery_configHasMultipleTopLevelQueries() {
         ExporterConfig config = getAppendedConfiguration(SERVLET_CONFIG, PARTITION_CONFIG);
 
         assertThat(config.getQueries(), arrayWithSize(2));
@@ -480,14 +479,14 @@ public class ExporterConfigTest {
 
 
     @Test
-    public void afterAppendWithMatchingTopLevelQuery_configHasMergedQueries() {
+    void afterAppendWithMatchingTopLevelQuery_configHasMergedQueries() {
         ExporterConfig config = getAppendedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG);
 
         assertThat(config.getQueries(), arrayWithSize(1));
     }
 
     @Test
-    public void whenConfigHasSingleValue_displayAsScalar() {
+    void whenConfigHasSingleValue_displayAsScalar() {
         ExporterConfig exporterConfig = loadFromString(CONFIG_WITH_SINGLE_VALUE);
 
         assertThat(exporterConfig.toString(), equalTo(CONFIG_WITH_SINGLE_VALUE));
@@ -501,7 +500,7 @@ public class ExporterConfigTest {
             "    values: heapFreeCurrent\n";
 
     @Test
-    public void whenConfigHasDuplicateValues_reportFailure() {
+    void whenConfigHasDuplicateValues_reportFailure() {
         assertThrows(ConfigurationException.class, () -> loadFromString(CONFIG_WITH_DUPLICATE_VALUE));
     }
 
@@ -515,7 +514,7 @@ public class ExporterConfigTest {
             "      values: [heapFreeCurrent,heapFreeCurrent]\n";
 
     @Test
-    public void whenConfigHasNoValues_reportFailure() {
+    void whenConfigHasNoValues_reportFailure() {
         assertThrows(ConfigurationException.class, () -> loadFromString(CONFIG_WITH_NO_VALUES));
     }
 
@@ -526,7 +525,7 @@ public class ExporterConfigTest {
             "    values: []\n";
 
     @Test
-    public void defineEmptyConfiguration() {
+    void defineEmptyConfiguration() {
         assertThat(ExporterConfig.createEmptyConfig().toString(), equalTo(EMPTY_CONFIG));
     }
 
@@ -534,7 +533,7 @@ public class ExporterConfigTest {
             "queries:\n";
 
     @Test
-    public void afterReplaceEmptyConfig_haveReplacementConfig() {
+    void afterReplaceEmptyConfig_haveReplacementConfig() {
         ExporterConfig config = ExporterConfig.createEmptyConfig();
 
         config.replace(loadFromString(PARTITION_CONFIG));
@@ -543,7 +542,7 @@ public class ExporterConfigTest {
     }
 
     @Test
-    public void afterAppendEmptyConfig_haveAppendedConfig() {
+    void afterAppendEmptyConfig_haveAppendedConfig() {
         ExporterConfig config = ExporterConfig.createEmptyConfig();
 
         config.append(loadFromString(PARTITION_CONFIG));
@@ -560,7 +559,7 @@ public class ExporterConfigTest {
     }
 
     @Test
-    public void afterScrapingServerConfig_hasDomainName() {
+    void afterScrapingServerConfig_hasDomainName() {
         ExporterConfig exporterConfig = loadFromString(DOMAIN_QUALIFIER_CONFIG);
 
         exporterConfig.scrapeMetrics(MBeanSelector.DOMAIN_NAME_SELECTOR, getJsonResponse(CONFIG_RESPONSE));
@@ -569,7 +568,7 @@ public class ExporterConfigTest {
     }
 
     @Test
-    public void afterScrapingMetricsIncludeDomainNameQualifier() {
+    void afterScrapingMetricsIncludeDomainNameQualifier() {
         ExporterConfig exporterConfig = loadFromString(DOMAIN_QUALIFIER_CONFIG);
 
         Map<String, Object> metrics = getMetrics(exporterConfig);
@@ -591,7 +590,7 @@ public class ExporterConfigTest {
     }
 
     @Test
-    public void secondScrapeWithDomainQualifierDoesNotAddStringMetric() {
+    void secondScrapeWithDomainQualifierDoesNotAddStringMetric() {
         ExporterConfig exporterConfig = loadFromString(DOMAIN_QUALIFIER_CONFIG);
         getMetrics(exporterConfig);
 

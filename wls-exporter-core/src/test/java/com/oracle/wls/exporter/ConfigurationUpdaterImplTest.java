@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -15,7 +15,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 
-public class ConfigurationUpdaterImplTest {
+class ConfigurationUpdaterImplTest {
 
     private static final long TIMESTAMP_1 = 17;
     private static final String CONFIGURATION_1 = "first yaml config";
@@ -49,14 +49,14 @@ public class ConfigurationUpdaterImplTest {
     }
 
     @Test
-    public void whenUnableToReachServer_returnedTimestampIsZero() {
+    void whenUnableToReachServer_returnedTimestampIsZero() {
         factory.throwWebClientException(new WebClientException());
 
         assertThat(impl.getLatestConfigurationTimestamp(), equalTo(0L));
     }
 
     @Test
-    public void whenUnableToReachServer_addReasonToLog() {
+    void whenUnableToReachServer_addReasonToLog() {
         factory.throwWebClientException(new WebClientException("Unable to reach server"));
         impl.setErrorLog(errorLog);
 
@@ -66,14 +66,14 @@ public class ConfigurationUpdaterImplTest {
     }
 
     @Test
-    public void extractTimestampFromReply() {
+    void extractTimestampFromReply() {
         factory.addJsonResponse(RESPONSE_1);
 
         assertThat(impl.getLatestConfigurationTimestamp(), equalTo(TIMESTAMP_1));
     }
 
     @Test
-    public void whenUpdateFetched_specifyConfiguredUrl() {
+    void whenUpdateFetched_specifyConfiguredUrl() {
         impl.configure("http://repeater/", 0);
 
         impl.getLatestConfigurationTimestamp();
@@ -82,7 +82,7 @@ public class ConfigurationUpdaterImplTest {
     }
 
     @Test
-    public void whenAskedForConfigurationWithinUpdateInterval_returnCachedValue() {
+    void whenAskedForConfigurationWithinUpdateInterval_returnCachedValue() {
         clock.setCurrentMsec(0);
         factory.addJsonResponse(RESPONSE_1);
         impl.getLatestConfigurationTimestamp();
@@ -94,7 +94,7 @@ public class ConfigurationUpdaterImplTest {
     }
 
     @Test
-    public void whenAskedForConfigurationAfterUpdateInterval_returnNewValue() {
+    void whenAskedForConfigurationAfterUpdateInterval_returnNewValue() {
         clock.setCurrentMsec(0);
         factory.addJsonResponse(RESPONSE_1);
         impl.getLatestConfigurationTimestamp();
@@ -106,14 +106,14 @@ public class ConfigurationUpdaterImplTest {
     }
 
     @Test
-    public void afterRetrieveUpdate_returnIt() {
+    void afterRetrieveUpdate_returnIt() {
         factory.addJsonResponse(RESPONSE_1);
 
         assertThat(impl.getUpdate().getConfiguration(), equalTo(CONFIGURATION_1));
     }
 
     @Test
-    public void onShareConfiguration_connectToConfiguredUrl() {
+    void onShareConfiguration_connectToConfiguredUrl() {
         impl.configure("http://posttarget", 0);
 
         impl.shareConfiguration(CONFIGURATION_1);
@@ -122,14 +122,14 @@ public class ConfigurationUpdaterImplTest {
     }
 
     @Test
-    public void onShareConfiguration_sendsConfigurationInJsonObject() {
+    void onShareConfiguration_sendsConfigurationInJsonObject() {
         impl.shareConfiguration(CONFIGURATION_1);
 
         assertThat(factory.getPostedString(), hasJsonPath("$.configuration").withValue(CONFIGURATION_1));
     }
 
     @Test
-    public void onShareConfiguration_sendsTimestampInJsonObject() {
+    void onShareConfiguration_sendsTimestampInJsonObject() {
         clock.setCurrentMsec(23);
 
         impl.shareConfiguration(CONFIGURATION_1);
@@ -138,7 +138,7 @@ public class ConfigurationUpdaterImplTest {
     }
 
     @Test
-    public void whenUnableToShareConfiguration_logProblem() {
+    void whenUnableToShareConfiguration_logProblem() {
         factory.throwWebClientException(new WebClientException("Unable to reach server"));
         impl.setErrorLog(errorLog);
 

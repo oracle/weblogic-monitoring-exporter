@@ -1,4 +1,4 @@
-// Copyright (c) 2021, Oracle and/or its affiliates.
+// Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -7,6 +7,10 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 
 public class ConfigurationDisplay {
+
+  private ConfigurationDisplay() {
+    // no-op
+  }
 
   public static void displayConfiguration(OutputStream outputStream) {
       try (PrintStream ps = new PrintStream(outputStream)) {

@@ -1,4 +1,4 @@
-// Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2019, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.webapp;
@@ -25,7 +25,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
 
-public class LogServletTest {
+class LogServletTest {
 
     private final LogServlet servlet = new LogServlet();
     private final HttpServletRequestStub request = HttpServletRequestStub.createGetRequest();
@@ -45,31 +45,31 @@ public class LogServletTest {
     }
 
     @Test
-    public void landingPage_isHttpServlet() {
+    void landingPage_isHttpServlet() {
         assertThat(servlet, instanceOf(HttpServlet.class));
     }
 
     @Test
-    public void servlet_hasWebServletAnnotation() {
+    void servlet_hasWebServletAnnotation() {
         assertThat(LogServlet.class.getAnnotation(WebServlet.class), notNullValue());
     }
 
     @Test
-    public void servletAnnotationIndicatesMainPage() {
+    void servletAnnotationIndicatesMainPage() {
         WebServlet annotation = LogServlet.class.getAnnotation(WebServlet.class);
 
         assertThat(annotation.value(), arrayContaining("/log"));
     }
 
     @Test
-    public void whenNoErrorsReported_saySo() throws IOException {
+    void whenNoErrorsReported_saySo() throws IOException {
         servlet.doGet(request, response);
 
         assertThat(response.getHtml(), containsString("No errors reported."));
     }
 
     @Test
-    public void whenErrorsReported_listThem() throws NoSuchFieldException, IOException {
+    void whenErrorsReported_listThem() throws NoSuchFieldException, IOException {
         ErrorLog errorLog = new ErrorLog();
         mementos.add(StaticStubSupport.install(LiveConfiguration.class, "errorLog", errorLog));
 

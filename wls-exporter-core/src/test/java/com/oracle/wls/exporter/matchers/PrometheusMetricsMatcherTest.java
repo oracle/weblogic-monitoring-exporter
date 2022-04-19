@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.matchers;
@@ -15,12 +15,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * @author Russell Gold
  */
-public class PrometheusMetricsMatcherTest {
+class PrometheusMetricsMatcherTest {
 
     private final PrometheusMetricsMatcher matcher = followsPrometheusRules();
 
     @Test
-    public void whenMetricsAreGrouped_matcherPasses() {
+    void whenMetricsAreGrouped_matcherPasses() {
         assertTrue(matcher.matches(toHtml(ORDERED_LIST)));
     }
 
@@ -32,7 +32,7 @@ public class PrometheusMetricsMatcherTest {
     }
 
     @Test
-    public void whenMetricsAreInterspersed_matcherFails() {
+    void whenMetricsAreInterspersed_matcherFails() {
         assertFalse(matcher.matches(toHtml(MISORDERED_LIST)));
     }
 
@@ -40,7 +40,7 @@ public class PrometheusMetricsMatcherTest {
             {"metric2{name='red'} 23", "metric1 1", "metric2{name='blue'} 34"};
 
     @Test
-    public void whenMetricsHaveNonNumericValues_matcherFails() {
+    void whenMetricsHaveNonNumericValues_matcherFails() {
         assertFalse(matcher.matches(toHtml(TEXT_LIST)));
     }
 

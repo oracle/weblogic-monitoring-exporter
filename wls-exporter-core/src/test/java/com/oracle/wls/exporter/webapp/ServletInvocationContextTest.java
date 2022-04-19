@@ -20,14 +20,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
-public class ServletInvocationContextTest {
+class ServletInvocationContextTest {
 
   private final HttpServletRequestStub request = HttpServletRequestStub.createPostRequest();
   private final HttpServletResponseStub response = HttpServletResponseStub.createServletResponse();
   private final ServletInvocationContext context = new ServletInvocationContext(request, response);
 
   @Test
-  public void afterClose_requestSessionIsInvalidated() {
+  void afterClose_requestSessionIsInvalidated() {
     request.getSession(true);
 
     context.close();
@@ -36,33 +36,33 @@ public class ServletInvocationContextTest {
   }
 
   @Test
-  public void obtainAuthenticationHeader() {
+  void obtainAuthenticationHeader() {
     request.setHeader(AUTHENTICATION_HEADER, "A value");
 
     assertThat(context.getAuthenticationHeader(), equalTo("A value"));
   }
 
   @Test
-  public void obtainContentType() {
+  void obtainContentType() {
     request.setContent("text/plain", "Abcedef");
 
     assertThat(context.getContentType(), equalTo("text/plain"));
   }
 
   @Test
-  public void obtainInstanceName() {
+  void obtainInstanceName() {
     assertThat(context.getInstanceName(), equalTo(HOST_NAME + ":" + PORT));
   }
 
   @Test
-  public void dataFromClient_isReadableFromRequestStream() throws IOException {
+  void dataFromClient_isReadableFromRequestStream() throws IOException {
     request.setContent("text/plain", "Abcedef");
 
     assertThat(new BufferedReader(new InputStreamReader(context.getRequestStream())).readLine(), equalTo("Abcedef"));
   }
 
   @Test
-  public void dataWrittenToResponseStream_isSentToClient() throws IOException {
+  void dataWrittenToResponseStream_isSentToClient() throws IOException {
     try (PrintStream ps = context.getResponseStream()) {
       ps.println("This is a line");
     }
@@ -71,7 +71,7 @@ public class ServletInvocationContextTest {
   }
 
   @Test
-  public void whenErrorCodeSent_statusAndContentAreSet() throws IOException {
+  void whenErrorCodeSent_statusAndContentAreSet() throws IOException {
     context.sendError(413, "That's OK");
 
     assertThat(response.getStatus(), equalTo(413));
@@ -79,7 +79,7 @@ public class ServletInvocationContextTest {
   }
 
   @Test
-  public void whenNullMessageSent_useSingleArgVersionOfServletResponse() throws IOException {
+  void whenNullMessageSent_useSingleArgVersionOfServletResponse() throws IOException {
     context.sendError(413, null);
 
     assertThat(response.getStatus(), equalTo(413));
@@ -87,7 +87,7 @@ public class ServletInvocationContextTest {
   }
 
   @Test
-  public void whenRedirectSent_statusAndHeaderAreSet() throws IOException {
+  void whenRedirectSent_statusAndHeaderAreSet() throws IOException {
     context.sendRedirect("new/location");
 
     assertThat(response.getStatus(), equalTo(HTTP_MOVED_TEMP));
@@ -95,14 +95,14 @@ public class ServletInvocationContextTest {
   }
 
   @Test
-  public void whenResponseHeaderSet_isSetOnResponse() {
+  void whenResponseHeaderSet_isSetOnResponse() {
     context.setResponseHeader("Header", "value");
 
     assertThat(response.getHeaders("Header").stream().findFirst().orElse(null), equalTo("value"));
   }
 
   @Test
-  public void whenStatusSet_responseIsUpdated() {
+  void whenStatusSet_responseIsUpdated() {
     context.setStatus(371);
 
     assertThat(response.getStatus(), equalTo(371));

@@ -1,4 +1,4 @@
-// Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.buildhelper;
@@ -26,7 +26,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
-public class BuildHelperMojoTest {
+class BuildHelperMojoTest {
 
   private final BuildHelperMojo mojo = new BuildHelperMojo();
   private final List<Memento> mementos = new ArrayList<>();
@@ -46,55 +46,55 @@ public class BuildHelperMojoTest {
   }
 
   @Test
-  public void helperImplementsMojo() {
+  void helperImplementsMojo() {
     assertThat(mojo, Matchers.instanceOf(AbstractMojo.class));
   }
 
   @Test
-  public void mojoHasGoalAnnotation() {
+  void mojoHasGoalAnnotation() {
     assertThat(mojoTestSupport.getClassAnnotation(), notNullValue());
   }
 
   @Test
-  public void mojoAnnotatedWithName() {
+  void mojoAnnotatedWithName() {
     assertThat(mojoTestSupport.getClassAnnotation().get("name"), equalTo("copy"));
   }
 
   @Test
-  public void mojoAnnotatedWithDefaultPhase() {
+  void mojoAnnotatedWithDefaultPhase() {
     assertThat(mojoTestSupport.getClassAnnotation().get("defaultPhase"), equalTo(PROCESS_RESOURCES));
   }
 
   @Test
-  public void hasRequiredSourceFileParameter() throws NoSuchFieldException {
+  void hasRequiredSourceFileParameter() throws NoSuchFieldException {
     assertThat(mojoTestSupport.getParameterField("sourceFile").getType(), equalTo(String.class));
     assertThat(mojoTestSupport.getParameterAnnotation("sourceFile").get("required"), is(true));
   }
 
   @Test
-  public void hasAnnotatedTargetFileField_withNoDefault() throws NoSuchFieldException {
+  void hasAnnotatedTargetFileField_withNoDefault() throws NoSuchFieldException {
     assertThat(mojoTestSupport.getParameterField("targetFile").getType(), equalTo(File.class));
     assertThat(mojoTestSupport.getParameterAnnotation("targetFile").get("defaultValue"), nullValue());
   }
 
   @Test
-  public void targetFileField_isRequired() throws NoSuchFieldException {
+  void targetFileField_isRequired() throws NoSuchFieldException {
     assertThat(mojoTestSupport.getParameterAnnotation("targetFile").get("required"), is(true));
   }
 
   @Test
-  public void hasAnnotatedUserDirFileField_withNullDefault() throws NoSuchFieldException {
+  void hasAnnotatedUserDirFileField_withNullDefault() throws NoSuchFieldException {
     assertThat(mojoTestSupport.getParameterField("userDir").getType(), equalTo(File.class));
     assertThat(mojoTestSupport.getParameterAnnotation("userDir").get("defaultValue"), nullValue());
   }
 
   @Test
-  public void userDirField_isNotRequired() throws NoSuchFieldException {
+  void userDirField_isNotRequired() throws NoSuchFieldException {
     assertThat(mojoTestSupport.getParameterAnnotation("userDir").get("required"), nullValue());
   }
 
   @Test
-  public void whenSourceAndTargetAbsolute_useAbsolutePaths() throws Exception {
+  void whenSourceAndTargetAbsolute_useAbsolutePaths() throws Exception {
     setMojoParameter("sourceFile", "/root/source");
     setMojoParameter("targetFile", new File("/root/target"));
 
@@ -105,7 +105,7 @@ public class BuildHelperMojoTest {
   }
 
   @Test
-  public void whenSourcePathIsRelative_computeAbsoluteRelativeToUserDir() throws Exception {
+  void whenSourcePathIsRelative_computeAbsoluteRelativeToUserDir() throws Exception {
     setMojoParameter("sourceFile", "source");
     setMojoParameter("targetFile", new File("/root/target"));
     setMojoParameter("userDir", new File("/root/nested"));
@@ -117,7 +117,7 @@ public class BuildHelperMojoTest {
   }
 
   @Test
-  public void whenSourcePathIsRelativeAndNoUserDir_useSystemProperty() throws Exception {
+  void whenSourcePathIsRelativeAndNoUserDir_useSystemProperty() throws Exception {
     System.setProperty("user.dir", "/user");
     setMojoParameter("sourceFile", "source");
     setMojoParameter("targetFile", new File("/root/target"));

@@ -1,4 +1,4 @@
-// Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2020, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -32,7 +32,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class MultipartContentParserTest {
+class MultipartContentParserTest {
 
   private static final String BOUNDARY = "---------------------------9051914041544843365972754266";
   private MultipartContentParser parser;
@@ -43,29 +43,29 @@ public class MultipartContentParserTest {
   }
 
   @Test
-  public void whenContentTypeIsNotMultiForm_throwException() {
+  void whenContentTypeIsNotMultiForm_throwException() {
     assertThrows(RuntimeException.class, () -> new MultipartContentParser("text/plain"));
   }
 
   @Test
-  public void whenCreated_boundaryIsDefined() {
+  void whenCreated_boundaryIsDefined() {
     assertThat(parser.getBoundary(), equalTo(BOUNDARY));
   }
 
   @Test
-  public void parseInitialState() {
+  void parseInitialState() {
     assertThat(parser.getState(), sameInstance(ParserState.INITIAL));
   }
 
   @Test
-  public void whenInitialStateAndReceivedBoundary_watchForHeaders() {
+  void whenInitialStateAndReceivedBoundary_watchForHeaders() {
     parser.process("--" + BOUNDARY);
 
     assertThat(parser.getState(), sameInstance(ParserState.HEADERS));
   }
 
   @Test
-  public void WhenReceiveFieldContentDispositionHeaderInHeaderState_defineField() {
+  void WhenReceiveFieldContentDispositionHeaderInHeaderState_defineField() {
     parser.process("--" + BOUNDARY);
 
     parser.process("Content-Disposition: form-data; name=\"text\"");
@@ -75,7 +75,7 @@ public class MultipartContentParserTest {
   }
 
   @Test
-  public void WhenReceiveBlankLineInHeaderState_watchForContent() {
+  void WhenReceiveBlankLineInHeaderState_watchForContent() {
     parser.process("--" + BOUNDARY);
     parser.process("Content-Disposition: form-data; name=\"text\"");
 
@@ -85,12 +85,12 @@ public class MultipartContentParserTest {
   }
 
   @Test
-  public void WhenNoContentReceived_itemHasEmptyData() {
+  void WhenNoContentReceived_itemHasEmptyData() {
     assertThat(parser.getCurrentItem().getString(), equalTo(""));
   }
 
   @Test
-  public void WhenReceiveDataInContentState_addToDefinition() {
+  void WhenReceiveDataInContentState_addToDefinition() {
     parser.process("--" + BOUNDARY);
     parser.process("Content-Disposition: form-data; name=\"text\"");
     parser.process("");
@@ -100,7 +100,7 @@ public class MultipartContentParserTest {
   }
 
   @Test
-  public void WhenReceiveNewBoundaryInContentState_defineItem() {
+  void WhenReceiveNewBoundaryInContentState_defineItem() {
     parser.process("--" + BOUNDARY);
     parser.process("Content-Disposition: form-data; name=\"text\"");
     parser.process("");
@@ -111,7 +111,7 @@ public class MultipartContentParserTest {
   }
 
   @Test
-  public void parseFormFields() throws IOException {
+  void parseFormFields() throws IOException {
     BufferedReader sample = new BufferedReader(new StringReader(SAMPLE));
     sample.lines().forEach(parser::process);
 
@@ -157,7 +157,7 @@ public class MultipartContentParserTest {
 
 
   @Test
-  public void whenMultipartRequestNotParseable_throwException() {
+  void whenMultipartRequestNotParseable_throwException() {
       HttpServletRequest request = HttpServletRequestStub.createPostRequest();
 
       assertThrows(RuntimeException.class,
@@ -165,7 +165,7 @@ public class MultipartContentParserTest {
   }
 
   @Test
-  public void whenMultipartRequestContainsFormFields_allAreMarkedAsFormFields() throws IOException {
+  void whenMultipartRequestContainsFormFields_allAreMarkedAsFormFields() throws IOException {
       HttpEntity httpEntity = MultipartEntityBuilder.create()
             .setBoundary(BOUNDARY)
             .addTextBody("field1", "value1")
@@ -186,7 +186,7 @@ public class MultipartContentParserTest {
   }
 
   @Test
-  public void whenMultipartRequestContainsFormFields_retrieveThem() throws IOException {
+  void whenMultipartRequestContainsFormFields_retrieveThem() throws IOException {
       HttpEntity httpEntity = MultipartEntityBuilder.create()
             .setBoundary(BOUNDARY)
             .addTextBody("field1", "value1")
@@ -200,7 +200,7 @@ public class MultipartContentParserTest {
   }
 
   @Test
-  public void whenMultipartRequestContainsBinaryEntries_nonAreMarkedAsFormFields() throws IOException {
+  void whenMultipartRequestContainsBinaryEntries_nonAreMarkedAsFormFields() throws IOException {
       HttpEntity httpEntity = MultipartEntityBuilder.create()
             .setBoundary(BOUNDARY)
             .addBinaryBody("file1", "value1".getBytes(), ContentType.DEFAULT_BINARY, "/path/to/file1.txt")
@@ -211,7 +211,7 @@ public class MultipartContentParserTest {
   }
 
   @Test
-  public void whenMultipartRequestContainsBinaryEntries_retrieveThem() throws IOException {
+  void whenMultipartRequestContainsBinaryEntries_retrieveThem() throws IOException {
       HttpEntity httpEntity = MultipartEntityBuilder.create()
             .setBoundary(BOUNDARY)
             .addBinaryBody("file1", "value1".getBytes(UTF_8), ContentType.DEFAULT_BINARY, "/path/to/file1.txt")
