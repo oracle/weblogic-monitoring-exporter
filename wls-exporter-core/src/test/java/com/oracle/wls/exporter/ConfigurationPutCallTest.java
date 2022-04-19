@@ -59,21 +59,21 @@ class ConfigurationPutCallTest {
   }
 
   @Test
-  public void whenSpecifiedConfigurationHasBadBooleanValue_reportError() throws Exception {
+  void whenSpecifiedConfigurationHasBadBooleanValue_reportError() throws Exception {
     handleConfigurationPutCall(context.withConfiguration("application/yaml", CONFIGURATION_WITH_BAD_BOOLEAN));
 
     assertThat(context.getResponseStatus(), equalTo(HttpURLConnection.HTTP_BAD_REQUEST));
   }
 
   @Test
-  public void updateSpecifiedConfiguration() throws Exception {
+  void updateSpecifiedConfiguration() throws Exception {
     handleConfigurationPutCall(context.withConfiguration("application/yaml", YAML_CONFIGURATION));
 
     assertThat(LiveConfiguration.asString(), equalTo(YAML_CONFIGURATION));
   }
 
   @Test
-  public void updateConfigurationWithJson() throws Exception {
+  void updateConfigurationWithJson() throws Exception {
     handleConfigurationPutCall(context.withConfiguration("application/json", JSON_CONFIGURATION));
 
     assertThat(LiveConfiguration.asString(), equalTo(YAML_CONFIGURATION));

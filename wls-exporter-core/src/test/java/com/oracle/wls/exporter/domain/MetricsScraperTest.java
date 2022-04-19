@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -20,7 +20,7 @@ import static org.hamcrest.Matchers.not;
 /**
  * @author Russell Gold
  */
-public class MetricsScraperTest {
+class MetricsScraperTest {
     private static final String RESPONSE =
             "{\"applicationRuntimes\": {\"items\": [\n" +
             "     {\n" +
@@ -150,7 +150,7 @@ public class MetricsScraperTest {
     private final MetricsScraper scraper = new MetricsScraper("");
 
     @Test
-    public void generateLeafMetrics() {
+    void generateLeafMetrics() {
         generateNestedMetrics(getServletsMap(), SERVLET_RESPONSE);
 
         assertThat(scraper.getMetrics(),
@@ -176,7 +176,7 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void whenNoValuesSpecified_generateAllMetrics() {
+    void whenNoValuesSpecified_generateAllMetrics() {
         generateNestedMetrics(getAllValuesServletsMap(), SERVLET_RESPONSE);
 
         assertThat(scraper.getMetrics(),
@@ -190,7 +190,7 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void generateLeafMetricsWhileAccumulatingQualifiers() {
+    void generateLeafMetricsWhileAccumulatingQualifiers() {
         generateNestedMetrics(getServletsMap(), SERVLET_RESPONSE, "webapp=\"wls\"");
 
         assertThat(scraper.getMetrics(),
@@ -198,7 +198,7 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void generateLeafMetricsWithNoQualifiers() {
+    void generateLeafMetricsWithNoQualifiers() {
         generateNestedMetrics(getServletsMapWithoutQualifierKey(), SINGLE_SERVLET_RESPONSE);
 
         assertThat(scraper.getMetrics(), hasMetric("servlet_invocationTotalCount", 0));
@@ -210,14 +210,14 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void generateLeafMetricsWithParentQualifiersOnly() {
+    void generateLeafMetricsWithParentQualifiersOnly() {
         generateNestedMetrics(getServletsMapWithoutQualifierKey(), SINGLE_SERVLET_RESPONSE, "webapp=\"wls\"");
 
         assertThat(scraper.getMetrics(), hasMetric("servlet_invocationTotalCount{webapp=\"wls\"}", 0));
     }
 
     @Test
-    public void whenKeyNameSpecified_useItRatherThanKey() {
+    void whenKeyNameSpecified_useItRatherThanKey() {
         generateNestedMetrics(getServletsMapWithKeyName("servlet"), SERVLET_RESPONSE);
 
         assertThat(scraper.getMetrics(), hasMetric("servlet_invocationTotalCount{servlet=\"JspServlet\"}", 0));
@@ -230,7 +230,7 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void whenValuesIncludesKey_ignoreIt() {
+    void whenValuesIncludesKey_ignoreIt() {
         generateNestedMetrics(getServletsMapWithKey("invocationId"), SINGLE_SERVLET_RESPONSE);
 
         assertThat(scraper.getMetrics(), not(hasMetric("servlet_invocationId{invocationId=\"23\"}", 23)));
@@ -243,7 +243,7 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void whenNullObjectInResponse_dontFail() {
+    void whenNullObjectInResponse_dontFail() {
         generateNestedMetrics(getServletsMapWithKey("invocationId"), RESPONSE_WITH_NULL);
 
         // todo add as comment
@@ -251,21 +251,21 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void whenGenerateHierarchicalMetrics_containsTopLevel() {
+    void whenGenerateHierarchicalMetrics_containsTopLevel() {
         generateNestedMetrics(twoLevelMap, TWO_LEVEL_RESPONSE);
 
         assertThat(scraper.getMetrics(), hasMetric("component_deploymentState{component=\"ejb30_weblogic\"}", 2));
     }
 
     @Test
-    public void whenNoPrefix_generateBareMetrics() {
+    void whenNoPrefix_generateBareMetrics() {
         generateNestedMetrics(noPrefixTwoLevelMap, TWO_LEVEL_RESPONSE);
 
         assertThat(scraper.getMetrics(), hasMetric("deploymentState{component=\"ejb30_weblogic\"}", 2));
     }
 
     @Test
-    public void whenGenerateHierarchicalMetrics_ignoresNonNumericValues() {
+    void whenGenerateHierarchicalMetrics_ignoresNonNumericValues() {
         generateNestedMetrics(twoLevelMap, TWO_LEVEL_RESPONSE);
 
         assertThat(scraper.getMetrics(), not(hasMetric("component_sourceInfo{component=\"ejb30_weblogic\"}", "weblogic.war")));
@@ -273,26 +273,26 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void configurationQuery_acceptsStringValues() {
+    void configurationQuery_acceptsStringValues() {
         scraper.scrape(MBeanSelector.DOMAIN_NAME_SELECTOR, getJsonResponse(CONFIG_RESPONSE));
 
         assertThat(scraper.getMetrics(), hasMetric("name", "mydomain"));
     }
 
     @Test
-    public void whenGenerateHierarchicalMetrics_containsBottomLevel() {
+    void whenGenerateHierarchicalMetrics_containsBottomLevel() {
         generateNestedMetrics(twoLevelMap, TWO_LEVEL_RESPONSE);
 
         assertThat(scraper.getMetrics(), hasMetric("servlet_invocationTotalCount{component=\"ejb30_weblogic\",servletName=\"JspServlet\"}", 0));
     }
 
     @Test
-    public void whenResponseLacksServerRuntimes_generateEmptyMetrics() {
+    void whenResponseLacksServerRuntimes_generateEmptyMetrics() {
         assertThat(scraper.scrape(MBeanSelector.create(getFullMap()), getJsonResponse("{}")), anEmptyMap());
     }
 
     @Test
-    public void generateFromFullResponse() {
+    void generateFromFullResponse() {
         Map<String, Object> metrics = scraper.scrape(MBeanSelector.create(getFullMap()), getJsonResponse(RESPONSE));
         
         assertThat(metrics, hasMetric("component_deploymentState{application=\"weblogic\",component=\"ejb30_weblogic\"}", 2));
@@ -305,9 +305,8 @@ public class MetricsScraperTest {
                                     "componentRuntimes", componentMap));
     }
 
-
     @Test
-    public void generateFromFullResponseUsingSnakeCase() {
+    void generateFromFullResponseUsingSnakeCase() {
         scraper.setMetricNameSnakeCase(true);
         Map<String, Object> metrics = scraper.scrape(MBeanSelector.create(getFullMap()), getJsonResponse(RESPONSE));
 
@@ -316,7 +315,7 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void whenTypeNotSpecified_includeAllComponents() {
+    void whenTypeNotSpecified_includeAllComponents() {
         Map<String, Object> metrics = scraper.scrape(MBeanSelector.create(getFullMap()), getJsonResponse(RESPONSE));
 
         assertThat(metrics, hasMetric("component_deploymentState{application=\"weblogic\",component=\"ejb30_weblogic\"}", 2));
@@ -324,7 +323,7 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void selectOnlyWebApps() {
+    void selectOnlyWebApps() {
         componentMap.put(MBeanSelector.TYPE, "WebAppComponentRuntime");
         Map<String, Object> metrics = scraper.scrape(MBeanSelector.create(getFullMap()), getJsonResponse(RESPONSE));
 
@@ -333,7 +332,7 @@ public class MetricsScraperTest {
     }
 
     @Test
-    public void whenValuesAtTopLevel_scrapeThem() {
+    void whenValuesAtTopLevel_scrapeThem() {
         final MBeanSelector selector = MBeanSelector.create(getMetricsMap());
         final JsonObject jsonResponse = getJsonResponse(METRICS_RESPONSE);
         Map<String, Object> metrics = scraper.scrape(selector, jsonResponse);

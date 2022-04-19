@@ -24,7 +24,7 @@ import static org.hamcrest.Matchers.notNullValue;
 /**
  * @author Russell Gold
  */
-public class MainServletTest {
+class MainServletTest {
 
     private final MainServlet servlet = new MainServlet();
     private final HttpServletRequestStub request = HttpServletRequestStub.createGetRequest();
@@ -45,24 +45,24 @@ public class MainServletTest {
     }
 
     @Test
-    public void landingPage_isHttpServlet() {
+    void landingPage_isHttpServlet() {
         assertThat(servlet, instanceOf(HttpServlet.class));
     }
 
     @Test
-    public void servlet_hasWebServletAnnotation() {
+    void servlet_hasWebServletAnnotation() {
         assertThat(MainServlet.class.getAnnotation(WebServlet.class), notNullValue());
     }
 
     @Test
-    public void servletAnnotationIndicatesMainPage() {
+    void servletAnnotationIndicatesMainPage() {
         WebServlet annotation = MainServlet.class.getAnnotation(WebServlet.class);
 
         assertThat(annotation.value(), arrayContaining("/"));
     }
 
     @Test
-    public void whenServletPathIsSlash_showSimpleLinkToMetrics() throws Exception {
+    void whenServletPathIsSlash_showSimpleLinkToMetrics() throws Exception {
         request.setServletPath("/");
         servlet.doGet(request, response);
 
@@ -70,7 +70,7 @@ public class MainServletTest {
     }
 
     @Test
-    public void whenServletPathIsEmpty_showFullLinkToMetrics() throws Exception {
+    void whenServletPathIsEmpty_showFullLinkToMetrics() throws Exception {
         request.setServletPath("");
         servlet.doGet(request, response);
 
@@ -78,7 +78,7 @@ public class MainServletTest {
     }
 
     @Test
-    public void getRequest_containsConfigurationForm() throws Exception {
+    void getRequest_containsConfigurationForm() throws Exception {
         request.setServletPath("/");
         servlet.doGet(request, response);
 
@@ -87,7 +87,7 @@ public class MainServletTest {
     }
 
     @Test
-    public void whenServletPathIsEmpty_showFullPathToConfigurationServlet() throws Exception {
+    void whenServletPathIsEmpty_showFullPathToConfigurationServlet() throws Exception {
         request.setServletPath("");
         servlet.doGet(request, response);
 
@@ -95,7 +95,7 @@ public class MainServletTest {
     }
 
     @Test
-    public void getRequestShowsCurrentConfiguration() throws Exception {
+    void getRequestShowsCurrentConfiguration() throws Exception {
         InMemoryFileSystem.defineResource(ServletUtils.CONFIG_YML, PARSED_CONFIGURATION);
         servlet.init(withNoParams());
 
@@ -105,7 +105,7 @@ public class MainServletTest {
     }
 
     @Test
-    public void whenNewConfigAvailable_getRequestShowsNewConfiguration() throws Exception {
+    void whenNewConfigAvailable_getRequestShowsNewConfiguration() throws Exception {
         InMemoryFileSystem.defineResource(ServletUtils.CONFIG_YML, EMPTY_CONFIGURATION);
         servlet.init(withNoParams());
 
@@ -116,7 +116,7 @@ public class MainServletTest {
     }
 
     @Test
-    public void whenNewConfigHasNoQueries_displayEmptyConfiguration() throws Exception {
+    void whenNewConfigHasNoQueries_displayEmptyConfiguration() throws Exception {
         InMemoryFileSystem.defineResource(ServletUtils.CONFIG_YML, PARSED_CONFIGURATION);
         servlet.init(withNoParams());
 

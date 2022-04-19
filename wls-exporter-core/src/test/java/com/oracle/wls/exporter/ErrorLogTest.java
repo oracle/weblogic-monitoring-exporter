@@ -1,4 +1,4 @@
-// Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2019, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -17,25 +17,25 @@ import org.junit.jupiter.api.Test;
 import static com.oracle.wls.exporter.ErrorLogTest.LogMatcher.containsErrors;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class ErrorLogTest {
+class ErrorLogTest {
     private final ErrorLog errorLog = new ErrorLog();
 
     @Test
-    public void afterExceptionReported_isAddedToLog() {
+    void afterExceptionReported_isAddedToLog() {
         errorLog.log(new IOException("Unable to read value"));
 
         assertThat(errorLog, containsErrors("IOException: Unable to read value"));
     }
 
     @Test
-    public void afterExceptionWithNoMessageReported_logSimpleNameOnly() {
+    void afterExceptionWithNoMessageReported_logSimpleNameOnly() {
         errorLog.log(new IOException());
 
         assertThat(errorLog, containsErrors("IOException"));
     }
 
     @Test
-    public void afterExceptionWithNestedThrowableReported_addToLog() {
+    void afterExceptionWithNestedThrowableReported_addToLog() {
         errorLog.log(new IOException("Unable to read value", new RuntimeException("has impossible format")));
 
         assertThat(errorLog, containsErrors("IOException: Unable to read value", "  RuntimeException: has impossible format"));

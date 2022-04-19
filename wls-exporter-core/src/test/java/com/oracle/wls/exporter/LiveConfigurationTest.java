@@ -26,7 +26,7 @@ import static org.hamcrest.Matchers.is;
 /**
  * @author Russell Gold
  */
-public class LiveConfigurationTest {
+class LiveConfigurationTest {
     private static final String CONFIGURATION =
             "hostName: " + HOST_NAME + "\n" +
             "port: " + PORT + "\n" +
@@ -82,7 +82,7 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void afterInitCalled_haveQueries() {
+    void afterInitCalled_haveQueries() {
         init(CONFIGURATION);
 
         assertThat(LiveConfiguration.hasQueries(), is(true));
@@ -94,26 +94,26 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void whenInitNotCalled_haveNoQueries() {
+    void whenInitNotCalled_haveNoQueries() {
         assertThat(LiveConfiguration.hasQueries(), is(false));
     }
 
     @Test
-    public void whenInitCalledWithNoConfig_haveNoQueries() {
+    void whenInitCalledWithNoConfig_haveNoQueries() {
         ServletUtils.initializeConfiguration(withNoParams());
         
         assertThat(LiveConfiguration.hasQueries(), is(false));
     }
 
     @Test
-    public void afterInitCalled_haveExpectedConfiguration() {
+    void afterInitCalled_haveExpectedConfiguration() {
         init(CONFIGURATION);
 
         assertThat(LiveConfiguration.asString(), equalTo(CONFIGURATION));
     }
 
     @Test
-    public void afterInitCalledTwice_haveFirstConfiguration() {
+    void afterInitCalledTwice_haveFirstConfiguration() {
         init(CONFIGURATION);
         init(ADDED_CONFIGURATION);
 
@@ -121,14 +121,14 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void afterInitTimestampIsZero() {
+    void afterInitTimestampIsZero() {
         init(CONFIGURATION);
         
         assertThat(LiveConfiguration.getTimestamp(), equalTo(0L));
     }
 
     @Test
-    public void afterReplaceQueryCalled_configurationIsUpdated() {
+    void afterReplaceQueryCalled_configurationIsUpdated() {
         init(CONFIGURATION);
 
         LiveConfiguration.replaceConfiguration(toConfiguration(ADDED_CONFIGURATION));
@@ -142,7 +142,7 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void afterReplaceQueryCalled_shareUpdatedConfiguration() {
+    void afterReplaceQueryCalled_shareUpdatedConfiguration() {
         init(CONFIGURATION);
 
         LiveConfiguration.replaceConfiguration(toConfiguration(ADDED_CONFIGURATION));
@@ -151,7 +151,7 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void afterReplaceQueryCalled_timestampIsUpdated() {
+    void afterReplaceQueryCalled_timestampIsUpdated() {
         init(CONFIGURATION);
         long originalTimestamp = LiveConfiguration.getTimestamp();
 
@@ -161,7 +161,7 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void afterAppendQueryCalled_configurationIsUpdated() {
+    void afterAppendQueryCalled_configurationIsUpdated() {
         init(CONFIGURATION);
 
         LiveConfiguration.appendConfiguration(toConfiguration(ADDED_CONFIGURATION));
@@ -170,7 +170,7 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void afterAppendQueryCalled_shareUpdatedConfiguration() {
+    void afterAppendQueryCalled_shareUpdatedConfiguration() {
         init(CONFIGURATION);
 
         LiveConfiguration.appendConfiguration(toConfiguration(ADDED_CONFIGURATION));
@@ -179,7 +179,7 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void afterAppendQueryCalled_timestampIsUpdated() {
+    void afterAppendQueryCalled_timestampIsUpdated() {
         init(CONFIGURATION);
         long originalTimestamp = LiveConfiguration.getTimestamp();
 
@@ -189,7 +189,7 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void whenSharedTimestampIndicatesNewConfiguration_updateLiveConfiguration() {
+    void whenSharedTimestampIndicatesNewConfiguration_updateLiveConfiguration() {
         init(CONFIGURATION);
 
         long newTimestamp = LiveConfiguration.getTimestamp() + 1;
@@ -202,7 +202,7 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void whenSharedTimestampIndicatesHaveLatestConfiguration_dontUpdateLiveConfiguration() {
+    void whenSharedTimestampIndicatesHaveLatestConfiguration_dontUpdateLiveConfiguration() {
         init(CONFIGURATION);
 
         long newTimestamp = LiveConfiguration.getTimestamp();
@@ -214,7 +214,7 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void whenConfigurationSpecifiesSynchronization_installHttpBasedUpdater() throws Exception {
+    void whenConfigurationSpecifiesSynchronization_installHttpBasedUpdater() throws Exception {
         init(CONFIGURATION_WITH_SYNC);
 
         assertThat(getConfigurationUpdater(), instanceOf(ConfigurationUpdaterImpl.class));
@@ -226,7 +226,7 @@ public class LiveConfigurationTest {
     }
 
     @Test
-    public void whenConfigurationSpecifiesSynchronization_configureUpdater() throws Exception {
+    void whenConfigurationSpecifiesSynchronization_configureUpdater() throws Exception {
         init(CONFIGURATION_WITH_SYNC);
 
         ConfigurationUpdaterImpl configurationUpdater = (ConfigurationUpdaterImpl) getConfigurationUpdater();

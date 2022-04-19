@@ -1,4 +1,4 @@
-// Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2019, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -18,33 +18,33 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 
-public class QueryTypeTest {
+class QueryTypeTest {
 
     private final Map<String, Object> metrics = new HashMap<>();
     private Map<String, String> selectedMetrics;
 
     @Test
-    public void runtimeQueryType_usesRuntimeMbeanUrl() {
+    void runtimeQueryType_usesRuntimeMbeanUrl() {
         assertThat(RUNTIME.getUrlPattern(), equalTo(QueryType.RUNTIME_URL_PATTERN));
     }
 
     @Test
-    public void configurationQueryType_usesConfigMbeanUrl() {
+    void configurationQueryType_usesConfigMbeanUrl() {
         assertThat(CONFIGURATION.getUrlPattern(), equalTo(QueryType.CONFIGURATION_URL_PATTERN));
     }
 
     @Test
-    public void runtimeQueryType_ignoresStrings() {
+    void runtimeQueryType_ignoresStrings() {
         assertThat(RUNTIME.acceptsStrings(), is(false));
     }
 
     @Test
-    public void configurationQueryType_acceptsStrings() {
+    void configurationQueryType_acceptsStrings() {
         assertThat(CONFIGURATION.acceptsStrings(), is(true));
     }
 
     @Test
-    public void runtimeQueryType_doesNotProcessMetrics() {
+    void runtimeQueryType_doesNotProcessMetrics() {
         metrics.put("name", "domain1");
         RUNTIME.processMetrics(metrics, this::invokeProcessing);
 
@@ -52,7 +52,7 @@ public class QueryTypeTest {
     }
 
     @Test
-    public void configurationQueryType_processesNameAsDomainName() {
+    void configurationQueryType_processesNameAsDomainName() {
         metrics.put("name", "domain1");
         CONFIGURATION.processMetrics(metrics, this::invokeProcessing);
 
@@ -60,7 +60,7 @@ public class QueryTypeTest {
     }
 
     @Test
-    public void configurationQueryType_removesNameFromMetrics() {
+    void configurationQueryType_removesNameFromMetrics() {
         metrics.put("name", "domain1");
         CONFIGURATION.processMetrics(metrics, this::invokeProcessing);
 
@@ -68,7 +68,7 @@ public class QueryTypeTest {
     }
 
     @Test
-    public void whenNameNotPresent_configurationQueryTypeDoesNotInvokeProcessing() {
+    void whenNameNotPresent_configurationQueryTypeDoesNotInvokeProcessing() {
         CONFIGURATION.processMetrics(metrics, this::invokeProcessing);
 
         assertThat(selectedMetrics, nullValue());

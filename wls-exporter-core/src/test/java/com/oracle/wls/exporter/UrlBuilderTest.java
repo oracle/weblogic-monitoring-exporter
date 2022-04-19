@@ -16,7 +16,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class UrlBuilderTest {
+class UrlBuilderTest {
 
   private static final String URL_PATTERN = "%s://%s:%d/path";
   private static final String REST_HOSTNAME = "restHost";
@@ -38,7 +38,7 @@ public class UrlBuilderTest {
   }
 
   @Test
-  public void whenNoRestPortOrHostNameDefined_generateUrl() {
+  void whenNoRestPortOrHostNameDefined_generateUrl() {
     UrlBuilder builder = createUrlBuilder().withHostName(HOSTNAME).withPort(LOCAL_PORT);
 
     assertThat(builder.createUrl(URL_PATTERN), equalTo(String.format(URL_PATTERN, "http", HOSTNAME, LOCAL_PORT)));
@@ -49,14 +49,14 @@ public class UrlBuilderTest {
   }
 
   @Test
-  public void whenRestPortDefined_generateUrlWithRestPort() {
+  void whenRestPortDefined_generateUrlWithRestPort() {
     UrlBuilder builder = createUrlBuilder().withHostName(HOSTNAME).withPort(REST_PORT).withPort(LOCAL_PORT);
 
     assertThat(builder.createUrl(URL_PATTERN), equalTo(String.format(URL_PATTERN, "http", HOSTNAME, REST_PORT)));
   }
 
   @Test
-  public void whenNoRestPortAndConnectionFails_reportFailure() {
+  void whenNoRestPortAndConnectionFails_reportFailure() {
     UrlBuilder builder = createUrlBuilder().withHostName(HOSTNAME).withPort(LOCAL_PORT);
     builder.createUrl(URL_PATTERN);
     
@@ -64,7 +64,7 @@ public class UrlBuilderTest {
   }
 
   @Test
-  public void afterRestPortFails_retryWithLocalPort() {
+  void afterRestPortFails_retryWithLocalPort() {
     UrlBuilder builder = createUrlBuilder().withHostName(HOSTNAME).withPort(REST_PORT).withPort(LOCAL_PORT);
     builder.createUrl(URL_PATTERN);
     builder.reportFailure(connectionException);
@@ -73,7 +73,7 @@ public class UrlBuilderTest {
   }
 
   @Test
-  public void afterRestPortFailsAndSecondRetryFails_reportFailure() {
+  void afterRestPortFailsAndSecondRetryFails_reportFailure() {
     UrlBuilder builder = createUrlBuilder().withHostName(HOSTNAME).withPort(REST_PORT).withPort(LOCAL_PORT);
     builder.createUrl(URL_PATTERN);
     builder.reportFailure(connectionException);
@@ -82,7 +82,7 @@ public class UrlBuilderTest {
   }
 
   @Test
-  public void afterLocalPortSucceeds_newBuilderPrefersLocalPort() {
+  void afterLocalPortSucceeds_newBuilderPrefersLocalPort() {
     UrlBuilder builder = createUrlBuilder().withHostName(HOSTNAME).withPort(REST_PORT).withPort(LOCAL_PORT);
     builder.createUrl(URL_PATTERN);
     builder.reportFailure(connectionException);
@@ -94,7 +94,7 @@ public class UrlBuilderTest {
   }
 
   @Test
-  public void afterRestHostNameFails_retryWithBackupHost() {
+  void afterRestHostNameFails_retryWithBackupHost() {
     UrlBuilder builder = createUrlBuilder().withHostName(REST_HOSTNAME).withHostName(HOSTNAME).withPort(LOCAL_PORT);
     builder.createUrl(URL_PATTERN);
     builder.reportFailure(connectionException);
@@ -103,7 +103,7 @@ public class UrlBuilderTest {
   }
 
   @Test
-  public void afterRestHostNameFailsAndSecondRetryFails_reportFailure() {
+  void afterRestHostNameFailsAndSecondRetryFails_reportFailure() {
     UrlBuilder builder = createUrlBuilder().withHostName(REST_HOSTNAME).withHostName(HOSTNAME).withPort(LOCAL_PORT);
     builder.createUrl(URL_PATTERN);
     builder.reportFailure(connectionException);
@@ -112,7 +112,7 @@ public class UrlBuilderTest {
   }
 
   @Test
-  public void afterLocalHostSucceeds_newBuilderPrefersLocalHost() {
+  void afterLocalHostSucceeds_newBuilderPrefersLocalHost() {
     UrlBuilder builder = createUrlBuilder().withHostName(REST_HOSTNAME).withHostName(HOSTNAME).withPort(LOCAL_PORT);
     builder.createUrl(URL_PATTERN);
     builder.reportFailure(connectionException);

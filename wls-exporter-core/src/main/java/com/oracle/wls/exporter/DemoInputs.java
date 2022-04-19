@@ -7,6 +7,11 @@ package com.oracle.wls.exporter;
  * @author Russell Gold
  */
 class DemoInputs {
+
+    private DemoInputs() {
+        // no-op
+    }
+
     @SuppressWarnings("unused")
     static final String YAML_STRING = "---\n" +
             "startDelaySeconds: 5\n" +
