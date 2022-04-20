@@ -9,7 +9,7 @@ FROM golang:1.18.1
 COPY . /go/src/github.com/oracle/config_coordinator
 
 # Build the config_coordinator command inside the container.
-RUN go install github.com/oracle/config_coordinator
+RUN go install /go/src/github.com/oracle/config_coordinator/config_coordinator.go
 
 # Run the config_coordinator by default when the container starts.
 ENTRYPOINT ["/go/bin/config_coordinator"]
