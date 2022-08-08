@@ -17,7 +17,7 @@
         <helidon.version>3.0.0</helidon.version>
         <mainClass>com.oracle.wls.exporter.sidecar.Main</mainClass>
 
-        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
         <version.plugin.helidon>2.3.5</version.plugin.helidon>
     </properties>
