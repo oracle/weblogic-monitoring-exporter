@@ -47,8 +47,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <apache.http.version>4.5.3</apache.http.version>
         <version.plugin.surefire>3.0.0-M7</version.plugin.surefire>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
         <maven-enforcer-plugin-version>3.1.0</maven-enforcer-plugin-version>
         <maven-clean-plugin-version>3.2.0</maven-clean-plugin-version>
         <maven-compiler-plugin-version>3.10.1</maven-compiler-plugin-version>
@@ -99,7 +97,8 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven-compiler-plugin-version}</version>
                     <configuration>
-                        <release>11</release>
+                        <source>1.8</source>
+                        <target>1.8</target>
                         <compilerArgs>
                             <arg>-Xpkginfo:always</arg>
                             <arg>-Xlint:all</arg>

@@ -17,8 +17,6 @@
         <helidon.version>3.0.0</helidon.version>
         <mainClass>com.oracle.wls.exporter.sidecar.Main</mainClass>
 
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
         <version.plugin.helidon>2.3.5</version.plugin.helidon>
     </properties>
 
@@ -89,6 +87,21 @@
                     <artifactId>helidon-maven-plugin</artifactId>
                     <version>${version.plugin.helidon}</version>
                 </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin-version}</version>
+                    <configuration>
+                        <source>17</source>
+                        <target>17</target>
+                        <compilerArgs>
+                            <arg>-Xpkginfo:always</arg>
+                            <arg>-Xlint:all</arg>
+                        </compilerArgs>
+                    </configuration>
+                </plugin>
+
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
