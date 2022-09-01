@@ -55,6 +55,10 @@ class ExporterConfigTest {
             "        prefix: weblogic_servlet_\n" +
             "        key: servletName\n" +
             "        values: [invocationTotalCount, executionTimeTotal]\n";
+
+    private static final String STRING_VALUES_ADDITION =
+            "        stringValues: \n" +
+            "          - state: [disabled, enabled, active]\n";
     private static final Map<String, Object> NULL_MAP = null;
 
     private Map<String,Object> yamlConfig = new HashMap<>();

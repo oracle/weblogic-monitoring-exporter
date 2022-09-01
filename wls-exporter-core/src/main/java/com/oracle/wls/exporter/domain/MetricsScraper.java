@@ -5,6 +5,7 @@ package com.oracle.wls.exporter.domain;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.gson.JsonArray;
@@ -84,10 +85,19 @@ class MetricsScraper {
     }
 
     private void addMetric(MBeanSelector beanSelector, String qualifiers, String valueName, JsonPrimitive jsonPrimitive) {
+        Optional.ofNullable(getMetricValue(beanSelector, valueName, jsonPrimitive))
+            .ifPresent(value -> metrics.put(getMetricName(valueName, beanSelector, qualifiers), value));
+    }
+
+    private Object getMetricValue(MBeanSelector beanSelector, String valueName, JsonPrimitive jsonPrimitive) {
         if (jsonPrimitive.isNumber())
-            metrics.put(getMetricName(valueName, beanSelector, qualifiers), jsonPrimitive.getAsNumber());
+            return jsonPrimitive.getAsNumber();
+        else if (beanSelector.isStringMetric(valueName) && jsonPrimitive.isString())
+            return beanSelector.getStringMetricValue(valueName, jsonPrimitive.getAsString());
         else if (beanSelector.acceptsStrings() && jsonPrimitive.isString())
-            metrics.put(getMetricName(valueName, beanSelector, qualifiers), jsonPrimitive.getAsString());
+            return jsonPrimitive.getAsString();
+        else
+            return null;
     }
 
     private boolean excludeByType(JsonElement typeField, String typeFilter) {

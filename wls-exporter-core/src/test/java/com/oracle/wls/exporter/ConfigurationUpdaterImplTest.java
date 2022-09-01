@@ -6,11 +6,11 @@ package com.oracle.wls.exporter;
 import java.time.Clock;
 import java.time.Instant;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
+import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static com.meterware.simplestub.Stub.createStrictStub;
-import static com.oracle.wls.exporter.domain.JsonPathMatcher.hasJsonPath;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -125,7 +125,7 @@ class ConfigurationUpdaterImplTest {
     void onShareConfiguration_sendsConfigurationInJsonObject() {
         impl.shareConfiguration(CONFIGURATION_1);
 
-        assertThat(factory.getPostedString(), hasJsonPath("$.configuration").withValue(CONFIGURATION_1));
+        assertThat(factory.getPostedString(), hasJsonPath("$.configuration", equalTo(CONFIGURATION_1)));
     }
 
     @Test
@@ -134,7 +134,7 @@ class ConfigurationUpdaterImplTest {
 
         impl.shareConfiguration(CONFIGURATION_1);
 
-        assertThat(factory.getPostedString(), hasJsonPath("$.timestamp").withValue(23));
+        assertThat(factory.getPostedString(), hasJsonPath("$.timestamp", equalTo(23)));
     }
 
     @Test

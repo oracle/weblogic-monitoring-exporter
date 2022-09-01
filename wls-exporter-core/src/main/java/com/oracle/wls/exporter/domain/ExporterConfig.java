@@ -30,7 +30,7 @@ public class ExporterConfig {
     static final String SNAKE_CASE = "metricsNameSnakeCase";
     static final String DOMAIN_QUALIFIER = "domainQualifier";
     static final String REST_PORT = "restPort";
-    private static final String QUERIES = "queries";
+    private static final String QUERIES_TAG = "queries";
 
     private static final MBeanSelector[] NO_QUERIES = {};
     private static final String DOMAIN_NAME_QUALIFIER = "domain=\"%s\"";
@@ -140,7 +140,7 @@ public class ExporterConfig {
         if (yaml.containsKey(SNAKE_CASE)) setMetricsNameSnakeCase(yaml);
         if (yaml.containsKey(REST_PORT)) restPort = MapUtils.getIntegerValue(yaml, REST_PORT);
         if (yaml.containsKey(QUERY_SYNC)) querySyncConfiguration = loadQuerySync(yaml.get(QUERY_SYNC));
-        if (yaml.containsKey(QUERIES)) appendQueries(asList(yaml.get(QUERIES)));
+        if (yaml.containsKey(QUERIES_TAG)) appendQueries(asList(yaml.get(QUERIES_TAG)));
     }
 
     private Object asList(Object value) {
@@ -218,7 +218,7 @@ public class ExporterConfig {
     @SuppressWarnings("unchecked")
     private List<Map<String, Object>> getAsListOfMaps(Object queriesYaml) {
         if (!isArrayOfMaps(queriesYaml))
-            throw MapUtils.createBadTypeException(QUERIES, queriesYaml, "a list of structures");
+            throw MapUtils.createBadTypeException(QUERIES_TAG, queriesYaml, "a list of structures");
 
         return (List<Map<String, Object>>) queriesYaml;
     }

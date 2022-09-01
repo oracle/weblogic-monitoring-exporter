@@ -96,17 +96,20 @@ class MetricsScraperTest {
             "                    {\n" +
             "                        \"servletName\": \"JspServlet\",\n" +
             "                        \"invocationHighCount\": 10,\n" +
-            "                        \"invocationTotalCount\": 0\n" +
+            "                        \"invocationTotalCount\": 0,\n" +
+            "                        \"state\": \"running\"\n" +
             "                    },\n" +
             "                    {\n" +
             "                        \"servletName\": \"FileServlet\",\n" +
             "                        \"invocationHighCount\": 15,\n" +
-            "                        \"invocationTotalCount\": 1\n" +
+            "                        \"invocationTotalCount\": 1,\n" +
+            "                        \"state\": \"stopped\"\n" +
             "                    },\n" +
             "                    {\n" +
             "                        \"servletName\": \"ready\",\n" +
             "                        \"invocationHighCount\": 30,\n" +
-            "                        \"invocationTotalCount\": 2\n" +
+            "                        \"invocationTotalCount\": 2,\n" +
+            "                        \"state\": \"confused\"\n" +
             "                    }\n" +
             "                ]}\n" +
             "            }";
@@ -128,20 +131,25 @@ class MetricsScraperTest {
     private static final String CONFIG_RESPONSE = "{\"name\": \"mydomain\"}";
 
     private final Map<String,Object> leafMap = new HashMap<>(ImmutableMap.of(MBeanSelector.QUERY_KEY, "servletName",
-            MBeanSelector.PREFIX, "servlet_", MBeanSelector.VALUES, new String[]{"invocationTotalCount","invocationId"}));
+            MBeanSelector.PREFIX_KEY, "servlet_", MBeanSelector.VALUES_KEY, new String[]{"invocationTotalCount","invocationId"}));
 
     private final Map<String,Object> emptyLeafMap = new HashMap<>(ImmutableMap.of(MBeanSelector.QUERY_KEY, "servletName",
-            MBeanSelector.PREFIX, "servlet_"));
+            MBeanSelector.PREFIX_KEY, "servlet_"));
+
+    private final Map<String,Object> emptyLeafMapWithStates
+        = new HashMap<>(ImmutableMap.of(MBeanSelector.QUERY_KEY, "servletName",
+                                        MBeanSelector.PREFIX_KEY, "servlet_",
+                                        MBeanSelector.STRING_VALUES_KEY, ImmutableMap.of("state", new String[] {"stopped", "running", "confused"})));
 
     private final Map<String,Object> componentMap = new HashMap<>(
-            ImmutableMap.of(MBeanSelector.KEY_NAME, "component", MBeanSelector.QUERY_KEY, "name", MBeanSelector.PREFIX, "component_",
+            ImmutableMap.of(MBeanSelector.KEY_NAME, "component", MBeanSelector.QUERY_KEY, "name", MBeanSelector.PREFIX_KEY, "component_",
                             "servlets", leafMap,
-                            MBeanSelector.VALUES, new String[]{"sourceInfo", "internal", "deploymentState"}));
+                            MBeanSelector.VALUES_KEY, new String[]{"sourceInfo", "internal", "deploymentState"}));
 
     private final Map<String,Object> noPrefixComponentMap = new HashMap<>(
             ImmutableMap.of(MBeanSelector.KEY_NAME, "component", MBeanSelector.QUERY_KEY, "name",
                             "servlets", leafMap,
-                            MBeanSelector.VALUES, new String[]{"sourceInfo", "internal", "deploymentState"}));
+                            MBeanSelector.VALUES_KEY, new String[]{"sourceInfo", "internal", "deploymentState"}));
 
     private final Map<String,Object> twoLevelMap = ImmutableMap.of("componentRuntimes", componentMap);
 
@@ -187,6 +195,20 @@ class MetricsScraperTest {
 
     private ImmutableMap<String, Object> getAllValuesServletsMap() {
         return ImmutableMap.of("servlets", emptyLeafMap);
+    }
+
+    @Test
+    void whenStringValuesSpecified_generateEnumeration() {
+        generateNestedMetrics(getStringValuedServletsMap(), SERVLET_RESPONSE);
+
+        assertThat(scraper.getMetrics(),
+                   allOf(hasMetric("servlet_state{servletName=\"JspServlet\"}", 1),
+                         hasMetric("servlet_state{servletName=\"FileServlet\"}", 0),
+                         hasMetric("servlet_state{servletName=\"ready\"}", 2)));
+    }
+
+    private ImmutableMap<String, Object> getStringValuedServletsMap() {
+        return ImmutableMap.of("servlets", emptyLeafMapWithStates);
     }
 
     @Test
@@ -332,7 +354,7 @@ class MetricsScraperTest {
 
     @Test
     void selectOnlyWebApps() {
-        componentMap.put(MBeanSelector.TYPE, "WebAppComponentRuntime");
+        componentMap.put(MBeanSelector.TYPE_KEY, "WebAppComponentRuntime");
         Map<String, Object> metrics = scraper.scrape(MBeanSelector.create(getFullMap()), getJsonResponse(RESPONSE));
 
         assertThat(metrics, hasMetric("component_deploymentState{application=\"weblogic\",component=\"ejb30_weblogic\"}", 2));
@@ -352,7 +374,7 @@ class MetricsScraperTest {
 
     private Map<String, Object> getMetricsMap() {
         return ImmutableMap.of("JVMRuntime",
-                    ImmutableMap.of(MBeanSelector.QUERY_KEY, "name", MBeanSelector.VALUES, new String[]{"processCpuLoad", "heapSizeCurrent"}));
+                    ImmutableMap.of(MBeanSelector.QUERY_KEY, "name", MBeanSelector.VALUES_KEY, new String[]{"processCpuLoad", "heapSizeCurrent"}));
     }
 
 
