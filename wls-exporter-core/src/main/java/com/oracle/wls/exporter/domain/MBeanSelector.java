@@ -31,15 +31,16 @@ public class MBeanSelector {
     static final String STRING_VALUES_KEY = "stringValues";
     static final String TYPE_FIELD_NAME = "type";
     static final MBeanSelector DOMAIN_NAME_SELECTOR = createDomainNameSelector();
+    static final String NESTING = "  ";
 
     private String type;
     private String prefix;
     private String key;
     private String keyName;
     private List<String> values = new ArrayList<>();
+    private Map<String, List<String>> stringValues;
     private Map<String, MBeanSelector> nestedSelectors = new LinkedHashMap<>();
     private QueryType queryType = QueryType.RUNTIME;
-    private Map<String, String[]> stringValues;
 
     private static MBeanSelector createDomainNameSelector() {
         Map<String,Object> yaml = new HashMap<>();
@@ -103,8 +104,9 @@ public class MBeanSelector {
         throw new ConfigurationException("Duplicate values for " + duplicate);
     }
 
+    @SuppressWarnings("unchecked")
     private void addStringValues(Object value) {
-        this.stringValues = (Map<String,String[]>) value;
+        this.stringValues = (Map<String,List<String>>) value;
     }
 
     void appendNestedQuery(StringBuilder sb, String indent) {
@@ -112,11 +114,12 @@ public class MBeanSelector {
         appendScalar(sb, indent, PREFIX_KEY, prefix);
         appendScalar(sb, indent, QUERY_KEY, key);
         appendScalar(sb, indent, KEY_NAME, keyName);
-        appendValues(sb, indent, getValues());
+        appendValues(sb, indent, values);
+        appendStringValues(sb, indent, stringValues);
 
         for (String qualifier : getNestedSelectors().keySet()) {
             sb.append(indent).append(qualifier).append(":\n");
-            getNestedSelectors().get(qualifier).appendNestedQuery(sb, indent + "  ");
+            getNestedSelectors().get(qualifier).appendNestedQuery(sb, indent + NESTING);
         }
     }
 
@@ -125,12 +128,24 @@ public class MBeanSelector {
             sb.append(indent).append(name).append(": ").append(value).append('\n');
     }
 
-    private static void appendValues(StringBuilder sb, String indent, String[] values) {
-        if (values == null || values.length == 0) return;
-        if (values.length == 1)
-            appendScalar(sb, indent, VALUES_KEY, values[0]);
+    private static void appendValues(StringBuilder sb, String indent, List<String> values) {
+        if (values == null || values.size() == 0) return;
+        if (values.size() == 1)
+            appendScalar(sb, indent, VALUES_KEY, values.get(0));
         else
-            sb.append(indent).append(VALUES_KEY).append(": [").append(String.join(", ", values)).append("]\n");
+            appendArray(sb, indent, VALUES_KEY, values);
+    }
+
+    private static void appendArray(StringBuilder sb, String indent, String key, List<String> values) {
+        sb.append(indent).append(key).append(": [").append(String.join(", ", values)).append("]\n");
+    }
+
+    private static void appendStringValues(StringBuilder sb, String indent, Map<String, List<String>> values) {
+        if (values == null || values.size() == 0) return;
+        sb.append(indent).append(STRING_VALUES_KEY).append(":\n");
+        for (Map.Entry<String, List<String>> value : values.entrySet()) {
+            appendArray(sb, indent + NESTING, value.getKey(), value.getValue());
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -183,14 +198,6 @@ public class MBeanSelector {
      */
     String getKeyName() {
         return MapUtils.isNullOrEmptyString(keyName) ? key : keyName;
-    }
-
-    /**
-     * Returns the names of fields in the underlying mbeans which should be exported.
-     * @return an array of field names.
-     */
-    String[] getValues() {
-        return values.toArray(new String[0]);
     }
 
     /**
@@ -330,9 +337,9 @@ public class MBeanSelector {
         }
     }
 
-    private int getIndex(String value, String[] fieldValues) {
-        for (int i = 0; i < fieldValues.length; i++) {
-            if (value.equalsIgnoreCase(fieldValues[i])) {
+    private int getIndex(String value, List<String> fieldValues) {
+        for (int i = 0; i < fieldValues.size(); i++) {
+            if (value.equalsIgnoreCase(fieldValues.get(i))) {
                 return i;
             }
         }

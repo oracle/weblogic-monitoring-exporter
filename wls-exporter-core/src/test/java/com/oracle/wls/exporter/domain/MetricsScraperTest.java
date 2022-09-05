@@ -6,6 +6,7 @@ package com.oracle.wls.exporter.domain;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Test;
@@ -139,7 +140,7 @@ class MetricsScraperTest {
     private final Map<String,Object> emptyLeafMapWithStates
         = new HashMap<>(ImmutableMap.of(MBeanSelector.QUERY_KEY, "servletName",
                                         MBeanSelector.PREFIX_KEY, "servlet_",
-                                        MBeanSelector.STRING_VALUES_KEY, ImmutableMap.of("state", new String[] {"stopped", "running", "confused"})));
+                                        MBeanSelector.STRING_VALUES_KEY, ImmutableMap.of("state", ImmutableList.of("stopped", "running", "confused"))));
 
     private final Map<String,Object> componentMap = new HashMap<>(
             ImmutableMap.of(MBeanSelector.KEY_NAME, "component", MBeanSelector.QUERY_KEY, "name", MBeanSelector.PREFIX_KEY, "component_",

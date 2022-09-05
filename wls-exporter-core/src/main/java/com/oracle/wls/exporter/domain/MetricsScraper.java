@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -72,7 +72,7 @@ class MetricsScraper {
 
     private String[] getValueNames(MBeanSelector beanSelector, JsonObject object) {
         final Set<String> set = object.keySet();
-        return beanSelector.useAllValues() ? asArray(set) : beanSelector.getValues();
+        return beanSelector.useAllValues() ? asArray(set) : beanSelector.getQueryValues();
     }
 
     private String[] asArray(Set<String> set) {

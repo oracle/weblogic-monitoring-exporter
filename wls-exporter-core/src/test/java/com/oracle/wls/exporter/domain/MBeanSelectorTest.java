@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import org.junit.jupiter.api.Test;
@@ -219,8 +220,8 @@ class MBeanSelectorTest {
         return MBeanSelector.create(ImmutableMap.of("servlets",
                 ImmutableMap.of(MBeanSelector.VALUES_KEY, new String[] {"first", "second"},
                                 MBeanSelector.STRING_VALUES_KEY,
-                                    ImmutableMap.of("state", new String[] { "open", "closed"},
-                                                     "color", new String[] {"red", "green"}))));
+                                    ImmutableMap.of("state", ImmutableList.of("open", "closed"),
+                                                    "color", ImmutableList.of("red", "green")))));
     }
 
     @Test
