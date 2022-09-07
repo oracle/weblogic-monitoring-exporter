@@ -129,7 +129,7 @@ public class MBeanSelector {
     }
 
     private static void appendValues(StringBuilder sb, String indent, List<String> values) {
-        if (values == null || values.size() == 0) return;
+        if (values == null || values.isEmpty()) return;
         if (values.size() == 1)
             appendScalar(sb, indent, VALUES_KEY, values.get(0));
         else
