@@ -89,24 +89,31 @@ public class MBeanSelector {
 
     private void setValues(String[] values) {
         if (values.length == 0) throw new ConfigurationException("Values specified as empty array");
-        
-        Set<String> uniqueValues = new HashSet<>(Arrays.asList(values));
-        if (values.length != uniqueValues.size())
-            reportDuplicateValues(values, uniqueValues);
-        this.values.addAll(Arrays.asList(values));
+        final List<String> valuesList = Arrays.asList(values);
+        final List<String> duplicates = getDuplicates(valuesList);
+        if (!duplicates.isEmpty())
+            throw new ConfigurationException("Duplicate values for " + duplicates);
+
+        this.values.addAll(valuesList);
     }
 
-    private void reportDuplicateValues(String[] values, Set<String> uniqueValues) {
-        ArrayList<String> duplicate = new ArrayList<>(Arrays.asList(values));
-        for (String unique : uniqueValues)
-            duplicate.remove(unique);
+    private List<String> getDuplicates(List<String> values) {
+        final List<String> result = new ArrayList<>(values);
+        for (String unique : new HashSet<>(values))
+            result.remove(unique);
 
-        throw new ConfigurationException("Duplicate values for " + duplicate);
+        return result;
     }
 
     @SuppressWarnings("unchecked")
     private void addStringValues(Object value) {
         this.stringValues = (Map<String,List<String>>) value;
+
+        for (Map.Entry<String,List<String>> stringValue : stringValues.entrySet()) {
+            final List<String> duplicates = getDuplicates(stringValue.getValue());
+            if (!duplicates.isEmpty())
+                throw new ConfigurationException("Duplicate string values " + duplicates + " for " + stringValue.getKey());
+        }
     }
 
     void appendNestedQuery(StringBuilder sb, String indent) {

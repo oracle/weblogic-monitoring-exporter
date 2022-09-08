@@ -6,9 +6,9 @@ package com.oracle.wls.exporter.domain;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import org.junit.jupiter.api.Test;
@@ -217,11 +217,38 @@ class MBeanSelectorTest {
     }
 
     private MBeanSelector createSelectorWithStringMetrics() {
+        return createSelectorWithStringMetrics(
+            StringMetric.of("state", "open", "closed"),
+            StringMetric.of("color", "red", "green"));
+    }
+
+    private MBeanSelector createSelectorWithStringMetrics(StringMetric... metrics) {
         return MBeanSelector.create(ImmutableMap.of("servlets",
                 ImmutableMap.of(MBeanSelector.VALUES_KEY, new String[] {"first", "second"},
-                                MBeanSelector.STRING_VALUES_KEY,
-                                    ImmutableMap.of("state", ImmutableList.of("open", "closed"),
-                                                    "color", ImmutableList.of("red", "green")))));
+                                MBeanSelector.STRING_VALUES_KEY, StringMetric.all(metrics))));
+    }
+
+    private static class StringMetric {
+        private final String name;
+        private final List<String> values;
+
+        private static StringMetric of(String name, String... values) {
+            return new StringMetric(name, values);
+        }
+
+        private static Map<String, List<String>> all(StringMetric... metrics) {
+            final Map<String, List<String>> result = new HashMap<>();
+            for (StringMetric metric : metrics)
+                result.put(metric.name, metric.values);
+            return result;
+        }
+
+        private StringMetric(String name, String[] values) {
+            this.name = name;
+            this.values = Arrays.asList(values);
+        }
+
+
     }
 
     @Test
@@ -246,8 +273,6 @@ class MBeanSelectorTest {
         assertThat(selector.getStringMetricValue("color", "yellow"), equalTo(-1));
     }
 
-    // todo catch duplicate string value keys
-    // todo catch duplicate string value values
     // todo catch bad type
 
     @Test
@@ -471,13 +496,14 @@ class MBeanSelectorTest {
         final Map<String, Object> map = new HashMap<>(getNoServletValuesApplicationMap());
         final Map<String, Object> componentRuntimes = getSubMap(map, "componentRuntimes");
         final Map<String, Object> servlets = getSubMap(componentRuntimes, "servlets");
-        servlets.put(MBeanSelector.STRING_VALUES_KEY, ImmutableMap.of("state", new String[] { "open", "closed"}));
+        servlets.put(MBeanSelector.STRING_VALUES_KEY, ImmutableMap.of("state", Arrays.asList("open", "closed")));
 
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of("applicationRuntimes", map));
 
         assertThat(parseString(selector.getRequest()), equalTo(parseString(compressedJsonForm(EXPECTED_ALL_SERVLET_VALUES_JSON_REQUEST))));
     }
 
+    @SuppressWarnings("unchecked")
     private Map<String,Object> getSubMap(Map<String, Object> map, String key) {
         return (Map<String,Object>) map.get(key);
     }
