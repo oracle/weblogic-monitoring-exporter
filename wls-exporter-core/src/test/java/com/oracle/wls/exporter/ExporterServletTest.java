@@ -21,9 +21,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static com.oracle.wls.exporter.InMemoryFileSystem.withNoParams;
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
-import static com.oracle.wls.exporter.domain.JsonPathMatcher.hasJsonPath;
 import static com.oracle.wls.exporter.matchers.CommentsOnlyMatcher.containsOnlyComments;
 import static com.oracle.wls.exporter.matchers.MetricsNamesSnakeCaseMatcher.usesSnakeCase;
 import static com.oracle.wls.exporter.matchers.PrometheusMetricsMatcher.followsPrometheusRules;
@@ -35,6 +35,7 @@ import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.arrayContaining;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
@@ -61,6 +62,8 @@ class ExporterServletTest {
                                                    "\nqueries:\n- groups:\n    key: name\n    values: testSample1";
     private static final String CONFIG_WITH_CATEGORY_VALUE = "queries:" +
             "\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1, testSample2, bogus]";
+    private static final String CONFIG_WITH_STRING_VALUES = "queries:" +
+            "\n- groups:\n    key: name\n    stringValues:\n      color: [red, green]\n      size: [tall, grande, venti]";
     private static final String MULTI_QUERY_CONFIG = "queries:" +
             "\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]" +
             "\n- colors:                         \n    key: hue \n    values: wavelength";
@@ -232,7 +235,7 @@ class ExporterServletTest {
         servlet.doGet(request, response);
 
         assertThat(factory.getSentQuery(),
-                   hasJsonPath("$.children.groups.fields").withValues("name", "testSample1"));
+                   hasJsonPath("$.children.groups.fields", contains("name", "testSample1")));
     }
 
     private void initServlet(String configuration) {
@@ -364,6 +367,29 @@ class ExporterServletTest {
                     ImmutableMap.of("hue", "red", "wavelength", 700),
                     ImmutableMap.of("hue", "green", "wavelength", 540),
                     ImmutableMap.of("hue", "blue", "wavelength", 475)
+        ));
+    }
+
+    @Test
+    void onGetWithStringValues_displayMetrics() throws Exception {
+        factory.addJsonResponse(getStringResponseMap());
+        initServlet(CONFIG_WITH_STRING_VALUES);
+
+        servlet.doGet(request, this.response);
+
+        assertThat(toHtml(this.response), containsString("color{name=\"fred\"} 0"));
+        assertThat(toHtml(this.response), containsString("color{name=\"george\"} 1"));
+        assertThat(toHtml(this.response), containsString("color{name=\"ron\"} -1"));
+        assertThat(toHtml(this.response), containsString("size{name=\"fred\"} 0"));
+        assertThat(toHtml(this.response), containsString("size{name=\"george\"} 1"));
+        assertThat(toHtml(this.response), containsString("size{name=\"ron\"} 2"));
+    }
+
+    private Map<String,Object> getStringResponseMap() {
+        return ImmutableMap.of("groups", new ItemHolder(
+                    ImmutableMap.of("name", "fred", "color", "red", "size", "tall"),
+                    ImmutableMap.of("name", "george", "color", "green", "size", "grande"),
+                    ImmutableMap.of("name", "ron", "color", "blue", "size", "venti")
         ));
     }
 

@@ -29,7 +29,7 @@ import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.hamcrest.Matchers.equalToCompressingWhiteSpace;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
@@ -55,6 +55,7 @@ class ExporterConfigTest {
             "        prefix: weblogic_servlet_\n" +
             "        key: servletName\n" +
             "        values: [invocationTotalCount, executionTimeTotal]\n";
+
     private static final Map<String, Object> NULL_MAP = null;
 
     private Map<String,Object> yamlConfig = new HashMap<>();
@@ -235,14 +236,24 @@ class ExporterConfigTest {
     void afterLoad_convertToString() {
         ExporterConfig config = loadFromString(SNAKE_CASE_CONFIG);
 
-        assertThat(config.toString(), equalToIgnoringWhiteSpace(SNAKE_CASE_CONFIG));
+        assertThat(config.toString(), equalToCompressingWhiteSpace(SNAKE_CASE_CONFIG));
     }
+
+    @Test
+    void whenQueriesNotDefinedAsArray_reportError() {
+        assertThrows(ConfigurationException.class, () -> loadFromString(BAD_QUERY_CONFIG));
+    }
+
+    private static final String BAD_QUERY_CONFIG =
+            "queries:\n" +
+            "  key: name\n" +
+            "  values: [state, serverStartupTime]\n";
 
     @Test
     void includeTopLevelFieldsInString() {
         ExporterConfig config = loadFromString(CONFIG_WITH_TOP_LEVEL_FIELDS);
 
-        assertThat(config.toString(), equalToIgnoringWhiteSpace(CONFIG_WITH_TOP_LEVEL_FIELDS));
+        assertThat(config.toString(), equalToCompressingWhiteSpace(CONFIG_WITH_TOP_LEVEL_FIELDS));
     }
     
     private static final String CONFIG_WITH_TOP_LEVEL_FIELDS =
@@ -258,7 +269,7 @@ class ExporterConfigTest {
     void includeSnakeCaseTrueSettingInToString() {
         ExporterConfig config = loadFromString(SNAKE_CASE_CONFIG);
 
-        assertThat(config.toString(), equalToIgnoringWhiteSpace(SNAKE_CASE_CONFIG));
+        assertThat(config.toString(), equalToCompressingWhiteSpace(SNAKE_CASE_CONFIG));
     }
 
     private static final String SNAKE_CASE_CONFIG =
@@ -275,7 +286,7 @@ class ExporterConfigTest {
     void includeRestPortSettingInToString() {
         ExporterConfig config = loadFromString(REST_PORT_CONFIG);
 
-        assertThat(config.toString(), equalToIgnoringWhiteSpace(REST_PORT_CONFIG));
+        assertThat(config.toString(), equalToCompressingWhiteSpace(REST_PORT_CONFIG));
     }
 
     private static final String REST_PORT_CONFIG =
@@ -523,6 +534,22 @@ class ExporterConfigTest {
             "- JVMRuntime:\n" +
             "    key: name\n" +
             "    values: []\n";
+
+    @Test
+    void whenConfigHasDuplicateStringValueKeys_reportFailure() {
+        assertThrows(ConfigurationException.class, () -> loadFromString(CONFIG_WITH_DUPLICATE_STRING_VALUES));
+    }
+
+    private static final String CONFIG_WITH_DUPLICATE_STRING_VALUES =
+            "queries:\n" +
+            "- applicationRuntimes:\n" +
+            "    key: name\n" +
+            "    workManagerRuntimes:\n" +
+            "      prefix: workmanager_\n" +
+            "      key: applicationName\n" +
+            "      stringValues:\n" +
+            "        state: [open, close]\n" +
+            "        color: [red, green, red]";
 
     @Test
     void defineEmptyConfiguration() {

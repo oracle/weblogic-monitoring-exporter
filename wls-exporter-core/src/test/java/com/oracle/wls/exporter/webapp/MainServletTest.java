@@ -137,7 +137,9 @@ class MainServletTest {
             "- groups:\n" +
             "    prefix: new_\n" +
             "    key: name\n" +
-            "    values: [sample1, sample2]\n";
+            "    values: [sample1, sample2]\n" +
+            "    stringValues:\n" +
+            "      colors: [red, green, blue]";
 
     private static final String EFFECTIVE_CONFIGURATION =
             "hostName: " + HttpServletRequestStub.HOST_NAME + "\n" +
@@ -146,7 +148,9 @@ class MainServletTest {
             "- groups:\n" +
             "    prefix: new_\n" +
             "    key: name\n" +
-            "    values: [sample1, sample2]\n";
+            "    values: [sample1, sample2]\n" +
+            "    stringValues:\n" +
+            "      colors: [red, green, blue]";
 
 // assertThat(getPage(), containsForm().withAction(CONFIGURATION_ACTION).withMethod("post").withEncType("multipart/form-data")
     // assertThat(getPage(), containsForm().withRadioButton("effect").withValues("append","replace").withDefault("append")
