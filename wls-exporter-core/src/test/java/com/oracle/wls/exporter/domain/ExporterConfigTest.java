@@ -664,11 +664,36 @@ class ExporterConfigTest {
             "]}}";
 
     @Test
+    void whenNullSelectedKeysSpecified_reportError() {
+        assertThrows(ConfigurationException.class, () -> loadFromString(NULL_ARRAY_FILTERED_CONFIG));
+    }
+
+    private static final String NULL_ARRAY_FILTERED_CONFIG =
+            "queries:\n" +
+            "- applicationRuntimes:\n" +
+            "    workManagerRuntimes:\n" +
+            "      key: applicationName\n" +
+            "      selectedKeys: \n" +
+            "      values: [pendingRequests, completedRequests, stuckThreadCount]\n";
+
+    @Test
+    void whenEmptySelectedKeysSpecified_reportError() {
+        assertThrows(ConfigurationException.class, () -> loadFromString(EMPTY_ARRAY_FILTERED_CONFIG));
+    }
+
+    private static final String EMPTY_ARRAY_FILTERED_CONFIG =
+            "queries:\n" +
+            "- applicationRuntimes:\n" +
+            "    workManagerRuntimes:\n" +
+            "      key: applicationName\n" +
+            "      selectedKeys: []\n" +
+            "      values: [pendingRequests, completedRequests, stuckThreadCount]\n";
+
+    @Test
     void whenConfigHasSelectedKeys_displayThem() {
         ExporterConfig exporterConfig = loadFromString(FILTERED_CONFIG);
 
         assertThat(exporterConfig.toString(), containsString("selectedKeys: [first, second]"));
-
     }
 
     private static final String FILTERED_CONFIG =
