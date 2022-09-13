@@ -36,6 +36,7 @@ queries:
       type: WebAppComponentRuntime
       prefix: webapp_config_
       key: name
+      selectedKeys: [app1, "app/complex", app3]
       values: [deploymentState, contextRoot, sourceInfo, openSessionsHighCount]
       stringValues:
         status: [deployed, undeployed]
@@ -63,6 +64,7 @@ Within each section, there are a number of options:
 | Name           | Description                                                                                                                            |
 |----------------|----------------------------------------------------------------------------------------------------------------------------------------|
 | `key`          | The name of the attribute to use as a key for qualifiers in the output.                                                                |
+| `selectedKeys` | An optional filter. If specified, only entries whose key value is included in the list will generate metrics.                          |
 | `keyName`      | The name to use for the key in the qualifier; defaults to the name of the attribute.                                                   |
 | `prefix`       | A prefix to use for all the metrics gathered from the current level.                                                                   |
 | `values`       | The attributes for which metrics are to be output. If not specified and a prefix is defined, all values on the MBean will be selected. |

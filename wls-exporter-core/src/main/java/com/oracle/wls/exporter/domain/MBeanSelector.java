@@ -3,19 +3,11 @@
 
 package com.oracle.wls.exporter.domain;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Consumer;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
+import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * A description of an mbean to be selected by the generated JSON query and captured from the result.
@@ -27,6 +19,7 @@ public class MBeanSelector {
     static final String PREFIX_KEY = "prefix";
     static final String QUERY_KEY = "key";
     static final String KEY_NAME = "keyName";
+    static final String FILTER_KEY = "selectedKeys";
     static final String VALUES_KEY = "values";
     static final String STRING_VALUES_KEY = "stringValues";
     static final String TYPE_FIELD_NAME = "type";
@@ -37,6 +30,7 @@ public class MBeanSelector {
     private String prefix;
     private String key;
     private String keyName;
+    private final List<String> filter = new ArrayList<>();
     private List<String> values = new ArrayList<>();
     private Map<String, List<String>> stringValues;
     private Map<String, MBeanSelector> nestedSelectors = new LinkedHashMap<>();
@@ -71,11 +65,15 @@ public class MBeanSelector {
                 case STRING_VALUES_KEY:
                     addStringValues(entry.getValue());
                     break;
+                case FILTER_KEY:
+                    setFilterKeys(MapUtils.getStringArray(map, FILTER_KEY));
+                    break;
                 default:
                     addNestedSelector(entry.getKey(), entry.getValue());
                     break;
             }
         }
+        validate();
     }
 
     private void addNestedSelector(String key, Object selectorValue) {
@@ -89,12 +87,16 @@ public class MBeanSelector {
 
     private void setValues(String[] values) {
         if (values.length == 0) throw new ConfigurationException("Values specified as empty array");
-        final List<String> valuesList = Arrays.asList(values);
-        final List<String> duplicates = getDuplicates(valuesList);
-        if (!duplicates.isEmpty())
-            throw new ConfigurationException("Duplicate values for " + duplicates);
+        final List<String> valuesList = getStringValues(values, "Duplicate values for ");
 
         this.values.addAll(valuesList);
+    }
+
+    private List<String> getStringValues(String[] values, String duplicateMessage) {
+        final List<String> valuesList = Arrays.asList(values);
+        final List<String> duplicates = getDuplicates(valuesList);
+        if (!duplicates.isEmpty()) throw new ConfigurationException(duplicateMessage + duplicates);
+        return valuesList;
     }
 
     private List<String> getDuplicates(List<String> values) {
@@ -105,6 +107,14 @@ public class MBeanSelector {
         return result;
     }
 
+    private void setFilterKeys(String[] keys) {
+        if (keys.length == 0) throw new ConfigurationException(FILTER_KEY + " specified as empty array");
+        final List<String> selectedKeys = getStringValues(keys, "Duplicate filter keys ");
+
+        this.filter.addAll(selectedKeys);
+    }
+
+
     @SuppressWarnings("unchecked")
     private void addStringValues(Object value) {
         this.stringValues = (Map<String,List<String>>) value;
@@ -114,6 +124,11 @@ public class MBeanSelector {
             if (!duplicates.isEmpty())
                 throw new ConfigurationException("Duplicate string values " + duplicates + " for " + stringValue.getKey());
         }
+    }
+
+    private void validate() {
+        if (getKey() == null && getFilterKeys().length != 0)
+            throw new ConfigurationException("Selected key values specified without key field " + Arrays.toString(getFilterKeys()));
     }
 
     void appendNestedQuery(StringBuilder sb, String indent) {
@@ -223,6 +238,14 @@ public class MBeanSelector {
     }
 
     /**
+     * Returns the key values to select. May be emptry.
+     * @return an array of field names.
+     */
+    String[] getFilterKeys() {
+        return filter.toArray(new String[0]);
+    }
+
+    /**
      * Returns a map of nested mbean selectors
      * @return the nested selectors
      */
@@ -235,7 +258,7 @@ public class MBeanSelector {
      * @return a JSON string
      */
     public String getPrintableRequest() {
-        return new GsonBuilder().setPrettyPrinting().create().toJson(createQuerySpec());
+        return toQuerySpec().toJson(new GsonBuilder().setPrettyPrinting().create());
     }
 
     /**
@@ -243,17 +266,15 @@ public class MBeanSelector {
      * @return a JSON string
      */
     public String getRequest() {
-        return new Gson().toJson(createQuerySpec());
-    }
-
-    private JsonQuerySpec createQuerySpec() {
-        return toQuerySpec();
+        return toQuerySpec().toJson(new Gson());
     }
 
     JsonQuerySpec toQuerySpec() {
         JsonQuerySpec spec = new JsonQuerySpec();
         if (!useAllValues())
             selectQueryFields(spec, getQueryValues());
+        if (!filter.isEmpty())
+            spec.setFilter(key, filter);
 
         for (Map.Entry<String, MBeanSelector> selector : nestedSelectors.entrySet())
             spec.addChild(selector.getKey(), selector.getValue().toQuerySpec());

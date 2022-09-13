@@ -3,31 +3,19 @@
 
 package com.oracle.wls.exporter.domain;
 
+import com.google.common.collect.ImmutableMap;
+import org.junit.jupiter.api.Test;
+
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
-import org.junit.jupiter.api.Test;
-
 import static com.google.gson.JsonParser.parseString;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.aMapWithSize;
-import static org.hamcrest.Matchers.anEmptyMap;
-import static org.hamcrest.Matchers.arrayContaining;
-import static org.hamcrest.Matchers.both;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.emptyArray;
-import static org.hamcrest.Matchers.emptyOrNullString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 
 /**
  * @author Russell Gold
@@ -39,6 +27,7 @@ class MBeanSelectorTest {
     private static final String EXPECTED_KEY = "servletName";
     private static final String EXPECTED_KEY_NAME = "config";
     private static final String[] EXPECTED_VALUES = {"first", "second", "third"};
+    private static final String[] EXPECTED_FILTERS = {"up", "down", "strange"};
     private static final String[] EXPECTED_COMPONENT_VALUES = {"age", "beauty"};
 
     @Test
@@ -143,6 +132,20 @@ class MBeanSelectorTest {
         assertThat(selector.getQueryValues(), equalTo(EXPECTED_VALUES));
     }
 
+    @Test
+    void whenMapHasFilter_selectorHasFilterKeys() {
+        MBeanSelector selector = MBeanSelector.create(
+            ImmutableMap.of(MBeanSelector.QUERY_KEY, EXPECTED_KEY, MBeanSelector.FILTER_KEY, EXPECTED_FILTERS));
+
+        assertThat(selector.getFilterKeys(), equalTo(EXPECTED_FILTERS));
+    }
+
+    @Test
+    void whenMapHasNoFilter_selectorHasEmptyFilterKeys() {
+        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of());
+
+        assertThat(selector.getFilterKeys(), emptyArray());
+    }
 
     @Test
     void whenNoNestedSelectorsInMap_selectorHasNoNestedSelectors() {
@@ -153,8 +156,7 @@ class MBeanSelectorTest {
 
     @Test
     void whenMapHasNestedSelector_createInParent() {
-        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of("servlets",
-                getServletMap()));
+        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of("servlets", getServletMap()));
 
         MBeanSelector servlets = selector.getNestedSelectors().get("servlets");
         assertThat(servlets.getKey(), equalTo(EXPECTED_KEY));
@@ -174,7 +176,7 @@ class MBeanSelectorTest {
     }
 
     private static String querySpec(MBeanSelector selector) {
-        return new Gson().toJson(selector.toQuerySpec());
+        return selector.getRequest();
     }
 
     @Test
@@ -199,6 +201,14 @@ class MBeanSelectorTest {
                 ImmutableMap.of(MBeanSelector.VALUES_KEY, new String[] {"first", "second"})));
 
         assertThat(querySpec(selector), hasJsonPath("$.children.servlets.fields", containsInAnyOrder("first", "second")));
+    }
+
+    @Test
+    void whenMapHasSelectedKeys_AddToQuery() {
+        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of("servlets",
+                ImmutableMap.of(MBeanSelector.QUERY_KEY, "sName", MBeanSelector.FILTER_KEY, new String[] {"alpha", "beta"})));
+
+        assertThat(querySpec(selector), hasJsonPath("$.children.servlets.sName", containsInAnyOrder("alpha", "beta")));
     }
 
     @Test
@@ -247,8 +257,6 @@ class MBeanSelectorTest {
             this.name = name;
             this.values = Arrays.asList(values);
         }
-
-
     }
 
     @Test
