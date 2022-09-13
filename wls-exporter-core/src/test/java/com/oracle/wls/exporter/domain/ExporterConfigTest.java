@@ -663,6 +663,23 @@ class ExporterConfigTest {
             "     }\n" +
             "]}}";
 
+    @Test
+    void whenConfigHasSelectedKeys_displayThem() {
+        ExporterConfig exporterConfig = loadFromString(FILTERED_CONFIG);
+
+        assertThat(exporterConfig.toString(), containsString("selectedKeys: [first, second]"));
+
+    }
+
+    private static final String FILTERED_CONFIG =
+            "queries:\n" +
+            "- applicationRuntimes:\n" +
+            "    workManagerRuntimes:\n" +
+            "      key: applicationName\n" +
+            "      selectedKeys: [first, second]\n" +
+            "      values: [pendingRequests, completedRequests, stuckThreadCount]\n";
+
+
     @SuppressWarnings("SameParameterValue")
     private JsonObject getJsonResponse(String jsonString) {
         return JsonParser.parseString(jsonString).getAsJsonObject();

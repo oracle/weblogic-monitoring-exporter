@@ -135,8 +135,9 @@ public class MBeanSelector {
         appendScalar(sb, indent, TYPE_KEY, type);
         appendScalar(sb, indent, PREFIX_KEY, prefix);
         appendScalar(sb, indent, QUERY_KEY, key);
+        appendStringList(sb, indent, FILTER_KEY, filter);
         appendScalar(sb, indent, KEY_NAME, keyName);
-        appendValues(sb, indent, values);
+        appendStringList(sb, indent, VALUES_KEY, values);
         appendStringValues(sb, indent, stringValues);
 
         for (String qualifier : getNestedSelectors().keySet()) {
@@ -150,12 +151,12 @@ public class MBeanSelector {
             sb.append(indent).append(name).append(": ").append(value).append('\n');
     }
 
-    private static void appendValues(StringBuilder sb, String indent, List<String> values) {
+    private static void appendStringList(StringBuilder sb, String indent, String name, List<String> values) {
         if (values == null || values.isEmpty()) return;
         if (values.size() == 1)
-            appendScalar(sb, indent, VALUES_KEY, values.get(0));
+            appendScalar(sb, indent, name, values.get(0));
         else
-            appendArray(sb, indent, VALUES_KEY, values);
+            appendArray(sb, indent, name, values);
     }
 
     private static void appendArray(StringBuilder sb, String indent, String key, List<String> values) {
