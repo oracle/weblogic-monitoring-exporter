@@ -2,7 +2,7 @@
 #   Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 # First layer: dependencies for the project, cached in the /root/.m2 directory
-FROM maven:3-openjdk-18 as m2repo
+FROM maven:3-openjdk-18-slim as m2repo
 ARG MAVEN_OPTS
 
 WORKDIR /project/
