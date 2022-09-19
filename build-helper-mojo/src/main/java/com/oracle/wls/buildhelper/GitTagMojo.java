@@ -29,6 +29,7 @@ public class GitTagMojo extends AbstractMojo {
     this.executor = executor;
   }
 
+  @SuppressWarnings("unused")  // invoked by Maven
   public GitTagMojo() {
     this(new GitTagExecutorImpl());
   }
