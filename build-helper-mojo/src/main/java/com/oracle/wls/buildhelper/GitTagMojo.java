@@ -40,7 +40,7 @@ public class GitTagMojo extends AbstractMojo {
       final Path path = executor.toPath(outputFile);
       Files.createDirectories(path.getParent());
       Files.write(path, createProperties(versionString));
-    } catch (IOException | InterruptedException e) {
+    } catch (IOException e) {
       throw new MojoExecutionException("Error writing " + outputFile + ": " + e );
     }
 

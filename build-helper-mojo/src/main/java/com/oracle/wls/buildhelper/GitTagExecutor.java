@@ -3,6 +3,8 @@
 
 package com.oracle.wls.buildhelper;
 
+import org.apache.maven.plugin.MojoExecutionException;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -16,7 +18,7 @@ interface GitTagExecutor {
    * Issues a command and returns the response.
    * @param commandLine the command to execute
    */
-  String runCommand(String... commandLine) throws IOException, InterruptedException;
+  String runCommand(String... commandLine) throws IOException, MojoExecutionException;
 
   Path toPath(File file);
 }

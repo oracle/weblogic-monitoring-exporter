@@ -3,6 +3,8 @@
 
 package com.oracle.wls.buildhelper;
 
+import org.apache.maven.plugin.MojoExecutionException;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -12,15 +14,18 @@ import java.util.stream.Collectors;
 
 public class GitTagExecutorImpl implements GitTagExecutor {
   @Override
-  public String runCommand(String... commandLineStrings) throws IOException, InterruptedException {
-    /**/
-    Process vp = new ProcessBuilder(commandLineStrings).start();
-    /**/
+  public String runCommand(String... commandLineStrings) throws IOException, MojoExecutionException {
+    try {
+      final Process vp = new ProcessBuilder(commandLineStrings).start();
 
-    vp.waitFor();
+      vp.waitFor();
 
-    final BufferedReader br = new BufferedReader(new InputStreamReader(vp.getInputStream()));
-    return br.lines().collect(Collectors.joining("\n"));
+      final BufferedReader br = new BufferedReader(new InputStreamReader(vp.getInputStream()));
+      return br.lines().collect(Collectors.joining("\n"));
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new MojoExecutionException("Thread interrupted while running command " + String.join(" ", commandLineStrings));
+    }
   }
 
   @Override
