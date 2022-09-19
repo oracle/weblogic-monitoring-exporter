@@ -3,10 +3,9 @@
 
 package com.oracle.wls.buildhelper;
 
-import com.meterware.simplestub.Stub;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -17,10 +16,11 @@ import java.nio.file.Path;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class GitTagMojoTest {
   private final InMemoryFileSystem inMemoryFileSystem = InMemoryFileSystem.createInstance();
-  private final GitTagExecutorStub stub = Stub.createStub(GitTagExecutorStub.class, inMemoryFileSystem);
+  private final GitTagExecutorStub stub = new GitTagExecutorStub(inMemoryFileSystem);
   private final GitTagMojo mojo = new GitTagMojo(stub);
   private final File outputFile = new File("/a/b/v.properties");
   private final Path outputPath = inMemoryFileSystem.getPath(outputFile.getAbsolutePath());
@@ -35,7 +35,7 @@ class GitTagMojoTest {
 
   @Test
   void helperImplementsMojo() {
-    assertThat(mojo, Matchers.instanceOf(AbstractMojo.class));
+    assertThat(mojo, instanceOf(AbstractMojo.class));
   }
 
   @Test
@@ -75,6 +75,13 @@ class GitTagMojoTest {
   }
 
   @Test
+  void whenUnableToWriteFile_reportFailure() {
+    inMemoryFileSystem.throwExceptionOnAccess(outputFile.getAbsolutePath());
+
+    assertThrows(MojoExecutionException.class, mojo::execute);
+  }
+
+  @Test
   void whenGitResponseIsVersionPlusHistory_createVersionProperty() throws Exception {
     stub.setCommandResponse("v3.3.5-3-946-gcb4385f3aa");
 
@@ -93,6 +100,16 @@ class GitTagMojoTest {
     assertThat(inMemoryFileSystem.getContents(outputFile.getAbsolutePath()), containsString("version=v3.4-1"));
   }
 
+  @Test
+  void publicConstructorSuppliesLiveExecutor() throws NoSuchFieldException, IllegalAccessException {
+    GitTagMojo mojo = new GitTagMojo();
+
+    Field field = mojo.getClass().getDeclaredField("executor");
+    field.setAccessible(true);
+
+    assertThat(field.get(mojo), instanceOf(GitTagExecutor.class));
+  }
+
   @SuppressWarnings("SameParameterValue")
   private void setMojoParameter(String fieldName, Object value) throws Exception {
     Field field = mojo.getClass().getDeclaredField(fieldName);
@@ -100,7 +117,7 @@ class GitTagMojoTest {
     field.set(mojo, value);
   }
 
-  static abstract class GitTagExecutorStub implements GitTagExecutor {
+  static class GitTagExecutorStub implements GitTagExecutor {
     private static final String DEFAULT_RESPONSE = "v3.3.5";
     private final InMemoryFileSystem inMemoryFileSystem;
     private String commandLine;

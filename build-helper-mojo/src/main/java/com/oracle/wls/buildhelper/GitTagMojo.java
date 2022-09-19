@@ -29,7 +29,7 @@ public class GitTagMojo extends AbstractMojo {
     this.executor = executor;
   }
 
-  @SuppressWarnings("unused")  // invoked by Maven
+  @SuppressWarnings("unused")
   public GitTagMojo() {
     this(new GitTagExecutorImpl());
   }
@@ -52,11 +52,9 @@ public class GitTagMojo extends AbstractMojo {
   }
 
   // parses the result of 'git describe --tag' to describe the current code version/
-  String toVersionString(String gitResponse) {
+  private String toVersionString(String gitResponse) {
     final String[] segments = gitResponse.split("-");
-    if (segments.length == 0)
-      return "UNKNOWN";
-    else if (segments.length == 1 || segments.length == 2)
+    if (segments.length == 1 || segments.length == 2)
       return gitResponse;
     else
       return formatVersionString(segments);

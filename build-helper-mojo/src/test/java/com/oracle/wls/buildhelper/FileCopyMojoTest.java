@@ -7,6 +7,7 @@ import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
 import com.meterware.simplestub.SystemPropertySupport;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,16 +19,16 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.meterware.simplestub.Stub.createStub;
 import static org.apache.maven.plugins.annotations.LifecyclePhase.PROCESS_RESOURCES;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FileCopyMojoTest {
-
+  private final InMemoryFileSystem inMemoryFileSystem = InMemoryFileSystem.createInstance();
+  private final CopyExecutorStub copyExecutorStub = new CopyExecutorStub(inMemoryFileSystem);
   private final FileCopyMojo mojo = new FileCopyMojo();
   private final List<Memento> mementos = new ArrayList<>();
-  private final CopyExecutorStub copyExecutorStub = new CopyExecutorStub();
   private MojoTestSupport mojoTestSupport;
 
   @BeforeEach
@@ -94,11 +95,11 @@ class FileCopyMojoTest {
   void whenSourceAndTargetAbsolute_useAbsolutePaths() throws Exception {
     setMojoParameter("sourceFile", "/root/source");
     setMojoParameter("targetFile", new File("/root/target"));
+    inMemoryFileSystem.defineFile("/root/source", "**CONTENT**");
 
     mojo.execute();
 
-    assertThat(copyExecutorStub.sourcePath, equalTo("/root/source"));
-    assertThat(copyExecutorStub.targetPath, equalTo("/root/target"));
+    assertThat(inMemoryFileSystem.getContents("/root/target"), equalTo("**CONTENT**"));
   }
 
   @Test
@@ -106,11 +107,11 @@ class FileCopyMojoTest {
     setMojoParameter("sourceFile", "source");
     setMojoParameter("targetFile", new File("/root/target"));
     setMojoParameter("userDir", new File("/root/nested"));
+    inMemoryFileSystem.defineFile("/root/nested/source", "**CONTENT**");
 
     mojo.execute();
 
-    assertThat(copyExecutorStub.sourcePath, equalTo("/root/nested/source"));
-    assertThat(copyExecutorStub.targetPath, equalTo("/root/target"));
+    assertThat(inMemoryFileSystem.getContents("/root/target"), equalTo("**CONTENT**"));
   }
 
   @Test
@@ -118,11 +119,21 @@ class FileCopyMojoTest {
     System.setProperty("user.dir", "/user");
     setMojoParameter("sourceFile", "source");
     setMojoParameter("targetFile", new File("/root/target"));
+    inMemoryFileSystem.defineFile("/user/source", "**CONTENT**");
 
     mojo.execute();
 
-    assertThat(copyExecutorStub.sourcePath, equalTo("/user/source"));
-    assertThat(copyExecutorStub.targetPath, equalTo("/root/target"));
+    assertThat(inMemoryFileSystem.getContents("/root/target"), equalTo("**CONTENT**"));
+  }
+
+  @Test
+  void whenUnableToCopy_reportFailure() throws Exception {
+    System.setProperty("user.dir", "/user");
+    setMojoParameter("sourceFile", "source");
+    setMojoParameter("targetFile", new File("/root/target"));
+    inMemoryFileSystem.throwExceptionOnAccess("/root/target");
+
+    assertThrows(MojoExecutionException.class, mojo::execute);
   }
 
   private void setMojoParameter(String fieldName, Object value) throws Exception {
@@ -133,32 +144,16 @@ class FileCopyMojoTest {
 
   static class CopyExecutorStub implements CopyExecutor {
 
-    private String sourcePath;
-    private String targetPath;
+    private final InMemoryFileSystem inMemoryFileSystem;
+
+    public CopyExecutorStub(InMemoryFileSystem inMemoryFileSystem) {
+      this.inMemoryFileSystem = inMemoryFileSystem;
+    }
 
     @Override
     public Path toPath(File file) {
-      return createStub(PathStub.class, file);
+      return inMemoryFileSystem.getPath(file.getAbsolutePath());
     }
-
-    @Override
-    public void copyFile(Path sourcePath, Path targetPath) {
-      this.sourcePath = getPathString(sourcePath);
-      this.targetPath = getPathString(targetPath);
-    }
-
-    protected String getPathString(Path path) {
-      return ((PathStub) path).path;
-    }
-  }
-
-  static abstract class PathStub implements Path {
-    private final String path;
-
-    PathStub(File file) {
-      path = file.getPath();
-    }
-
   }
 
 }

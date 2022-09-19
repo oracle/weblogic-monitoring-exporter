@@ -21,7 +21,6 @@ import static com.meterware.simplestub.Stub.createStrictStub;
 public abstract class InMemoryFileSystem extends FileSystem {
   private static InMemoryFileSystem instance;
   private final FileSystemProviderStub provider = createStrictStub(FileSystemProviderStub.class);
-  private String throwExceptionOnGetPath;
 
   public static InMemoryFileSystem createInstance() {
     return instance = createStrictStub(InMemoryFileSystem.class);
@@ -39,8 +38,8 @@ public abstract class InMemoryFileSystem extends FileSystem {
     return provider.fileContents.get(filePath);
   }
 
-  public void throwExceptionOnGetPath(String path) {
-    this.throwExceptionOnGetPath = path;
+  public void throwExceptionOnAccess(String path) {
+    provider.throwExceptionOnAccess = path;
   }
 
   public Path getPath(@Nonnull String first, @Nonnull String... more) {
@@ -52,8 +51,6 @@ public abstract class InMemoryFileSystem extends FileSystem {
   }
 
   private String createPathString(String first, String[] more) {
-    Optional.ofNullable(throwExceptionOnGetPath).filter(first::equals).ifPresent(this::throwException);
-
     return more.length == 0 ? first : first + "/" + String.join("/", more);
   }
 
@@ -128,6 +125,8 @@ public abstract class InMemoryFileSystem extends FileSystem {
   }
 
   abstract static class FileSystemProviderStub extends FileSystemProvider {
+    private String throwExceptionOnAccess = null;
+
     private final Map<String, String> fileContents = new HashMap<>();
 
     static String getFilePath(Path path) {
@@ -168,8 +167,9 @@ public abstract class InMemoryFileSystem extends FileSystem {
 
     @Override
     public SeekableByteChannel newByteChannel(
-        Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs)
-        throws FileNotFoundException {
+        Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
+      if (path.toString().equals(throwExceptionOnAccess)) throw new IOException("for unit test");
+
       if (!options.contains(StandardOpenOption.WRITE)) {
         return Optional.ofNullable(fileContents.get(getFilePath(path)))
               .map(s -> createStrictStub(ReadOnlyByteChannelStub.class, s))
@@ -198,6 +198,18 @@ public abstract class InMemoryFileSystem extends FileSystem {
         }
       }
       return null;
+    }
+
+    @Override
+    public void copy(Path source, Path target, CopyOption... options) throws IOException {
+      if (source.toString().equals(throwExceptionOnAccess) || target.toString().equals(throwExceptionOnAccess))
+        throw new IOException("for unit test");
+
+      if (options.length != 1 && !StandardCopyOption.REPLACE_EXISTING.equals(options[0])) {
+        throw new IOException("Only REPLACE_EXISTING option is supported");
+      }
+
+      fileContents.put(getFilePath(target), fileContents.get(getFilePath(source)));
     }
   }
 
