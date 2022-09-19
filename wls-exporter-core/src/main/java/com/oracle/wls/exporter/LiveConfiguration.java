@@ -3,19 +3,21 @@
 
 package com.oracle.wls.exporter;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Map;
-import java.util.Optional;
-
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.oracle.wls.exporter.domain.ExporterConfig;
 import com.oracle.wls.exporter.domain.MBeanSelector;
 import com.oracle.wls.exporter.domain.QuerySyncConfiguration;
 import org.yaml.snakeyaml.Yaml;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 
 /**
  * The repository for the current exporter configuration.
@@ -56,6 +58,16 @@ public class LiveConfiguration {
         return config;
     }
 
+    public static String getVersionString() {
+        try (InputStream in = LiveConfiguration.class.getClassLoader().getResourceAsStream("version.properties")) {
+            Properties properties = new Properties();
+            properties.load(in);
+            return properties.getProperty("version");
+
+        } catch (IOException e) {
+            return "** unknown version";
+        }
+    }
 
     public static void loadFromString(String yamlString) {
         Map<String, Object> yamlConfig = new Yaml().load(yamlString);

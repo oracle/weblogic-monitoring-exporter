@@ -3,12 +3,6 @@
 
 package com.oracle.wls.buildhelper;
 
-import java.io.File;
-import java.lang.reflect.Field;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
 import com.meterware.simplestub.SystemPropertySupport;
@@ -18,25 +12,28 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+import java.lang.reflect.Field;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.meterware.simplestub.Stub.createStub;
 import static org.apache.maven.plugins.annotations.LifecyclePhase.PROCESS_RESOURCES;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 
-class BuildHelperMojoTest {
+class FileCopyMojoTest {
 
-  private final BuildHelperMojo mojo = new BuildHelperMojo();
+  private final FileCopyMojo mojo = new FileCopyMojo();
   private final List<Memento> mementos = new ArrayList<>();
   private final CopyExecutorStub copyExecutorStub = new CopyExecutorStub();
   private MojoTestSupport mojoTestSupport;
 
   @BeforeEach
   public void setUp() throws Exception {
-    mojoTestSupport = new MojoTestSupport(BuildHelperMojo.class);
-    mementos.add(StaticStubSupport.install(BuildHelperMojo.class, "executor", copyExecutorStub));
+    mojoTestSupport = new MojoTestSupport(FileCopyMojo.class);
+    mementos.add(StaticStubSupport.install(FileCopyMojo.class, "executor", copyExecutorStub));
     mementos.add(SystemPropertySupport.preserve("user.dir"));
   }
 
