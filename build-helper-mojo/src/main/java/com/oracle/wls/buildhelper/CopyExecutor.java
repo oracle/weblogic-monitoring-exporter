@@ -4,13 +4,10 @@
 package com.oracle.wls.buildhelper;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 
 public interface CopyExecutor {
 
   Path toPath(File file);
-
-  void copyFile(Path sourcePath, Path targetPath) throws IOException;
 
 }

@@ -129,6 +129,21 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>${maven-jar-plugin-version}</version>
             </plugin>
+            
+            <plugin>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>build-helper-mojo</artifactId>
+                <version>${project.version}</version>
+                <executions>
+                    <execution>
+                        <id>get-version</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>gitVersion</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
