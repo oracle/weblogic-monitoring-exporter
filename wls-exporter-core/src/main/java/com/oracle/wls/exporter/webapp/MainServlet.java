@@ -3,22 +3,19 @@
 
 package com.oracle.wls.exporter.webapp;
 
-import java.io.IOException;
+import com.oracle.wls.exporter.ConfigurationDisplay;
+import com.oracle.wls.exporter.LiveConfiguration;
+import com.oracle.wls.exporter.WebAppConstants;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
-import com.oracle.wls.exporter.ConfigurationDisplay;
-import com.oracle.wls.exporter.LiveConfiguration;
-import com.oracle.wls.exporter.WebAppConstants;
-
-import static com.oracle.wls.exporter.WebAppConstants.APPEND_ACTION;
-import static com.oracle.wls.exporter.WebAppConstants.CONFIGURATION_PAGE;
-import static com.oracle.wls.exporter.WebAppConstants.EFFECT_OPTION;
-import static com.oracle.wls.exporter.WebAppConstants.REPLACE_ACTION;
+import static com.oracle.wls.exporter.WebAppConstants.*;
 
 /**
  * This servlet represents the 'landing page' for the exporter.
@@ -46,7 +43,7 @@ public class MainServlet extends HttpServlet {
     }
 
     private void displayMetricsLink(HttpServletRequest req, ServletOutputStream outputStream) throws IOException {
-        outputStream.println("<h2>This is the WebLogic Monitoring Exporter.</h2>");
+        outputStream.println("<h2>Oracle WebLogic Monitoring Exporter " + LiveConfiguration.getVersionString() + ".</h2>");
         outputStream.println("<p>The metrics are found at <a href=\"" + getMetricsLink(req) + "\">");
         outputStream.println(WebAppConstants.METRICS_PAGE + "</a> relative to this location.");
         outputStream.println("</p>");
