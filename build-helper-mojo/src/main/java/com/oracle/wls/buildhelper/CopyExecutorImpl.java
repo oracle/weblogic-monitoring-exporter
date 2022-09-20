@@ -4,11 +4,7 @@
 package com.oracle.wls.buildhelper;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class CopyExecutorImpl implements CopyExecutor {
 
@@ -17,9 +13,4 @@ public class CopyExecutorImpl implements CopyExecutor {
     return file.toPath();
   }
 
-  @Override
-  public void copyFile(Path sourcePath, Path targetPath) throws IOException {
-    Files.createDirectories(targetPath.getParent());
-    Files.copy(sourcePath, targetPath, REPLACE_EXISTING);
-  }
 }
