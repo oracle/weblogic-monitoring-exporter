@@ -7,6 +7,7 @@ ARG MAVEN_OPTS
 
 WORKDIR /project/
 COPY pom.xml .
+COPY build-helper-mojo/pom.xml build-helper-mojo/
 COPY wls-exporter-core/pom.xml wls-exporter-core/
 COPY wls-exporter-sidecar/pom.xml wls-exporter-sidecar/
 
@@ -19,6 +20,7 @@ ARG MAVEN_OPTS
 WORKDIR /project/
 COPY --from=m2repo /root/.m2 /root/.m2
 COPY pom.xml .
+COPY build-helper-mojo/ build-helper-mojo/
 COPY wls-exporter-core/ wls-exporter-core/
 COPY wls-exporter-sidecar/ wls-exporter-sidecar/
 

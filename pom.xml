@@ -316,6 +316,7 @@
                 <jdk>[11,)</jdk>
             </activation>
             <modules>
+                <module>build-helper-mojo</module>
                 <module>wls-exporter-sidecar</module>
             </modules>
         </profile>
