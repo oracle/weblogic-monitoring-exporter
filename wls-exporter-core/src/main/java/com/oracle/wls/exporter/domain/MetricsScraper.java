@@ -3,15 +3,14 @@
 
 package com.oracle.wls.exporter.domain;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import static com.oracle.wls.exporter.domain.MapUtils.isNullOrEmptyString;
 
@@ -34,6 +33,10 @@ class MetricsScraper {
         return metrics;
     }
 
+    void setMetricNameSnakeCase(boolean metricNameSnakeCase) {
+        this.metricNameSnakeCase = metricNameSnakeCase;
+    }
+
     /**
      * Scrapes metrics from a response, in accordance with the rules defined in the selector.
      * @param selector an mbean selector, configured with the metrics we want to find
@@ -41,101 +44,133 @@ class MetricsScraper {
      */
     Map<String, Object> scrape(MBeanSelector selector, JsonObject response) {
         metrics = new HashMap<>();
-        scrapeItem(response, selector, globalQualifiers);
+        createDelegate(selector, response).scrapeItem();
         return metrics;
     }
 
-    void setMetricNameSnakeCase(boolean metricNameSnakeCase) {
-        this.metricNameSnakeCase = metricNameSnakeCase;
+    ScrapeDelegate createDelegate(MBeanSelector selector, JsonObject response) {
+        return new ScrapeDelegate(selector, response, globalQualifiers);
     }
 
-    private void scrapeItemList(JsonObject itemWrapper, MBeanSelector beanSelector, String parentQualifiers) {
-        JsonArray items = itemWrapper.getAsJsonArray("items");
-        if (items == null)
-            scrapeItem(itemWrapper, beanSelector, parentQualifiers);
-        else
-            for (JsonElement jsonElement : items)
-                scrapeItem(jsonElement.getAsJsonObject(), beanSelector, parentQualifiers);
-    }
+    class ScrapeDelegate {
+        private final MBeanSelector selector;
+        private final JsonObject object;
+        private final String qualifiers;
 
-    private void scrapeItem(JsonObject object, MBeanSelector beanSelector, String parentQualifiers) {
-        if (excludeByType(object.get("type"), beanSelector.getType())) return;
-        String qualifiers = getItemQualifiers(object, beanSelector, parentQualifiers);
-
-        for (String valueName : getValueNames(beanSelector, object)) {
-            if (valueName.equals(beanSelector.getKey())) continue;
-            JsonElement value = object.get(valueName);
-            addMetric(beanSelector, qualifiers, valueName, value);
+        ScrapeDelegate(MBeanSelector selector, JsonObject object, String qualifiers) {
+            this.selector = selector;
+            this.object = object;
+            this.qualifiers = qualifiers;
         }
-        scrapeSubObject(object, beanSelector, qualifiers);
-    }
 
-    private String[] getValueNames(MBeanSelector beanSelector, JsonObject object) {
-        final Set<String> set = object.keySet();
-        return beanSelector.useAllValues() ? asArray(set) : beanSelector.getQueryValues();
-    }
-
-    private String[] asArray(Set<String> set) {
-        return set.toArray(new String[0]);
-    }
-
-    private void addMetric(MBeanSelector beanSelector, String qualifiers, String valueName, JsonElement value) {
-        if (value != null && value.isJsonPrimitive())
-            addMetric(beanSelector, qualifiers, valueName, value.getAsJsonPrimitive());
-    }
-
-    private void addMetric(MBeanSelector beanSelector, String qualifiers, String valueName, JsonPrimitive jsonPrimitive) {
-        Optional.ofNullable(getMetricValue(beanSelector, valueName, jsonPrimitive))
-            .ifPresent(value -> metrics.put(getMetricName(valueName, beanSelector, qualifiers), value));
-    }
-
-    private Object getMetricValue(MBeanSelector beanSelector, String valueName, JsonPrimitive jsonPrimitive) {
-        if (jsonPrimitive.isNumber())
-            return jsonPrimitive.getAsNumber();
-        else if (beanSelector.isStringMetric(valueName) && jsonPrimitive.isString())
-            return beanSelector.getStringMetricValue(valueName, jsonPrimitive.getAsString());
-        else if (beanSelector.acceptsStrings() && jsonPrimitive.isString())
-            return jsonPrimitive.getAsString();
-        else
-            return null;
-    }
-
-    private boolean excludeByType(JsonElement typeField, String typeFilter) {
-        return typeFilter != null && typeField != null && !typeFilter.equals(typeField.getAsString());
-    }
-
-    void scrapeSubObject(JsonObject subObject, MBeanSelector selector, String parentQualifiers) {
-        for (String selectorKey : selector.getNestedSelectors().keySet()) {
-            JsonElement value = subObject.get(selectorKey);
-            if (value instanceof JsonObject) {
-                scrapeItemList(((JsonObject) value), selector.getNestedSelectors().get(selectorKey), parentQualifiers);
+        void scrapeSubObjects(String qualifiers) {
+            for (String selectorKey : selector.getNestedSelectors().keySet()) {
+                final JsonElement value = object.get(selectorKey);
+                if (value instanceof JsonObject) {
+                    final MBeanSelector nestedSelector = selector.getNestedSelectors().get(selectorKey);
+                    createForSubObjects(nestedSelector, (JsonObject) value, qualifiers).scrapeItemOrList();
+                }
             }
         }
-    }
 
-    private String getMetricName(String valueName, MBeanSelector beanSelector, String qualifiers) {
-        StringBuilder sb = new StringBuilder();
-        if (beanSelector.getPrefix() != null) sb.append(withCorrectCase(beanSelector.getPrefix()));
-        sb.append(withCorrectCase(valueName));
-        if (!isNullOrEmptyString(qualifiers))
-            sb.append('{').append(qualifiers).append('}');
-        return sb.toString();
-    }
-
-    private String withCorrectCase(String valueName) {
-        return metricNameSnakeCase ? SnakeCaseUtil.convert(valueName) : valueName;
-    }
-
-    private String getItemQualifiers(JsonObject object, MBeanSelector beanSelector, String parentQualifiers) {
-        String qualifiers = parentQualifiers;
-        if (object.has(beanSelector.getKey())) {
-            if (!isNullOrEmptyString(qualifiers)) qualifiers += ',';
-            qualifiers += (beanSelector.getKeyName() + (parentQualifiers.startsWith(beanSelector.getKeyName()+'=') ? '2': "")+'=' + asQuotedString(object.get(beanSelector.getKey())));
+        private ScrapeDelegate createForSubObjects(MBeanSelector selector, JsonObject value, String qualifiers) {
+            return new ScrapeDelegate(selector, value, qualifiers);
         }
-        return qualifiers;
+
+        private void scrapeItemOrList() {
+            JsonArray items = object.getAsJsonArray("items");
+            if (items == null)
+                scrapeItem();
+            else
+                for (JsonElement jsonElement : items)
+                    createForItem(jsonElement.getAsJsonObject()).scrapeItem();
+        }
+
+        private ScrapeDelegate createForItem(JsonObject asJsonObject) {
+            return new ScrapeDelegate(selector, asJsonObject, qualifiers);
+        }
+
+        private String[] getValueNames() {
+            return selector.useAllValues() ? getKeysAsArray() : selector.getQueryValues();
+        }
+
+        private String[] getKeysAsArray() {
+            return object.keySet().toArray(new String[0]);
+        }
+
+        private void scrapeItem() {
+            if (excludeByType()) return;
+            String itemQualifiers = getItemQualifiers();
+
+            for (String valueName : getValueNames()) {
+                if (valueName.equals(selector.getKey())) continue;
+                JsonElement value = object.get(valueName);
+                addMetric(itemQualifiers, valueName, value);
+            }
+            scrapeSubObjects(itemQualifiers);
+        }
+
+        private boolean excludeByType() {
+            final JsonElement typeField = object.get("type");
+            final String typeFilter = selector.getType();
+            return typeFilter != null && typeField != null && !typeFilter.equals(typeField.getAsString());
+        }
+
+        private String getItemQualifiers() {
+            String result = qualifiers;
+            if (object.has(selector.getKey())) {
+                if (!isNullOrEmptyString(result)) result += ',';
+                result += selector.getKeyName() + uniqueSuffix() +'=' + asQuotedString(object.get(selector.getKey()));
+            }
+            return result;
+        }
+
+        private Object uniqueSuffix() {
+            return qualifiers.startsWith(selector.getKeyName() + '=') ? '2' : "";
+        }
+
+        private String asQuotedString(JsonElement jsonElement) {
+            return QUOTE + jsonElement.getAsString() + QUOTE;
+        }
+
+        private void addMetric(String itemQualifiers, String valueName, JsonElement value) {
+            if (value != null && value.isJsonPrimitive()) {
+                addMetric(itemQualifiers, valueName, value.getAsJsonPrimitive());
+            }
+        }
+
+        private void addMetric(String itemQualifiers, String valueName, JsonPrimitive jsonPrimitive) {
+            Optional.ofNullable(getMetricValue(valueName, jsonPrimitive))
+                .ifPresent(value -> addMetric(getMetricName(itemQualifiers, valueName), value));
+        }
+
+        private void addMetric(String metricName, Object value) {
+            metrics.put(metricName, value);
+        }
+
+        private Object getMetricValue(String valueName, JsonPrimitive jsonPrimitive) {
+            if (jsonPrimitive.isNumber())
+                return jsonPrimitive.getAsNumber();
+            else if (selector.isStringMetric(valueName) && jsonPrimitive.isString())
+                return selector.getStringMetricValue(valueName, jsonPrimitive.getAsString());
+            else if (selector.acceptsStrings() && jsonPrimitive.isString())
+                return jsonPrimitive.getAsString();
+            else
+                return null;
+        }
+
+        private String getMetricName(String itemQualifiers, String valueName) {
+            StringBuilder sb = new StringBuilder();
+            if (selector.getPrefix() != null) sb.append(getCorrectCase(selector.getPrefix()));
+            sb.append(getCorrectCase(valueName));
+            if (!isNullOrEmptyString(itemQualifiers))
+                sb.append('{').append(itemQualifiers).append('}');
+            return sb.toString();
+        }
+
+        private String getCorrectCase(String valueName) {
+            return metricNameSnakeCase ? SnakeCaseUtil.convert(valueName) : valueName;
+        }
     }
 
-    private String asQuotedString(JsonElement jsonElement) {
-        return QUOTE + jsonElement.getAsString() + QUOTE;
-    }
 }

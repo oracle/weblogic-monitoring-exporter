@@ -3,25 +3,20 @@
 
 package com.oracle.wls.exporter.domain;
 
+import org.junit.jupiter.api.Test;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import org.junit.jupiter.api.Test;
 
 import static com.oracle.wls.exporter.domain.QueryType.CONFIGURATION;
 import static com.oracle.wls.exporter.domain.QueryType.RUNTIME;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 
-class QueryTypeTest {
+class QueryTypeTest implements MetricsProcessor {
 
     private final Map<String, Object> metrics = new HashMap<>();
-    private Map<String, String> selectedMetrics;
+    private Map<String, Object> selectedMetrics;
 
     @Test
     void runtimeQueryType_usesRuntimeMbeanUrl() {
@@ -46,7 +41,7 @@ class QueryTypeTest {
     @Test
     void runtimeQueryType_doesNotProcessMetrics() {
         metrics.put("name", "domain1");
-        RUNTIME.processMetrics(metrics, this::invokeProcessing);
+        RUNTIME.postProcessMetrics(metrics, this);
 
         assertThat(selectedMetrics, nullValue());
     }
@@ -54,27 +49,13 @@ class QueryTypeTest {
     @Test
     void configurationQueryType_processesNameAsDomainName() {
         metrics.put("name", "domain1");
-        CONFIGURATION.processMetrics(metrics, this::invokeProcessing);
+        CONFIGURATION.postProcessMetrics(metrics, this);
 
         assertThat(selectedMetrics, hasEntry(QueryType.DOMAIN_KEY, "domain1"));
     }
 
-    @Test
-    void configurationQueryType_removesNameFromMetrics() {
-        metrics.put("name", "domain1");
-        CONFIGURATION.processMetrics(metrics, this::invokeProcessing);
-
-        assertThat(metrics, not(hasKey("name")));
-    }
-
-    @Test
-    void whenNameNotPresent_configurationQueryTypeDoesNotInvokeProcessing() {
-        CONFIGURATION.processMetrics(metrics, this::invokeProcessing);
-
-        assertThat(selectedMetrics, nullValue());
-    }
-
-    private void invokeProcessing(Map<String, String> selectedMetrics) {
-        this.selectedMetrics = selectedMetrics;
+    @Override
+    public void updateConfiguration(Map<String, Object> metrics) {
+        this.selectedMetrics = metrics;
     }
 }

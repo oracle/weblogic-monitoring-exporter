@@ -3,20 +3,18 @@
 
 package com.oracle.wls.exporter.domain;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static com.google.gson.JsonParser.parseString;
 import static com.oracle.wls.exporter.domain.MetricMatcher.hasMetric;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.anEmptyMap;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.*;
 
 /**
  * @author Russell Gold
@@ -177,7 +175,9 @@ class MetricsScraperTest {
     }
 
     private void generateNestedMetrics(Map<String,Object> map, String jsonString, String parentQualifiers) {
-        scraper.scrapeSubObject(getJsonResponse(jsonString), MBeanSelector.create(map), parentQualifiers);
+        final JsonObject subObject = getJsonResponse(jsonString);
+        final MBeanSelector selector = MBeanSelector.create(map);
+        scraper.createDelegate(selector, subObject).scrapeSubObjects(parentQualifiers);
     }
 
     private JsonObject getJsonResponse(String jsonString) {

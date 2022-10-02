@@ -2,10 +2,12 @@
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+import java.util.*;
 
 /**
  * A class which Gson can convert to a JSON string for a WLS REST query. The REST API specifies that each
@@ -16,15 +18,16 @@ import java.util.Map;
  */
 @SuppressWarnings({"unused", "MismatchedQueryAndUpdateOfCollection"})
 class JsonQuerySpec {
-    private final String[] links = new String[0];
-    private ArrayList<String> fields = null;
-    private Map<String,JsonQuerySpec> children = null;
+    private List<String> fields = null;
+    private Map<String, JsonQuerySpec> children = null;
+    private String keyName = null;
+    private List<String> selectedKeys = null;
 
     /**
      * Specifies the name of any mbean values which should be retrieved.
      * @param newFields the field names to add to any previous defined
      */
-    void addFields(String ... newFields) {
+    void addFields(String... newFields) {
         if (fields == null) fields = new ArrayList<>();
         fields.addAll(Arrays.asList(newFields));
     }
@@ -38,5 +41,39 @@ class JsonQuerySpec {
         if (children == null)
             children = new HashMap<>();
         children.put(name, child);
+    }
+
+    void setFilter(String keyName, List<String> selectedKeys) {
+        this.keyName = keyName;
+        this.selectedKeys = selectedKeys;
+    }
+
+    String toJson(Gson gson) {
+        return gson.toJson(toJsonObject());
+    }
+
+    JsonObject toJsonObject() {
+        final JsonObject result = new JsonObject();
+        
+        result.add("links", new JsonArray());
+        if (fields != null) result.add("fields", asStringArray(fields));
+        if (keyName != null) result.add(keyName, asStringArray(selectedKeys));
+        if (children != null) asChildObject(result);
+
+        return result;
+    }
+
+    JsonArray asStringArray(List<String> values) {
+        final JsonArray result = new JsonArray();
+        values.forEach(result::add);
+        return result;
+    }
+
+    private void asChildObject(JsonObject result) {
+        final JsonObject nesting = new JsonObject();
+        result.add("children", nesting);
+        for (Map.Entry<String, JsonQuerySpec> entry : children.entrySet()) {
+            nesting.add(entry.getKey(), entry.getValue().toJsonObject());
+        }
     }
 }

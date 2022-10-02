@@ -3,21 +3,29 @@
 
 package com.oracle.wls.exporter;
 
-import java.io.IOException;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+
+import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static com.oracle.wls.exporter.InvocationContextStub.HOST_NAME;
 import static com.oracle.wls.exporter.InvocationContextStub.PORT;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 
 class ExporterCallTest {
   private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
   private static final String SECURE_URL_PATTERN = "https://%s:%d/management/weblogic/latest/serverRuntime/search";
   private static final String ONE_VALUE_CONFIG = "queries:\n- groups:\n    key: name\n    values: testSample1";
+  private static final String CONFIG_WITH_FILTER = "queries:" +
+        "\n- groups:\n    key: name\n    includedKeyValues: abc.*\n    values: testSample1";
+
+  private static final String KEY_RESPONSE_JSON = "{\"groups\": {\"items\": [\n" +
+              "     {\"name\": \"alpha\"},\n" +
+              "     {\"name\": \"beta\" },\n" +
+              "     {\"name\": \"gamma\"}\n" +
+              "]}}";
 
   private final WebClientFactoryStub factory = new WebClientFactoryStub();
   private final InvocationContextStub context = InvocationContextStub.create();
@@ -25,7 +33,6 @@ class ExporterCallTest {
   @BeforeEach
   public void setUp() {
     LiveConfiguration.setServer(HOST_NAME, PORT);
-//    LiveConfiguration.loadFromString(CONFIGURATION);
   }
 
   @Test
@@ -49,7 +56,7 @@ class ExporterCallTest {
 
     handleMetricsCall(context);
 
-      assertThat(factory.getClientUrl(), equalTo(String.format(URL_PATTERN, HOST_NAME, PORT)));
+    assertThat(factory.getClientUrl(), equalTo(String.format(URL_PATTERN, HOST_NAME, PORT)));
   }
 
   @Test
@@ -58,6 +65,35 @@ class ExporterCallTest {
 
     handleMetricsCall(context.withHttps());
 
-      assertThat(factory.getClientUrl(), equalTo(String.format(SECURE_URL_PATTERN, HOST_NAME, PORT)));
+    assertThat(factory.getClientUrl(), equalTo(String.format(SECURE_URL_PATTERN, HOST_NAME, PORT)));
+  }
+
+  @Test
+  void whenQuerySentWithoutFilter_onlyOneRequestIsMade() throws IOException {
+    LiveConfiguration.loadFromString(ONE_VALUE_CONFIG);
+
+    handleMetricsCall(context.withHttps());
+
+    assertThat(factory.getNumQueriesSent(), equalTo(1));
+  }
+
+  @Test
+  void whenQuerySentWithFilter_firstQueryRequestsPossibleKeys() throws IOException {
+    factory.addJsonResponse(KEY_RESPONSE_JSON);
+    LiveConfiguration.loadFromString(CONFIG_WITH_FILTER);
+
+    handleMetricsCall(context.withHttps());
+
+    assertThat(factory.getSentQuery(), hasJsonPath("$.children.groups.fields", contains("name")));
+  }
+
+  @Test
+  void whenQuerySentWithFilter_twoRequestsAreMade() throws IOException {
+    factory.addJsonResponse(KEY_RESPONSE_JSON);
+    LiveConfiguration.loadFromString(CONFIG_WITH_FILTER);
+
+    handleMetricsCall(context.withHttps());
+
+    assertThat(factory.getNumQueriesSent(), equalTo(2));
   }
 }

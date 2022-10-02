@@ -17,6 +17,10 @@ public class WebClientException extends RuntimeException {
         super(formatMessage(message, args), cause);
     }
 
+    WebClientException(String message, Object... args) {
+        super(formatMessage(message, args));
+    }
+
     private static String formatMessage(String message, Object... args) {
         return String.format(message, args);
     }

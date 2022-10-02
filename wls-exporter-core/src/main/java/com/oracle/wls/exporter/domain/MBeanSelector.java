@@ -3,19 +3,13 @@
 
 package com.oracle.wls.exporter.domain;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Consumer;
+import com.google.gson.*;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import java.time.Clock;
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * A description of an mbean to be selected by the generated JSON query and captured from the result.
@@ -23,24 +17,37 @@ import com.google.gson.GsonBuilder;
  * @author Russell Gold
  */
 public class MBeanSelector {
+    static final boolean USE_REGULAR_EXPRESSIONS = true;
+    @SuppressWarnings("FieldMayBeFinal") // allow unit tests to replace this.
+    private static Clock systemClock = Clock.systemUTC();
+
     static final String TYPE_KEY = "type";
     static final String PREFIX_KEY = "prefix";
     static final String QUERY_KEY = "key";
     static final String KEY_NAME = "keyName";
+    static final String INCLUDED_KEYS_KEY = "includedKeyValues";
+    static final String EXCLUDED_KEYS_KEY = "excludedKeyValues";
     static final String VALUES_KEY = "values";
     static final String STRING_VALUES_KEY = "stringValues";
     static final String TYPE_FIELD_NAME = "type";
     static final MBeanSelector DOMAIN_NAME_SELECTOR = createDomainNameSelector();
     static final String NESTING = "  ";
+    static final long KEY_UPDATE_INTERVAL_SECONDS = 60;
 
     private String type;
     private String prefix;
     private String key;
     private String keyName;
+    private String includedKeys;
+    private String excludedKeys;
+    private Pattern includedPattern;
+    private Pattern excludedPattern;
+    private final List<String> filter = new ArrayList<>();
     private List<String> values = new ArrayList<>();
     private Map<String, List<String>> stringValues;
     private Map<String, MBeanSelector> nestedSelectors = new LinkedHashMap<>();
     private QueryType queryType = QueryType.RUNTIME;
+    private long lastKeyTime = 0;
 
     private static MBeanSelector createDomainNameSelector() {
         Map<String,Object> yaml = new HashMap<>();
@@ -71,11 +78,18 @@ public class MBeanSelector {
                 case STRING_VALUES_KEY:
                     addStringValues(entry.getValue());
                     break;
+                case INCLUDED_KEYS_KEY:
+                    setIncludedKeys(entry.getValue().toString());
+                    break;
+                case EXCLUDED_KEYS_KEY:
+                    setExcludedKeys(entry.getValue().toString());
+                    break;
                 default:
                     addNestedSelector(entry.getKey(), entry.getValue());
                     break;
             }
         }
+        validate();
     }
 
     private void addNestedSelector(String key, Object selectorValue) {
@@ -87,14 +101,28 @@ public class MBeanSelector {
         }
     }
 
+    private void setIncludedKeys(String includedKeys) {
+        this.includedKeys = includedKeys;
+        includedPattern = Pattern.compile(this.includedKeys);
+    }
+
+    private void setExcludedKeys(String excludedKeys) {
+        this.excludedKeys = excludedKeys;
+        excludedPattern = Pattern.compile(this.excludedKeys);
+    }
+
     private void setValues(String[] values) {
         if (values.length == 0) throw new ConfigurationException("Values specified as empty array");
-        final List<String> valuesList = Arrays.asList(values);
-        final List<String> duplicates = getDuplicates(valuesList);
-        if (!duplicates.isEmpty())
-            throw new ConfigurationException("Duplicate values for " + duplicates);
+        final List<String> valuesList = getStringValues(values);
 
         this.values.addAll(valuesList);
+    }
+
+    private List<String> getStringValues(String[] values) {
+        final List<String> valuesList = Arrays.asList(values);
+        final List<String> duplicates = getDuplicates(valuesList);
+        if (!duplicates.isEmpty()) throw new ConfigurationException("Duplicate values for " + duplicates);
+        return valuesList;
     }
 
     private List<String> getDuplicates(List<String> values) {
@@ -116,17 +144,31 @@ public class MBeanSelector {
         }
     }
 
-    void appendNestedQuery(StringBuilder sb, String indent) {
+    private void validate() {
+        if (getKey() == null && includedKeys != null)
+            throw new ConfigurationException("Included key values specified without key field");
+        if (getKey() == null && excludedKeys != null)
+            throw new ConfigurationException("Excluded key values specified without key field");
+    }
+
+    /**
+     * Appends a readable form of this selector as a YAML query to the specified string builder.
+     * @param sb the string builder into which the selector should be added
+     * @param indent a string of spaces to indicate the current nesting
+     */
+    void appendAsNestedQuery(StringBuilder sb, String indent) {
         appendScalar(sb, indent, TYPE_KEY, type);
         appendScalar(sb, indent, PREFIX_KEY, prefix);
         appendScalar(sb, indent, QUERY_KEY, key);
+        appendScalar(sb, indent, INCLUDED_KEYS_KEY, includedKeys);
+        appendScalar(sb, indent, EXCLUDED_KEYS_KEY, excludedKeys);
         appendScalar(sb, indent, KEY_NAME, keyName);
-        appendValues(sb, indent, values);
+        appendStringList(sb, indent, VALUES_KEY, values);
         appendStringValues(sb, indent, stringValues);
 
         for (String qualifier : getNestedSelectors().keySet()) {
             sb.append(indent).append(qualifier).append(":\n");
-            getNestedSelectors().get(qualifier).appendNestedQuery(sb, indent + NESTING);
+            getNestedSelectors().get(qualifier).appendAsNestedQuery(sb, indent + NESTING);
         }
     }
 
@@ -135,12 +177,13 @@ public class MBeanSelector {
             sb.append(indent).append(name).append(": ").append(value).append('\n');
     }
 
-    private static void appendValues(StringBuilder sb, String indent, List<String> values) {
+    @SuppressWarnings("SameParameterValue")
+    private static void appendStringList(StringBuilder sb, String indent, String name, List<String> values) {
         if (values == null || values.isEmpty()) return;
         if (values.size() == 1)
-            appendScalar(sb, indent, VALUES_KEY, values.get(0));
+            appendScalar(sb, indent, name, values.get(0));
         else
-            appendArray(sb, indent, VALUES_KEY, values);
+            appendArray(sb, indent, name, values);
     }
 
     private static void appendArray(StringBuilder sb, String indent, String key, List<String> values) {
@@ -208,6 +251,20 @@ public class MBeanSelector {
     }
 
     /**
+     * Returns the regular expression that selects keys for which metrics are to be produced.
+     */
+    String getIncludedKeys() {
+        return includedKeys;
+    }
+
+    /**
+     * Returns the regular expression that selects keys for which metrics are not to be produced.
+     */
+    String getExcludedKeys() {
+        return excludedKeys;
+    }
+
+    /**
      * Returns the names of fields in the underlying mbeans which should be exported.
      * @return an array of field names.
      */
@@ -235,7 +292,7 @@ public class MBeanSelector {
      * @return a JSON string
      */
     public String getPrintableRequest() {
-        return new GsonBuilder().setPrettyPrinting().create().toJson(createQuerySpec());
+        return toQuerySpec().toJson(new GsonBuilder().setPrettyPrinting().create());
     }
 
     /**
@@ -243,17 +300,15 @@ public class MBeanSelector {
      * @return a JSON string
      */
     public String getRequest() {
-        return new Gson().toJson(createQuerySpec());
-    }
-
-    private JsonQuerySpec createQuerySpec() {
-        return toQuerySpec();
+        return toQuerySpec().toJson(new Gson());
     }
 
     JsonQuerySpec toQuerySpec() {
         JsonQuerySpec spec = new JsonQuerySpec();
         if (!useAllValues())
             selectQueryFields(spec, getQueryValues());
+        if (!filter.isEmpty())
+            spec.setFilter(key, filter);
 
         for (Map.Entry<String, MBeanSelector> selector : nestedSelectors.entrySet())
             spec.addChild(selector.getKey(), selector.getValue().toQuerySpec());
@@ -272,6 +327,102 @@ public class MBeanSelector {
     }
 
     /**
+     * Returns a JSON string query to be sent to the REST service.
+     * @return a JSON string
+     */
+    public String getKeyRequest() {
+        return toKeyQuerySpec().toJson(new Gson());
+    }
+
+    JsonQuerySpec toKeyQuerySpec() {
+        JsonQuerySpec spec = new JsonQuerySpec();
+        if (currentSelectorHasFilter()) spec.addFields(key);
+
+        for (Map.Entry<String, MBeanSelector> selector : nestedSelectors.entrySet())
+            spec.addChild(selector.getKey(), selector.getValue().toKeyQuerySpec());
+
+        return spec;
+    }
+
+    /**
+     * Returns true if this selector or one of its children needs an updated set of keys.
+     */
+    public boolean needsNewKeys() {
+        return hasFilter() && (hasNoKeys() || keysAreObsolete());
+    }
+
+    private boolean hasNoKeys() {
+        return lastKeyTime == 0;
+    }
+
+    private boolean keysAreObsolete() {
+        return secondsSinceKeyUpdate() >= KEY_UPDATE_INTERVAL_SECONDS;
+    }
+
+    private long secondsSinceKeyUpdate() {
+        return (systemClock.millis() - lastKeyTime) / 1000;
+    }
+
+    private boolean hasFilter() {
+        return currentSelectorHasFilter() || nestedSelectorHasFilter();
+    }
+
+    private boolean currentSelectorHasFilter() {
+        return includedKeys != null || excludedKeys != null;
+    }
+
+    private boolean nestedSelectorHasFilter() {
+        return nestedSelectors.values().stream().anyMatch(MBeanSelector::hasFilter);
+    }
+
+    public void offerKeys(JsonObject keyResponse) {
+        this.lastKeyTime = systemClock.millis();
+
+        for (String subElementKey : keyResponse.keySet()) {
+            final MBeanSelector mBeanSelector = getSelector(subElementKey);
+            if (mBeanSelector != null) {
+                mBeanSelector.offerKeys(keyResponse.get(subElementKey).getAsJsonObject());
+            }
+        }
+
+        asStream(keyResponse.get("items")).map(this::getKeyValue).filter(this::isSelectedKey).forEach(filter::add);
+    }
+
+    private MBeanSelector getSelector(String subElementKey) {
+        return getNestedSelectors().get(subElementKey);
+    }
+
+    private Stream<JsonElement> asStream(JsonElement element) {
+        final JsonArray ja = Optional.ofNullable(element)
+              .filter(JsonElement::isJsonArray)
+              .map(JsonElement::getAsJsonArray)
+              .orElse(new JsonArray());
+
+        return StreamSupport.stream(ja.spliterator(), false);
+    }
+
+    private String getKeyValue(JsonElement item) {
+        final JsonElement jsonElement = item.getAsJsonObject().get(key);
+        if (jsonElement.isJsonPrimitive() && jsonElement.getAsJsonPrimitive().isString()) {
+            return jsonElement.getAsJsonPrimitive().getAsString();
+        } else {
+            return null;
+        }
+    }
+
+    private boolean isSelectedKey(String foundKey) {
+        return foundKey != null && isIncluded(foundKey) && !isExcluded(foundKey);
+    }
+
+    private boolean isIncluded(String foundKey) {
+        return includedPattern == null || includedPattern.matcher(foundKey).matches();
+    }
+
+    private boolean isExcluded(String foundKey) {
+        return excludedPattern != null && excludedPattern.matcher(foundKey).matches();
+    }
+
+    /**
      * Merges this selector with the specified one. Returns the result of the merge.
      * @param selector a new selector whose attributes are to be combined with this one
      * @return the combined selector
@@ -281,15 +432,35 @@ public class MBeanSelector {
     }
 
     private MBeanSelector(MBeanSelector first, MBeanSelector second) {
+        copyScalars(first);
+        combineValues(first, second);
+        combineStringValues(first, second);
+        combineNestedSelectors(first, second);
+    }
+
+    private void copyScalars(MBeanSelector first) {
         this.type = first.type;
         this.prefix = first.prefix;
         this.key = first.key;
         this.keyName = first.keyName;
+        Optional.ofNullable(first.includedKeys).ifPresent(this::setIncludedKeys);
+        Optional.ofNullable(first.excludedKeys).ifPresent(this::setExcludedKeys);
+    }
 
+    private void combineValues(MBeanSelector first, MBeanSelector second) {
         final Set<String> mergedValues = new HashSet<>(first.getValuesAsList());
         mergedValues.addAll(second.getValuesAsList());
         values = new ArrayList<>(mergedValues);
+    }
 
+    private void combineStringValues(MBeanSelector first, MBeanSelector second) {
+        final Map<String, List<String>> mergedStringValues = new HashMap<>();
+        if (first.stringValues != null) mergedStringValues.putAll(first.stringValues);
+        if (second.stringValues != null) mergedStringValues.putAll(second.stringValues);
+        if (!mergedStringValues.isEmpty()) stringValues = mergedStringValues;
+    }
+
+    private void combineNestedSelectors(MBeanSelector first, MBeanSelector second) {
         nestedSelectors = new LinkedHashMap<>();
         nestedSelectors.putAll(first.nestedSelectors);
         for (String k : second.nestedSelectors.keySet()) {
@@ -353,7 +524,7 @@ public class MBeanSelector {
         return -1;
     }
 
-    void processMetrics(Map<String, Object> metrics, Consumer<Map<String, String>> processMetrics) {
-        queryType.processMetrics(metrics, processMetrics);
+    void postProcessMetrics(Map<String, Object> metrics, MetricsProcessor processor) {
+        queryType.postProcessMetrics(metrics, processor);
     }
 }

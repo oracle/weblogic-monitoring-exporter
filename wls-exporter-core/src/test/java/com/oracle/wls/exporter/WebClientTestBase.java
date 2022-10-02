@@ -3,12 +3,6 @@
 
 package com.oracle.wls.exporter;
 
-import java.io.IOException;
-import java.net.SocketException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Supplier;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import com.meterware.pseudoserver.PseudoServer;
@@ -18,26 +12,19 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.net.SocketException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
+
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
 import static com.oracle.wls.exporter.WebAppConstants.CONTENT_TYPE_HEADER;
 import static com.oracle.wls.exporter.WebClient.X_REQUESTED_BY_HEADER;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_GATEWAY;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_GATEWAY_TIMEOUT;
-import static javax.servlet.http.HttpServletResponse.SC_HTTP_VERSION_NOT_SUPPORTED;
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_IMPLEMENTED;
-import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
-import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
+import static javax.servlet.http.HttpServletResponse.*;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasKey;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Russell Gold
@@ -79,8 +66,9 @@ abstract class WebClientTestBase {
 
     @Test
     public void whenUnableToReachServer_throwException() {
-        assertThrows(WebClientException.class,
-              () ->  factory.get().withUrl(UNDEFINED_PORT_URL).doGetRequest());
+        final WebClient webClient = factory.get().withUrl(UNDEFINED_PORT_URL);
+
+        assertThrows(WebClientException.class, webClient::doGetRequest);
     }
 
     @Test
@@ -139,9 +127,7 @@ abstract class WebClientTestBase {
 
         withWebClient("unprotected_put").doPutRequest(QUERY);
 
-        JsonParser parser = new JsonParser();
-
-        assertThat(parser.parse(sentInfo), equalTo(parser.parse(QUERY.getAsJson())));
+        assertThat(JsonParser.parseString(sentInfo), equalTo(JsonParser.parseString(QUERY.getAsJson())));
     }
 
     @SuppressWarnings({"FieldCanBeLocal", "unused"})
@@ -160,7 +146,7 @@ abstract class WebClientTestBase {
     }
 
     @Test
-    public void sendAddedHeaderOnPost() throws Exception {
+    public void sendAddedHeaderOnPost() {
         defineResource("checkHeader", new PseudoServlet() {
             public WebResource getPostResponse() {
                 String header = getHeader("Added-header");
@@ -174,7 +160,7 @@ abstract class WebClientTestBase {
 
         WebClient client = withWebClient("checkHeader");
         client.addHeader("Added-header", "header_value");
-        client.doPostRequest("abced");
+        assertDoesNotThrow(() -> client.doPostRequest("abced"));
     }
 
     @Test
@@ -262,8 +248,11 @@ abstract class WebClientTestBase {
             }
         });
 
-        assertThrows(RestQueryException.class,
-              () -> withWebClient("badRestQuery").doPostRequest("abced"));
+        assertThrows(RestQueryException.class, () -> sendPostRequest("badRestQuery"));
+    }
+
+    private void sendPostRequest(String resourceName) throws IOException {
+        withWebClient(resourceName).doPostRequest("abced");
     }
 
     @Test
@@ -277,8 +266,7 @@ abstract class WebClientTestBase {
             }
         });
 
-        assertThrows(AuthenticationChallengeException.class,
-              () -> withWebClient("protected").doPostRequest("abced"));
+        assertThrows(AuthenticationChallengeException.class, () -> sendPostRequest("protected"));
     }
 
     @Test
@@ -310,8 +298,7 @@ abstract class WebClientTestBase {
             }
         });
 
-        assertThrows(ServerErrorException.class,
-              () -> withWebClient("500Query").doPostRequest("abced"));
+        assertThrows(ServerErrorException.class, () -> sendPostRequest("500Query"));
     }
 
     @Test
@@ -323,8 +310,7 @@ abstract class WebClientTestBase {
             }
         });
 
-        assertThrows(ServerErrorException.class,
-              () -> withWebClient("501Query").doPostRequest("abced"));
+        assertThrows(ServerErrorException.class, () -> sendPostRequest("501Query"));
     }
 
     @Test
@@ -336,8 +322,7 @@ abstract class WebClientTestBase {
             }
         });
 
-        assertThrows(ServerErrorException.class,
-              () -> withWebClient("502Query").doPostRequest("abced"));
+        assertThrows(ServerErrorException.class, () -> sendPostRequest("502Query"));
     }
 
     @Test
@@ -349,8 +334,7 @@ abstract class WebClientTestBase {
             }
         });
 
-        assertThrows(ServerErrorException.class,
-              () -> withWebClient("503Query").doPostRequest("abced"));
+        assertThrows(ServerErrorException.class, () -> sendPostRequest("503Query"));
     }
 
     @Test
@@ -362,8 +346,7 @@ abstract class WebClientTestBase {
             }
         });
 
-        assertThrows(ServerErrorException.class,
-                      () -> withWebClient("504Query").doPostRequest("abced"));
+        assertThrows(ServerErrorException.class, () -> sendPostRequest("504Query"));
     }
 
     @Test
@@ -375,8 +358,7 @@ abstract class WebClientTestBase {
             }
         });
 
-        assertThrows(ServerErrorException.class,
-                      () -> withWebClient("505Query").doPostRequest("abced"));
+        assertThrows(ServerErrorException.class, () -> sendPostRequest("505Query"));
     }
 
     // the value should be of the form <Basic realm="<realm-name>" and we want to extract the realm name
@@ -395,8 +377,7 @@ abstract class WebClientTestBase {
             }
         });
 
-        assertThrows(ForbiddenException.class,
-                      () -> withWebClient("forbidden").doPostRequest("abcde"));
+        assertThrows(ForbiddenException.class, () -> sendPostRequest("forbidden"));
     }
 
     @Test
@@ -409,7 +390,7 @@ abstract class WebClientTestBase {
         });
 
         try {
-            withWebClient("missing").doPostRequest("abcde");
+            sendPostRequest("abcde");
             fail("should have gotten an exception");
         } catch (ServerErrorException e) {
             assertThat(e.toString(), containsString("404"));
@@ -420,12 +401,12 @@ abstract class WebClientTestBase {
     public void whenUnableToConnect_throwsException() {
         tearDownServer();
 
-        assertThrows(RestPortConnectionException.class,
-              () -> accessUndefinedPortRepeatedly(withWebClient("noConnection"), 20));
+        assertThrows(RestPortConnectionException.class, () -> accessUndefinedPortRepeatedly("noConnection", 20));
     }
 
     @SuppressWarnings("SameParameterValue")
-    private void accessUndefinedPortRepeatedly(WebClient webClient, int numTries) throws IOException {
+    private void accessUndefinedPortRepeatedly(String resourceName, int numTries) throws IOException {
+        final WebClient webClient = withWebClient(resourceName);
         for (int attempt = 0; attempt < numTries; attempt++)
             accessUndefinedPort(webClient);
     }
