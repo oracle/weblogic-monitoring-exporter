@@ -3,13 +3,26 @@
 
 package com.oracle.wls.exporter.domain;
 
-import com.google.gson.*;
-
 import java.time.Clock;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 /**
  * A description of an mbean to be selected by the generated JSON query and captured from the result.
@@ -42,7 +55,7 @@ public class MBeanSelector {
     private String excludedKeys;
     private Pattern includedPattern;
     private Pattern excludedPattern;
-    private final List<String> filter = new ArrayList<>();
+    private final Set<String> filter = new HashSet<>();
     private List<String> values = new ArrayList<>();
     private Map<String, List<String>> stringValues;
     private Map<String, MBeanSelector> nestedSelectors = new LinkedHashMap<>();
@@ -307,13 +320,18 @@ public class MBeanSelector {
         JsonQuerySpec spec = new JsonQuerySpec();
         if (!useAllValues())
             selectQueryFields(spec, getQueryValues());
-        if (!filter.isEmpty())
+        if (currentSelectorHasFilter() && !filter.isEmpty())
             spec.setFilter(key, filter);
 
-        for (Map.Entry<String, MBeanSelector> selector : nestedSelectors.entrySet())
-            spec.addChild(selector.getKey(), selector.getValue().toQuerySpec());
+        for (Map.Entry<String, MBeanSelector> entry : nestedSelectors.entrySet())
+            if (entry.getValue().isEnabled())
+                spec.addChild(entry.getKey(), entry.getValue().toQuerySpec());
 
         return spec;
+    }
+
+    private boolean isEnabled() {
+        return !filter.isEmpty() || !currentSelectorHasFilter();
     }
 
     boolean useAllValues() {
@@ -381,19 +399,23 @@ public class MBeanSelector {
         for (String subElementKey : keyResponse.keySet()) {
             final MBeanSelector mBeanSelector = getSelector(subElementKey);
             if (mBeanSelector != null) {
-                mBeanSelector.offerKeys(keyResponse.get(subElementKey).getAsJsonObject());
+                getItemsAsStream(keyResponse, subElementKey)
+                      .filter(JsonElement::isJsonObject)
+                      .map(JsonElement::getAsJsonObject)
+                      .forEach(mBeanSelector::acceptItem);
             }
         }
-
-        asStream(keyResponse.get("items")).map(this::getKeyValue).filter(this::isSelectedKey).forEach(filter::add);
     }
 
     private MBeanSelector getSelector(String subElementKey) {
         return getNestedSelectors().get(subElementKey);
     }
 
-    private Stream<JsonElement> asStream(JsonElement element) {
-        final JsonArray ja = Optional.ofNullable(element)
+    private Stream<JsonElement> getItemsAsStream(JsonObject keyResponse, String subElementKey) {
+        JsonArray ja = Optional.ofNullable(keyResponse.get(subElementKey))
+              .filter(JsonElement::isJsonObject)
+              .map(JsonElement::getAsJsonObject)
+              .map(o -> o.get("items"))
               .filter(JsonElement::isJsonArray)
               .map(JsonElement::getAsJsonArray)
               .orElse(new JsonArray());
@@ -401,12 +423,15 @@ public class MBeanSelector {
         return StreamSupport.stream(ja.spliterator(), false);
     }
 
-    private String getKeyValue(JsonElement item) {
-        final JsonElement jsonElement = item.getAsJsonObject().get(key);
-        if (jsonElement.isJsonPrimitive() && jsonElement.getAsJsonPrimitive().isString()) {
-            return jsonElement.getAsJsonPrimitive().getAsString();
-        } else {
-            return null;
+
+    private void acceptItem(JsonObject entry) {
+        final JsonElement keyElement = entry.get(key);
+        if (keyElement.isJsonPrimitive() && keyElement.getAsJsonPrimitive().isString()) {
+            final String offeredKey = keyElement.getAsJsonPrimitive().getAsString();
+            if (isSelectedKey(offeredKey)) {
+                filter.add(offeredKey);
+                offerKeys(entry);
+            }
         }
     }
 
