@@ -3,15 +3,18 @@
 
 package com.oracle.wls.exporter.domain;
 
-import org.junit.jupiter.api.Test;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import org.junit.jupiter.api.Test;
 
 import static com.oracle.wls.exporter.domain.QueryType.CONFIGURATION;
 import static com.oracle.wls.exporter.domain.QueryType.RUNTIME;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 
 class QueryTypeTest implements MetricsProcessor {
 

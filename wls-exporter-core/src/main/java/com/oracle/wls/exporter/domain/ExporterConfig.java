@@ -3,14 +3,20 @@
 
 package com.oracle.wls.exporter.domain;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
+
 import com.google.gson.JsonObject;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.scanner.ScannerException;
-
-import java.io.InputStream;
-import java.util.*;
-import java.util.stream.Stream;
 
 /**
  * This class represents the configuration for the exporter, created by parsing YAML.

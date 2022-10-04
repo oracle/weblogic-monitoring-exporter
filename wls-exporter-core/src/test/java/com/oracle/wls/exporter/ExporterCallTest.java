@@ -3,16 +3,18 @@
 
 package com.oracle.wls.exporter;
 
+import java.io.IOException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
 
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static com.oracle.wls.exporter.InvocationContextStub.HOST_NAME;
 import static com.oracle.wls.exporter.InvocationContextStub.PORT;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 
 class ExporterCallTest {
   private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
