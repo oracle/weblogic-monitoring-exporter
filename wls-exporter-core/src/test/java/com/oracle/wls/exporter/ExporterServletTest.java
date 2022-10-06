@@ -3,14 +3,12 @@
 
 package com.oracle.wls.exporter;
 
-import java.io.BufferedReader;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 
 import com.google.common.collect.ImmutableMap;
 import com.oracle.wls.exporter.webapp.ExporterServlet;
@@ -324,29 +322,7 @@ class ExporterServletTest {
 
         servlet.doGet(request, response);
 
-        assertThat(toHtml(response), containsString("wls_scrape_mbeans_count_total{instance=\"myhost:7654\"} 6"));
-    }
-
-    @Test
-    void onGetInForeignLocale_performanceMetricsUsePeriodForFloatingPoint() throws Exception {
-        factory.addJsonResponse(getGroupResponseMap());
-        initServlet(CONFIG_WITH_CATEGORY_VALUE);
-
-        Locale.setDefault(Locale.FRANCE);
-        servlet.doGet(request, response);
-
-        assertThat(getMetricValue("wls_scrape_duration_seconds"), containsString("."));
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private String getMetricValue(String metricsName) throws IOException {
-        String line;
-        BufferedReader reader = new BufferedReader(new StringReader(toHtml(response)));
-        do {
-            line = reader.readLine();
-        } while (line != null && !line.contains(metricsName));
-
-        return (line == null) ? "" : line.split(" ")[1];
+        assertThat(toHtml(response), containsString("wls_scrape_mbeans_count_total"));
     }
 
     @Test

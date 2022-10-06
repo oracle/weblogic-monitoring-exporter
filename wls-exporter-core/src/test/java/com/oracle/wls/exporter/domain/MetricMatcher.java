@@ -1,4 +1,4 @@
-// Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2019, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -22,19 +22,24 @@ class MetricMatcher extends org.hamcrest.TypeSafeDiagnosingMatcher<Map<String,Ob
         return new MetricMatcher(expectedKey, expectedValue);
     }
 
+    static MetricMatcher hasNoSuchMetric(String expectedKey) {
+        return new MetricMatcher(expectedKey, null);
+    }
+
     @Override
     protected boolean matchesSafely(Map<String, Object> map, Description description) {
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            if (expectedKey.equals(entry.getKey()) && matchesValue(entry.getValue())) {
-                return true;
-            }
-        }
+        if (expectedValue == null && !map.containsKey(expectedKey))
+            return true;
+        else if (matchesValue(map.get(expectedKey)))
+            return true;
 
         description.appendText("map was ").appendValueList("[", ", ", "]", map.entrySet());
         return false;
     }
 
     private boolean matchesValue(Object o) {
+        if (o == null)
+            return false;
         if (expectedValue instanceof String)
             return Objects.equals(o, expectedValue);
         else if (expectedValue instanceof Integer)
@@ -47,6 +52,19 @@ class MetricMatcher extends org.hamcrest.TypeSafeDiagnosingMatcher<Map<String,Ob
 
     @Override
     public void describeTo(Description description) {
+        if (expectedValue == null)
+            describeUnexpectedMetric(description);
+        else
+            describeMissingMetric(description);
+    }
+
+    private void describeUnexpectedMetric(Description description) {
+        description.appendText("map not containing [")
+                   .appendValue(expectedKey)
+                   .appendText("]");
+    }
+
+    private void describeMissingMetric(Description description) {
         description.appendText("map containing [")
                    .appendValue(expectedKey)
                    .appendText("->")
