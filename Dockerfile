@@ -2,7 +2,7 @@
 #   Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 # First layer: dependencies for the project, cached in the /root/.m2 directory
-FROM maven:3.8.6-eclipse-temurin-17 as m2repo
+FROM maven:3-openjdk-18-slim as m2repo
 ARG MAVEN_OPTS
 
 WORKDIR /project/
@@ -14,7 +14,7 @@ COPY wls-exporter-sidecar/pom.xml wls-exporter-sidecar/
 RUN mvn -B -e -C org.apache.maven.plugins:maven-dependency-plugin:3.1.2:go-offline -Ddocker-build
 
 # Now build the project on top of that first layer
-FROM maven:3.8.6-eclipse-temurin-17 as build
+FROM maven:3-openjdk-18-slim as build
 ARG MAVEN_OPTS
 
 WORKDIR /project/
@@ -24,18 +24,9 @@ COPY build-helper-mojo/ build-helper-mojo/
 COPY wls-exporter-core/ wls-exporter-core/
 COPY wls-exporter-sidecar/ wls-exporter-sidecar/
 
-RUN mvn -B -e -C install -Ddocker-build -DskipTests=true
-
-FROM ghcr.io/oracle/oraclelinux:8-slim AS jre-build
-
-ENV JAVA_URL="https://download.java.net/java/GA/jdk18.0.2/f6ad4b4450fd4d298113270ec84f30ee/9/GPL/openjdk-18.0.2_linux-x64_bin.tar.gz"
-
 RUN set -eux; \
-    microdnf -y install gzip tar; \
-    curl -fL -o /jdk.tar.gz "$JAVA_URL"; \
-    mkdir -p /jdk; \
-    tar --extract --file /jdk.tar.gz --directory /jdk --strip-components 1; \
-    /jdk/bin/jlink --verbose --compress 2 --strip-java-debug-attributes --no-header-files --no-man-pages --output jre --add-modules java.base,java.logging,java.desktop,java.instrument,java.management,java.naming,java.net.http,java.security.jgss,java.sql,jdk.attach,jdk.jdi,jdk.jfr,jdk.management,jdk.management.jfr,jdk.net,jdk.unsupported,jdk.crypto.cryptoki,jdk.crypto.ec,jdk.zipfs
+    mvn -B -e -C install -Ddocker-build -DskipTests=true; \
+    $JAVA_HOME/bin/jlink --verbose --compress 2 --strip-java-debug-attributes --no-header-files --no-man-pages --output /jre --add-modules java.base,java.logging,java.desktop,java.instrument,java.management,java.naming,java.net.http,java.security.jgss,java.sql,jdk.attach,jdk.jdi,jdk.jfr,jdk.management,jdk.management.jfr,jdk.net,jdk.unsupported,jdk.crypto.cryptoki,jdk.crypto.ec,jdk.zipfs
 
 FROM ghcr.io/oracle/oraclelinux:8-slim
 
@@ -47,7 +38,7 @@ LABEL "org.opencontainers.image.authors"="Ryan Eberhard <ryan.eberhard@oracle.co
       "org.opencontainers.image.description"="Oracle WebLogic Monitoring Exporter" \
       "org.opencontainers.image.documentation"="https://github.com/oracle/weblogic-monitoring-exporter"
 
-COPY --from=jre-build /jre jre
+COPY --from=build /jre jre
 
 RUN set -eux; \
     microdnf -y update; \
