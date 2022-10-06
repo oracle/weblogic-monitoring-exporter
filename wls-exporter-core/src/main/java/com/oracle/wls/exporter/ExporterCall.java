@@ -3,16 +3,15 @@
 
 package com.oracle.wls.exporter;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.oracle.wls.exporter.domain.MBeanSelector;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
-import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.oracle.wls.exporter.domain.MBeanSelector;
 
 import static com.oracle.wls.exporter.domain.MapUtils.isNullOrEmptyString;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
@@ -21,7 +20,6 @@ public class ExporterCall extends AuthenticatedCall {
 
   public ExporterCall(WebClientFactory webClientFactory, InvocationContext context) {
     super(webClientFactory, context);
-    Locale.setDefault(Locale.US);
   }
 
   @Override
@@ -41,7 +39,7 @@ public class ExporterCall extends AuthenticatedCall {
     try {
       for (MBeanSelector selector : LiveConfiguration.getQueries())
         displayMetrics(webClient, metricsStream, selector);
-      metricsStream.printPerformanceMetrics();
+      metricsStream.printPlatformMetrics();
     } catch (RestPortConnectionException e) {
       reportFailure(e);
       webClient.setRetryNeeded();

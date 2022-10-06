@@ -8,17 +8,24 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.ImmutableMap;
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
 import com.meterware.simplestub.SystemPropertySupport;
+import com.oracle.wls.exporter.matchers.PrometheusMetricsMatcher;
 import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
 import com.oracle.wls.exporter.webapp.ServletUtils;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
+import static com.oracle.wls.exporter.MetricsStreamTest.LocaleSupport.setFrenchLocale;
 import static com.oracle.wls.exporter.matchers.PrometheusMetricsMatcher.followsPrometheusRules;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -31,8 +38,13 @@ class MetricsStreamTest {
     private static final long NANOSEC_PER_SECONDS = 1000000000;
     private static final String LINE_SEPARATOR = "line.separator";
     private static final String WINDOWS_LINE_SEPARATOR = "\r\n";
+    private static final String HOST_NAME = "wlshost";
+    private static final int HOST_PORT = 7201;
+    private static final String INSTANCE = HOST_NAME + ':' + HOST_PORT;
+    private static final SortedMap<String,String> QUALIFICATIONS
+          = new TreeMap<>(ImmutableMap.of("instance", INSTANCE));
     private final PerformanceProbeStub performanceProbe = new PerformanceProbeStub();
-    private final HttpServletRequestStub postRequest = HttpServletRequestStub.createPostRequest().withHostName("wlshost").withPort(7201);
+    private final HttpServletRequestStub postRequest = HttpServletRequestStub.createPostRequest().withHostName(HOST_NAME).withPort(HOST_PORT);
     private ByteArrayOutputStream baos;
     private MetricsStream metrics;
     private final List<Memento> mementos = new ArrayList<>();
@@ -47,7 +59,7 @@ class MetricsStreamTest {
 
     private void initMetricsStream() {
         baos = new ByteArrayOutputStream();
-        metrics = new MetricsStream("wlshost:7201", new PrintStream(baos), performanceProbe);
+        metrics = new MetricsStream(INSTANCE, new PrintStream(baos), performanceProbe);
     }
 
     @AfterEach
@@ -58,11 +70,11 @@ class MetricsStreamTest {
     @Test
     void whenNoMetricsScraped_reportNoneScraped() {
         assertThat(getPrintedMetrics(),
-                containsString("wls_scrape_mbeans_count_total{instance=\"wlshost:7201\"} 0"));
+                containsString(getQualifiedPlatformMetricName("wls_scrape_mbeans_count_total") + " 0"));
     }
 
     private String getPrintedMetrics() {
-        metrics.printPerformanceMetrics();
+        metrics.printPlatformMetrics();
         return baos.toString();
     }
 
@@ -93,7 +105,10 @@ class MetricsStreamTest {
     }
 
     private List<String> getPrintedMetricValues() {
-        return Arrays.stream(getPrintedMetrics().split("\n")).map(l -> l.split(" ")[1]).collect(Collectors.toList());
+        return Arrays.stream(getPrintedMetrics()
+              .split(System.lineSeparator()))
+              .map(PrometheusMetricsMatcher::getMetricValue)
+              .collect(Collectors.toList());
     }
 
     @Test
@@ -103,7 +118,16 @@ class MetricsStreamTest {
         metrics.printMetric("c", 0);
 
         assertThat(getPrintedMetrics(),
-                containsString("wls_scrape_mbeans_count_total{instance=\"wlshost:7201\"} 3"));
+                containsString(getQualifiedPlatformMetricName("wls_scrape_mbeans_count_total") + " 3"));
+    }
+
+
+    private String getQualifiedPlatformMetricName(String metricName) {
+        return metricName + '{' + QUALIFICATIONS.entrySet().stream().map(this::toQualification).collect(Collectors.joining(",")) + '}';
+    }
+
+    private String toQualification(Map.Entry<String,String> entry) {
+        return String.format("%s=\"%s\"", entry.getKey(), entry.getValue());
     }
 
     @Test
@@ -111,7 +135,7 @@ class MetricsStreamTest {
         performanceProbe.incrementElapsedTime(12.4);
 
         assertThat(getPrintedMetrics(),
-                containsString("wls_scrape_duration_seconds{instance=\"wlshost:7201\"} 12.40"));
+                containsString(getQualifiedPlatformMetricName("wls_scrape_duration_seconds") + " 12.40"));
     }
 
     @Test
@@ -119,8 +143,15 @@ class MetricsStreamTest {
         performanceProbe.incrementCpuTime(3.2);
 
         assertThat(getPrintedMetrics(),
-                containsString("wls_scrape_cpu_seconds{instance=\"wlshost:7201\"} 3.20"));
+                containsString(getQualifiedPlatformMetricName("wls_scrape_cpu_seconds") + " 3.20"));
     }
+
+    @Test
+    void includeVersionStringInMetrics() {
+        metrics.printPlatformMetrics();
+
+        assertThat(baos.toString(), containsString(LiveConfiguration.getVersionString()));
+     }
 
     @Test
     void producedMetricsAreCompliant() {
@@ -128,6 +159,24 @@ class MetricsStreamTest {
         performanceProbe.incrementCpuTime(3);
 
         assertThat(getPrintedMetrics(), followsPrometheusRules());
+    }
+
+    @Test
+    void alwaysUseUSEncodingForMetrics() {
+        mementos.add(setFrenchLocale());
+
+        metrics.printMetric("scraped value", 3.14);
+
+        assertThat(baos.toString(), containsString("."));
+    }
+
+    @Test
+    void alwaysUseUSEncodingForPlatformMetrics() {
+        mementos.add(setFrenchLocale());
+
+        metrics.printPlatformMetrics();
+
+        assertThat(baos.toString(), containsString("."));
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -154,6 +203,29 @@ class MetricsStreamTest {
         @Override
         public long getCurrentCpu() {
             return currentCpu;
+        }
+    }
+
+    static class LocaleSupport implements Memento {
+        private final Locale savedLocale = Locale.getDefault();
+
+        private LocaleSupport(Locale locale) {
+            Locale.setDefault(locale);
+        }
+
+        static Memento setFrenchLocale() {
+            return new LocaleSupport(new Locale.Builder().setLanguage("fr").setRegion("FR").build());
+        }
+
+        @Override
+        public void revert() {
+            Locale.setDefault(savedLocale);
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public Locale getOriginalValue() {
+            return savedLocale;
         }
     }
 }

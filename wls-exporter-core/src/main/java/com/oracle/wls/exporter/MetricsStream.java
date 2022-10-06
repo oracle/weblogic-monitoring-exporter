@@ -1,14 +1,14 @@
-// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
 
+import javax.management.MBeanServerConnection;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.util.Locale;
-import javax.management.MBeanServerConnection;
 
 import com.sun.management.OperatingSystemMXBean;
 
@@ -35,7 +35,7 @@ class MetricsStream extends PrintStream {
      * @throws IOException if some error occurs while creating the performance probe
      */
     MetricsStream(String instance, OutputStream outputStream) throws IOException {
-        this(instance, outputStream, new PlatformPeformanceProbe());
+        this(instance, outputStream, new PlatformPerformanceProbe());
     }
 
     /**
@@ -58,37 +58,49 @@ class MetricsStream extends PrintStream {
      * @param value the metric value
      */
     void printMetric(String name, Object value) {
-        print(name + " " + value + '\n');
+        print(name + " " + value + System.lineSeparator());
         scrapeCount++;
     }
 
     /**
      * Prints the summary performance metrics
      */
-    void printPerformanceMetrics() {
-        printf( "%s %d\n", getCountName(), scrapeCount);
-        printf(Locale.US, "%s %.2f\n", getDurationName(), toSeconds(getElapsedTime()));
-        printf(Locale.US, "%s %.2f\n", getCpuUsageName(), toSeconds(getCpuUsed()));
+    void printPlatformMetrics() {
+        printf( "%s %d%n", getCountName(), scrapeCount);
+        printf(Locale.US, "%s %.2f%n", getDurationName(), toSeconds(getElapsedTime()));
+        printf(Locale.US, "%s %.2f%n", getCpuUsageName(), toSeconds(getCpuUsed()));
+        printf("%s %d%n", getExporterVersionName(), 1);
     }
 
     private String getDurationName() {
-        return "wls_scrape_duration_seconds" + getPerformanceQualifier();
+        return "wls_scrape_duration_seconds" + getPlatformQualifier();
     }
 
     /**
-     * Returns the qualifiers to add to the performance metrics, specifying the configured server
+     * Returns the qualifiers to add to the platform metrics, specifying the configured server
      * @return a metrics qualifier string
      */
-    private String getPerformanceQualifier() {
+    private String getPlatformQualifier() {
         return String.format("{instance=\"%s\"}", instance);
     }
 
     private String getCpuUsageName() {
-        return "wls_scrape_cpu_seconds" + getPerformanceQualifier();
+        return "wls_scrape_cpu_seconds" + getPlatformQualifier();
     }
 
     private String getCountName() {
-        return "wls_scrape_mbeans_count_total" + getPerformanceQualifier();
+        return "wls_scrape_mbeans_count_total" + getPlatformQualifier();
+    }
+
+    private String getExporterVersionName() {
+        return "exporter_version" + getExporterVersionQualifier();
+    }
+
+    /**
+     * Returns the qualifiers to add to the version metric.
+     */
+    private String getExporterVersionQualifier() {
+        return String.format("{instance=\"%s\",version=\"%s\"}", instance, LiveConfiguration.getVersionString());
     }
 
     private long getElapsedTime() {
@@ -108,10 +120,10 @@ class MetricsStream extends PrintStream {
         long getCurrentCpu();
     }
 
-    private static class PlatformPeformanceProbe implements PerformanceProbe {
+    private static class PlatformPerformanceProbe implements PerformanceProbe {
         private final OperatingSystemMXBean osMBean;
 
-        PlatformPeformanceProbe() throws IOException {
+        PlatformPerformanceProbe() throws IOException {
             MBeanServerConnection mbsc = ManagementFactory.getPlatformMBeanServer();
             osMBean = ManagementFactory.newPlatformMXBeanProxy(mbsc,
                                                        ManagementFactory.OPERATING_SYSTEM_MXBEAN_NAME,

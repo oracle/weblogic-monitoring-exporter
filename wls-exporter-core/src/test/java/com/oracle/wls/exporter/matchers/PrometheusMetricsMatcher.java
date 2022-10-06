@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.matchers;
@@ -18,6 +18,14 @@ public class PrometheusMetricsMatcher extends org.hamcrest.TypeSafeDiagnosingMat
 
     public static PrometheusMetricsMatcher followsPrometheusRules() {
         return new PrometheusMetricsMatcher();
+    }
+
+    /**
+     * Given a line with a described metric, returns the actual metric string.
+     * @param metric a line containing a qualified name and a Prometheus metric
+     */
+    public static String getMetricValue(String metric) {
+        return metric.substring(metric.lastIndexOf(' ')).trim();
     }
 
     @Override
@@ -51,7 +59,7 @@ public class PrometheusMetricsMatcher extends org.hamcrest.TypeSafeDiagnosingMat
         if (Strings.isNullOrEmpty(metric) || metric.trim().startsWith("#")) return false;
         if (!metric.contains(" ")) return false;
 
-        String metricValue = metric.split(" ")[1];
+        String metricValue = getMetricValue(metric);
 
         try {
             Double.parseDouble(metricValue.trim());

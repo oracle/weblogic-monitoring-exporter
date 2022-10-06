@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import static com.google.gson.JsonParser.parseString;
 import static com.oracle.wls.exporter.domain.MetricMatcher.hasMetric;
+import static com.oracle.wls.exporter.domain.MetricMatcher.hasNoSuchMetric;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.anEmptyMap;
@@ -301,8 +302,8 @@ class MetricsScraperTest {
     void whenGenerateHierarchicalMetrics_ignoresNonNumericValues() {
         generateNestedMetrics(twoLevelMap, TWO_LEVEL_RESPONSE);
 
-        assertThat(scraper.getMetrics(), not(hasMetric("component_sourceInfo{component=\"ejb30_weblogic\"}", "weblogic.war")));
-        assertThat(scraper.getMetrics(), not(hasMetric("component_internal{component=\"ejb30_weblogic\"}", "true")));
+        assertThat(scraper.getMetrics(), hasNoSuchMetric("component_sourceInfo{component=\"ejb30_weblogic\"}"));
+        assertThat(scraper.getMetrics(), hasNoSuchMetric("component_internal{component=\"ejb30_weblogic\"}"));
     }
 
     @Test
