@@ -358,6 +358,19 @@ class MBeanSelectorTest {
           JsonParser.parseString(DEEP_KEY_RESPONSE_JSON.replace("'", "\"")).getAsJsonObject();
 
     @Test
+    void whenMapHasBothIncludedAndExcludedKeys_selectKeysLeft() {
+        MBeanSelector selector = MBeanSelector.create(DEEP_MAP_WITH_INCLUDED_AND_EXCLUDED_KEYS);
+        selector.offerKeys(DEEP_KEY_RESPONSE);
+
+        assertThat(selector.getRequest(), hasJsonPath("$.children.groups.children.subgroup1.name1", containsInAnyOrder("abc123", "abc567", "abcxyz")));
+    }
+
+    private static final Map<String, Object> DEEP_MAP_WITH_INCLUDED_AND_EXCLUDED_KEYS = ImmutableMap.of("groups",
+          ImmutableMap.of(MBeanSelector.QUERY_KEY, "groupName",
+                "subgroup1", ImmutableMap.of(MBeanSelector.QUERY_KEY, "name1", MBeanSelector.INCLUDED_KEYS_KEY, "abc.*", MBeanSelector.EXCLUDED_KEYS_KEY, "abcd.*" ),
+                "subgroup2", ImmutableMap.of(MBeanSelector.QUERY_KEY, "name2", MBeanSelector.VALUES_KEY, "group2Val" )));
+
+    @Test
     void whenParentHasIncludedKeysButChildDoesNot_doNotSpecifyNamesForChild() {
         MBeanSelector selector = MBeanSelector.create(DEEP_MAP_WITH_ASSYMETRIC_KEYS);
         selector.offerKeys(DEEP_KEY_RESPONSE);
@@ -366,7 +379,6 @@ class MBeanSelectorTest {
         assertThat(selector.getRequest(), hasJsonPath("$.children.groups.children.subgroup1.name1", containsInAnyOrder("abcdef", "abc123", "abc567")));
         assertThat(selector.getRequest(), hasNoJsonPath("$.children.groups.children.subgroup2.name2"));
     }
-
 
     private static final Map<String, Object> DEEP_MAP_WITH_ASSYMETRIC_KEYS = ImmutableMap.of("groups",
           ImmutableMap.of(MBeanSelector.QUERY_KEY, "groupName", MBeanSelector.INCLUDED_KEYS_KEY, "alpha|beta",
@@ -383,12 +395,10 @@ class MBeanSelectorTest {
         assertThat(selector.getRequest(), hasJsonPath("$.children.groups.children.subgroup2.name2", containsInAnyOrder("defabc", "def123", "def678")));
     }
 
-
     private static final Map<String, Object> DEEP_MAP_WITH_NONEXISTENT_KEYS = ImmutableMap.of("groups",
           ImmutableMap.of(MBeanSelector.QUERY_KEY, "groupName", MBeanSelector.INCLUDED_KEYS_KEY, "alpha|beta",
                 "subgroup1", ImmutableMap.of(MBeanSelector.QUERY_KEY, "name1", MBeanSelector.INCLUDED_KEYS_KEY, "qrs.*", MBeanSelector.VALUES_KEY, "group1Val" ),
                 "subgroup2", ImmutableMap.of(MBeanSelector.QUERY_KEY, "name2", MBeanSelector.INCLUDED_KEYS_KEY, "def.*", MBeanSelector.VALUES_KEY, "group2Val" )));
-
 
     @Test
     void whenMapHasExcludedKeysAndSelectorLacksFoundKeys_needNewKeys() {

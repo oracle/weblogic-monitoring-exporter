@@ -97,8 +97,6 @@ public class MapUtils {
         Object value = map.get(key);
         if (value instanceof List)
             return toStringArray((List<Object>) value);
-        else if (value == null)
-            throw createBadTypeException(key, value, "an array of strings");
         else if (!value.getClass().isArray())
             return new String[]{value.toString()};
         else if (value.getClass().getComponentType() == String.class)
