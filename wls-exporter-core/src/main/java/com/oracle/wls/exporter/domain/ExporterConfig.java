@@ -23,7 +23,7 @@ import org.yaml.snakeyaml.scanner.ScannerException;
  *
  * @author Russell Gold
  */
-public class ExporterConfig {
+public class ExporterConfig implements MetricsProcessor {
     public static final String DOMAIN_NAME_PROPERTY = "DOMAIN";
 
     private static final String QUERY_SYNC = "query_sync";
@@ -88,7 +88,7 @@ public class ExporterConfig {
         MetricsScraper scraper = new MetricsScraper(getGlobalQualifiers());
         scraper.setMetricNameSnakeCase(metricsNameSnakeCase);
         Map<String, Object> metrics = scraper.scrape(selector, response);
-        selector.processMetrics(metrics, this::processMetrics);
+        selector.postProcessMetrics(metrics, this);
         return metrics;
     }
 
@@ -96,8 +96,9 @@ public class ExporterConfig {
         return Optional.ofNullable(domainName).map(n->String.format(DOMAIN_NAME_QUALIFIER, n)).orElse("");
     }
 
-    private void processMetrics(Map<String, String> metrics) {
-        domainName = metrics.get(QueryType.DOMAIN_KEY);
+    @Override
+    public void updateConfiguration(Map<String, Object> metrics) {
+        Optional.ofNullable((String) metrics.remove("name")).ifPresent(n-> domainName = n);
     }
 
     /**
@@ -317,14 +318,14 @@ public class ExporterConfig {
         List<String> selectorKeys = new ArrayList<>(query.getNestedSelectors().keySet());
         for (String selectorKey : selectorKeys) {
             sb.append(indent).append(selectorKey).append(":\n");
-            query.getNestedSelectors().get(selectorKey).appendNestedQuery(sb, "    ");
+            query.getNestedSelectors().get(selectorKey).appendAsNestedQuery(sb, "    ");
             indent = "  ";
         }
     }
 
     private String formatQuery(MBeanSelector query) {
         StringBuilder sb = new StringBuilder();
-        query.appendNestedQuery(sb, "  ");
+        query.appendAsNestedQuery(sb, "  ");
         sb.replace(0, 1, "-");
         return sb.toString();
     }

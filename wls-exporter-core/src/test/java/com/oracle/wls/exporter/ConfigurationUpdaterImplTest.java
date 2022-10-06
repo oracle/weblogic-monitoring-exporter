@@ -3,9 +3,6 @@
 
 package com.oracle.wls.exporter;
 
-import java.time.Clock;
-import java.time.Instant;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -147,20 +144,4 @@ class ConfigurationUpdaterImplTest {
         assertThat(errorLog.getErrors(), containsString("Unable to reach server"));
     }
 
-    static abstract class ClockStub extends Clock {
-        private long currentMsec;
-
-        void setCurrentMsec(long currentMsec) {
-            this.currentMsec = currentMsec;
-        }
-
-        void incrementSeconds(long seconds) {
-            this.currentMsec += 1000 * seconds;
-        }
-
-        @Override
-        public Instant instant() {
-            return Instant.ofEpochMilli(currentMsec);
-        }
-    }
 }

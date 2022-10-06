@@ -552,6 +552,33 @@ class ExporterConfigTest {
             "        color: [red, green, red]";
 
     @Test
+    void whenNoKeySpecifiedButSelectedKeysSpecified_reportFailure() {
+        assertThrows(ConfigurationException.class, () -> loadFromString(CONFIG_WITH_IMPOSSIBLE_SELECTED_KEYS));
+    }
+
+    private static final String CONFIG_WITH_IMPOSSIBLE_SELECTED_KEYS =
+            "queries:\n" +
+            "- applicationRuntimes:\n" +
+            "    key: name\n" +
+            "    workManagerRuntimes:\n" +
+            "      prefix: workmanager_\n" +
+            "      selectedKeys: [app1, app2]";
+
+    @Test
+    void whenConfigHasDuplicateSelectedKeys_reportFailure() {
+        assertThrows(ConfigurationException.class, () -> loadFromString(CONFIG_WITH_DUPLICATE_SELECTED_KEYS));
+    }
+
+    private static final String CONFIG_WITH_DUPLICATE_SELECTED_KEYS =
+            "queries:\n" +
+            "- applicationRuntimes:\n" +
+            "    key: name\n" +
+            "    workManagerRuntimes:\n" +
+            "      prefix: workmanager_\n" +
+            "      key: applicationName\n" +
+            "      selectedKeys: [app1, app2, app1]";
+
+    @Test
     void defineEmptyConfiguration() {
         assertThat(ExporterConfig.createEmptyConfig().toString(), equalTo(EMPTY_CONFIG));
     }
@@ -648,6 +675,48 @@ class ExporterConfigTest {
             "              }]}\n" +
             "     }\n" +
             "]}}";
+
+    @Test
+    void whenNullSelectedKeysSpecified_reportError() {
+        assertThrows(ConfigurationException.class, () -> loadFromString(NULL_ARRAY_FILTERED_CONFIG));
+    }
+
+    private static final String NULL_ARRAY_FILTERED_CONFIG =
+            "queries:\n" +
+            "- applicationRuntimes:\n" +
+            "    workManagerRuntimes:\n" +
+            "      key: applicationName\n" +
+            "      selectedKeys: \n" +
+            "      values: [pendingRequests, completedRequests, stuckThreadCount]\n";
+
+    @Test
+    void whenEmptySelectedKeysSpecified_reportError() {
+        assertThrows(ConfigurationException.class, () -> loadFromString(EMPTY_ARRAY_FILTERED_CONFIG));
+    }
+
+    private static final String EMPTY_ARRAY_FILTERED_CONFIG =
+            "queries:\n" +
+            "- applicationRuntimes:\n" +
+            "    workManagerRuntimes:\n" +
+            "      key: applicationName\n" +
+            "      selectedKeys: []\n" +
+            "      values: [pendingRequests, completedRequests, stuckThreadCount]\n";
+
+    @Test
+    void whenConfigHasIncludedKeys_displayThem() {
+        ExporterConfig exporterConfig = loadFromString(FILTERED_CONFIG);
+
+        assertThat(exporterConfig.toString(), containsString("includedKeyValues: [first, second]"));
+    }
+
+    private static final String FILTERED_CONFIG =
+            "queries:\n" +
+            "- applicationRuntimes:\n" +
+            "    workManagerRuntimes:\n" +
+            "      key: applicationName\n" +
+            "      includedKeyValues: [first, second]\n" +
+            "      values: [pendingRequests, completedRequests, stuckThreadCount]\n";
+
 
     @SuppressWarnings("SameParameterValue")
     private JsonObject getJsonResponse(String jsonString) {

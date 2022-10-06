@@ -177,7 +177,9 @@ class MetricsScraperTest {
     }
 
     private void generateNestedMetrics(Map<String,Object> map, String jsonString, String parentQualifiers) {
-        scraper.scrapeSubObject(getJsonResponse(jsonString), MBeanSelector.create(map), parentQualifiers);
+        final JsonObject subObject = getJsonResponse(jsonString);
+        final MBeanSelector selector = MBeanSelector.create(map);
+        scraper.createDelegate(selector, subObject).scrapeSubObjects(parentQualifiers);
     }
 
     private JsonObject getJsonResponse(String jsonString) {

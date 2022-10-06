@@ -1,12 +1,9 @@
-// Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2019, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
-import java.util.function.Consumer;
 
 public enum QueryType {
     RUNTIME {
@@ -19,7 +16,13 @@ public enum QueryType {
         public boolean acceptsStrings() {
             return false;
         }
-    }, CONFIGURATION {
+
+        @Override
+        public void postProcessMetrics(Map<String, Object> metrics, MetricsProcessor processor) {
+            // do nothing
+        }
+    },
+    CONFIGURATION {
         @Override
         public String getUrlPattern() {
             return CONFIGURATION_URL_PATTERN;
@@ -31,11 +34,8 @@ public enum QueryType {
         }
 
         @Override
-        public void processMetrics(Map<String, Object> metrics, Consumer<Map<String, String>> process) {
-            Map<String,String> selected = new HashMap<>();
-            Optional.ofNullable((String) metrics.remove("name")).ifPresent(n->selected.put(DOMAIN_KEY, n));
-
-            if (!selected.isEmpty()) process.accept(selected);
+        public void postProcessMetrics(Map<String, Object> metrics, MetricsProcessor processor) {
+            processor.updateConfiguration(metrics);
         }
     };
 
@@ -49,7 +49,7 @@ public enum QueryType {
      * The pattern for a URL to which configuration REST queries are made.
      */
     public static final String CONFIGURATION_URL_PATTERN = "%s://%s:%d/management/weblogic/latest/serverConfig/search";
-    static final String DOMAIN_KEY = "domainName";
+    static final String DOMAIN_KEY = "name";
 
     /**
      * Returns the appropriate pattern to create a URL string.
@@ -60,5 +60,5 @@ public enum QueryType {
 
     public abstract boolean acceptsStrings();
 
-    public void processMetrics(Map<String, Object> metrics, Consumer<Map<String, String>> process) {}
+    public abstract void postProcessMetrics(Map<String, Object> metrics, MetricsProcessor processor);
 }

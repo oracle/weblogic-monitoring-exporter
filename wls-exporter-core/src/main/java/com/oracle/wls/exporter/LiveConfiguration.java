@@ -227,7 +227,9 @@ public class LiveConfiguration {
         }
 
         @Override
-        public void shareConfiguration(String configuration) {}
+        public void shareConfiguration(String configuration) {
+            // do nothing
+        }
 
         @Override
         public ConfigurationUpdate getUpdate() {

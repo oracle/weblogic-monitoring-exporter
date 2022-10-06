@@ -36,6 +36,8 @@ queries:
       type: WebAppComponentRuntime
       prefix: webapp_config_
       key: name
+      includedKeyValues: "abc_.*"
+      excludedKeyValues: "abc_12.*"
       values: [deploymentState, contextRoot, sourceInfo, openSessionsHighCount]
       stringValues:
         status: [deployed, undeployed]
@@ -60,14 +62,16 @@ Note that if unable to contact the REST API using the inferred host and port, th
 The `query` field is more complex. Each query consists of a hierarchy of the [MBeans](https://docs.oracle.com/middleware/12213/wls/WLMBR/core/index.html), starting relative to `ServerRuntimes`.
 Within each section, there are a number of options:
 
-| Name           | Description                                                                                                                            |
-|----------------|----------------------------------------------------------------------------------------------------------------------------------------|
-| `key`          | The name of the attribute to use as a key for qualifiers in the output.                                                                |
-| `keyName`      | The name to use for the key in the qualifier; defaults to the name of the attribute.                                                   |
-| `prefix`       | A prefix to use for all the metrics gathered from the current level.                                                                   |
-| `values`       | The attributes for which metrics are to be output. If not specified and a prefix is defined, all values on the MBean will be selected. |
-| `type`         | A filter for subtypes. If specified, only those objects whose `type` attribute matches will be collected.                              |
-| `stringValues` | A map of string-valued metric names to a list of case-insensitive possible values. They will be converted to indexes of that list.     |
+| Name                | Description                                                                                                                            |
+|---------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| `key`               | The name of the attribute to use as a key for qualifiers in the output.                                                                |
+| `includedKeyValues` | An optional filter. If specified, only entries whose key value matches the specified [regular expression](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/regex/Pattern.html) will generate metrics.     |
+| `excludedKeyValues` | An optional filter. If specified, entries whose key value matches the specified regular expression will NOT generate metrics.          |
+| `keyName`           | The name to use for the key in the qualifier; defaults to the name of the attribute.                                                   |
+| `prefix`            | A prefix to use for all the metrics gathered from the current level.                                                                   |
+| `values`            | The attributes for which metrics are to be output. If not specified and a prefix is defined, all values on the MBean will be selected. |
+| `type`              | A filter for subtypes. If specified, only those objects whose `type` attribute matches will be collected.                              |
+| `stringValues`      | A map of string-valued metric names to a list of case-insensitive possible values. They will be converted to indexes of that list.     |
 
 Note that all fields other than the above, will be interpreted as collections of values.
 

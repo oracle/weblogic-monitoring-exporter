@@ -17,6 +17,7 @@ import static com.meterware.simplestub.Stub.createStrictStub;
 
 public class WebClientFactoryStub implements WebClientFactory {
     private final WebClientStub webClient = createStrictStub(WebClientStub.class);
+    private int queryIndex = 0;
 
     @Override
     public WebClient createClient() {
@@ -32,9 +33,16 @@ public class WebClientFactoryStub implements WebClientFactory {
         webClient.addJsonResponse(json);
     }
 
+    int getNumQueriesSent() {
+        return webClient.jsonQueries.size();
+    }
 
     String getSentQuery() {
-        return webClient.jsonQuery;
+        if (webClient.jsonQueries.size() <= queryIndex)
+            throw new WebClientException(
+                  "Attempted to read query %n but only %n were sent", queryIndex+1, getNumQueriesSent());
+
+        return webClient.jsonQueries.get(queryIndex++);
     }
 
     String getPostedString() {
@@ -79,7 +87,7 @@ public class WebClientFactoryStub implements WebClientFactory {
         private final static String WLS_SEARCH_PATH = "/management/weblogic/latest/serverRuntime/search";
 
         private String url;
-        private String jsonQuery;
+        private final List<String> jsonQueries = new ArrayList<>();
         private final List<TestResponse> testResponses = new ArrayList<>();
         private Iterator<TestResponse> responses;
         private final Map<String, String> addedHeaders = new HashMap<>();
@@ -140,7 +148,7 @@ public class WebClientFactoryStub implements WebClientFactory {
         public String doPostRequest(String postBody) {
             if (url == null) throw new NullPointerException("No URL specified");
             sentHeaders = Collections.unmodifiableMap(addedHeaders);
-            this.jsonQuery = postBody;
+            this.jsonQueries.add(postBody);
 
             return getResult(getNextResponse());
         }
@@ -211,6 +219,12 @@ public class WebClientFactoryStub implements WebClientFactory {
         @Override
         public String getJsonResponse() {
             return jsonResponse;
+        }
+    }
+
+    static class QueryTestException extends WebClientException {
+        public QueryTestException(String message) {
+            super(message);
         }
     }
 }
