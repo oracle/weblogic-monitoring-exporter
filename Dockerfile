@@ -25,6 +25,8 @@ COPY wls-exporter-core/ wls-exporter-core/
 COPY wls-exporter-sidecar/ wls-exporter-sidecar/
 
 RUN set -eux; \
+    apt-get update; \
+    apt-get install git -y; \
     mvn -B -e -C install -Ddocker-build -DskipTests=true; \
     $JAVA_HOME/bin/jlink --verbose --compress 2 --strip-java-debug-attributes --no-header-files --no-man-pages --output /jre --add-modules java.base,java.logging,java.desktop,java.instrument,java.management,java.naming,java.net.http,java.security.jgss,java.sql,jdk.attach,jdk.jdi,jdk.jfr,jdk.management,jdk.management.jfr,jdk.net,jdk.unsupported,jdk.crypto.cryptoki,jdk.crypto.ec,jdk.zipfs
 
