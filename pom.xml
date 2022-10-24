@@ -187,7 +187,8 @@
                             </resources>
                         </configuration>
                     </execution>
-                </executions>            </plugin>
+                </executions>
+            </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
