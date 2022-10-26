@@ -18,7 +18,6 @@ import com.google.common.collect.ImmutableMap;
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
 import com.meterware.simplestub.SystemPropertySupport;
-import com.oracle.wls.exporter.matchers.PrometheusMetricsMatcher;
 import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
 import com.oracle.wls.exporter.webapp.ServletUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -35,6 +34,7 @@ import static org.hamcrest.Matchers.hasItems;
  * @author Russell Gold
  */
 class MetricsStreamTest {
+    private static final String Linux_LINE_SEPARATOR = "\n";
     private static final long NANOSEC_PER_SECONDS = 1000000000;
     private static final String LINE_SEPARATOR = "line.separator";
     private static final String WINDOWS_LINE_SEPARATOR = "\r\n";
@@ -79,7 +79,7 @@ class MetricsStreamTest {
     }
 
     @Test
-    void whenMetricsPrinted_eachHasItsOwnLineSeparatedByCarriageReturns() {
+    void whenMetricsPrinted_eachHasItsOwnLineSeparatedByLinuxLineSeparators() {
         metrics.printMetric("a", 12);
         metrics.printMetric("b", 120);
         metrics.printMetric("c", 0);
@@ -88,7 +88,7 @@ class MetricsStreamTest {
     }
 
     @Test
-    void whenMetricsPrintedOnWindows_eachHasItsOwnLineSeparatedByCarriageReturns() throws NoSuchFieldException {
+    void whenMetricsPrintedOnWindows_eachHasItsOwnLineSeparatedByLinuxLineSeparators() throws NoSuchFieldException {
         simulateWindows();
 
         metrics.printMetric("a", 12);
@@ -106,9 +106,13 @@ class MetricsStreamTest {
 
     private List<String> getPrintedMetricValues() {
         return Arrays.stream(getPrintedMetrics()
-              .split(System.lineSeparator()))
-              .map(PrometheusMetricsMatcher::getMetricValue)
+              .split(Linux_LINE_SEPARATOR))
+              .map(this::getMetricValue)
               .collect(Collectors.toList());
+    }
+
+    private String getMetricValue(String metricLine) {
+        return metricLine.substring(metricLine.lastIndexOf(' ') + 1);
     }
 
     @Test

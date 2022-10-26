@@ -20,14 +20,6 @@ public class PrometheusMetricsMatcher extends org.hamcrest.TypeSafeDiagnosingMat
         return new PrometheusMetricsMatcher();
     }
 
-    /**
-     * Given a line with a described metric, returns the actual metric string.
-     * @param metric a line containing a qualified name and a Prometheus metric
-     */
-    public static String getMetricValue(String metric) {
-        return metric.substring(metric.lastIndexOf(' ')).trim();
-    }
-
     @Override
     protected boolean matchesSafely(String metricsList, Description description) {
         String[] metrics = Arrays.stream(metricsList.split("\n"))
@@ -67,6 +59,10 @@ public class PrometheusMetricsMatcher extends org.hamcrest.TypeSafeDiagnosingMat
         } catch (NumberFormatException e) {
             return true;
         }
+    }
+
+    private static String getMetricValue(String metric) {
+        return metric.substring(metric.lastIndexOf(' ')).trim();
     }
 
     private boolean metricsInOrder(Description description, String[] metrics) {
