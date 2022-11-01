@@ -3,12 +3,12 @@
 
 package com.oracle.wls.exporter;
 
-import javax.management.MBeanServerConnection;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.util.Locale;
+import javax.management.MBeanServerConnection;
 
 import com.sun.management.OperatingSystemMXBean;
 
@@ -19,6 +19,7 @@ import com.sun.management.OperatingSystemMXBean;
  * @author Russell Gold
  */
 class MetricsStream extends PrintStream {
+    private static final String PROMETHEUS_LINE_SEPARATOR = "\n"; // This is not dependent on the platform running the exporter.
     private static final double NANOSEC_PER_SECONDS = 1000000000;
 
     private final PerformanceProbe performanceProbe;
@@ -58,7 +59,7 @@ class MetricsStream extends PrintStream {
      * @param value the metric value
      */
     void printMetric(String name, Object value) {
-        print(name + " " + value + System.lineSeparator());
+        print(name + " " + value + PROMETHEUS_LINE_SEPARATOR);
         scrapeCount++;
     }
 
@@ -66,10 +67,10 @@ class MetricsStream extends PrintStream {
      * Prints the summary performance metrics
      */
     void printPlatformMetrics() {
-        printf( "%s %d%n", getCountName(), scrapeCount);
-        printf(Locale.US, "%s %.2f%n", getDurationName(), toSeconds(getElapsedTime()));
-        printf(Locale.US, "%s %.2f%n", getCpuUsageName(), toSeconds(getCpuUsed()));
-        printf("%s %d%n", getExporterVersionName(), 1);
+        printMetric(getCountName(), scrapeCount);
+        printMetric(getDurationName(), toSecondsString(getElapsedTime()));
+        printMetric(getCpuUsageName(), toSecondsString(getCpuUsed()));
+        printMetric(getExporterVersionName(), 1);
     }
 
     private String getDurationName() {
@@ -107,8 +108,8 @@ class MetricsStream extends PrintStream {
         return performanceProbe.getCurrentTime() - startTime;
     }
 
-    private double toSeconds(long nanoSeconds) {
-        return nanoSeconds / NANOSEC_PER_SECONDS;
+    private String toSecondsString(long nanoSeconds) {
+        return String.format(Locale.US, "%.2f", nanoSeconds / NANOSEC_PER_SECONDS);
     }
 
     private long getCpuUsed() {
