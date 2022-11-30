@@ -52,15 +52,26 @@ public class ExporterCall extends AuthenticatedCall {
       if (!metrics.isEmpty())
         sort(metrics).forEach(metricsStream::printMetric);
     } catch (RestQueryException e) {
-      metricsStream.println(
-            withCommentMarkers("REST service was unable to handle this query and returned a " + HTTP_BAD_REQUEST + "\n"
-                  + selector.getPrintableRequest()));
+      reportProblem(metricsStream, selector);
     } catch (AuthenticationChallengeException e) {  // don't add a message for this case
       throw e;
     } catch (IOException | RuntimeException e) {
       WlsRestExchanges.addExchange(getQueryUrl(selector), selector.getRequest(), e.toString());
       throw e;
     }
+  }
+
+  private void reportProblem(MetricsStream metricsStream, MBeanSelector selector) {
+    metricsStream.println(withCommentMarkers(getProblem(selector) + "\n" + selector.getPrintableRequest()));
+  }
+
+  private String getProblem(MBeanSelector selector) {
+    if (selector.isRequestForPrivilegedProperty())
+      return "You seem to have encountered a bug in the WebLogic REST API.\n" +
+            " The JDBCServiceRuntime.JDBCDataSourceRuntimeMBeans.properties property " +
+            " may only be accessed by a user with administrator privileges.";
+    else
+      return "REST service was unable to handle this query and returned a " + HTTP_BAD_REQUEST;
   }
 
   private static String withCommentMarkers(String string) {

@@ -28,6 +28,11 @@ class JsonQuerySpec {
     private String keyName = null;
     private List<String> selectedKeys = null;
 
+    JsonQuerySpec asTopLevel() {
+        addFields();
+        return this;
+    }
+
     /**
      * Specifies the name of any mbean values which should be retrieved.
      * @param newFields the field names to add to any previous defined

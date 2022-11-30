@@ -313,7 +313,7 @@ public class MBeanSelector {
      * @return a JSON string
      */
     public String getRequest() {
-        return toQuerySpec().toJson(new Gson());
+        return toQuerySpec().asTopLevel().toJson(new Gson());
     }
 
     JsonQuerySpec toQuerySpec() {
@@ -354,10 +354,14 @@ public class MBeanSelector {
 
     JsonQuerySpec toKeyQuerySpec() {
         JsonQuerySpec spec = new JsonQuerySpec();
-        if (currentSelectorHasFilter()) spec.addFields(key);
+        if (currentSelectorHasFilter())
+            spec.addFields(key);
+        else
+            spec.addFields();
 
         for (Map.Entry<String, MBeanSelector> selector : nestedSelectors.entrySet())
-            spec.addChild(selector.getKey(), selector.getValue().toKeyQuerySpec());
+            if (selector.getValue().hasFilter())
+                spec.addChild(selector.getKey(), selector.getValue().toKeyQuerySpec());
 
         return spec;
     }
@@ -551,5 +555,19 @@ public class MBeanSelector {
 
     void postProcessMetrics(Map<String, Object> metrics, MetricsProcessor processor) {
         queryType.postProcessMetrics(metrics, processor);
+    }
+
+    public boolean isRequestForPrivilegedProperty() {
+        if (queryType != QueryType.RUNTIME) return false;
+        
+        return Optional.ofNullable(nestedSelectors.get("JDBCServiceRuntime"))
+              .map(MBeanSelector::isJDBCDataSourceRuntimeMBeansPropertiesRequest)
+              .orElse(false);
+    }
+
+    private boolean isJDBCDataSourceRuntimeMBeansPropertiesRequest() {
+        final MBeanSelector jdbcSourceRuntimeSelector = nestedSelectors.get("JDBCDataSourceRuntimeMBeans");
+        if (jdbcSourceRuntimeSelector == null) return false;
+        return jdbcSourceRuntimeSelector.values.isEmpty() || jdbcSourceRuntimeSelector.values.contains("properties");
     }
 }

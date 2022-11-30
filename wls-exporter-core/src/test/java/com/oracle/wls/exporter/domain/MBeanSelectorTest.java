@@ -36,6 +36,7 @@ import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -223,6 +224,29 @@ class MBeanSelectorTest {
     }
 
     @Test
+    void whenTopLevelSelectorHasFields_isIncludedInQuery() {
+        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of(MBeanSelector.VALUES_KEY, "sequence"));
+
+        assertThat(querySpec(selector), hasJsonPath("$.fields", contains("sequence")));
+    }
+
+    @Test
+    void whenTopLevelSelectorHasNoFields_fieldsListIsEmpty() {
+        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of("servlets",
+                ImmutableMap.of(MBeanSelector.VALUES_KEY, new String[] {"first", "second"})));
+
+        assertThat(querySpec(selector), hasJsonPath("$.fields", hasSize(0)));
+    }
+
+    @Test
+    void whenTopLevelSelectorHasPrefixAndNoFields_fieldsListIsEmpty() {
+        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of(MBeanSelector.PREFIX_KEY, "top_", "servlets",
+                ImmutableMap.of(MBeanSelector.VALUES_KEY, new String[] {"first", "second"})));
+
+        assertThat(querySpec(selector), hasJsonPath("$.fields", hasSize(0)));
+    }
+
+    @Test
     void whenIncludedKeysSpecifiedWithoutKeyName_report() {
         final Map<String, Object> BAD_MAP_WITH_INCLUDED_KEYS
               = ImmutableMap.of("group", ImmutableMap.of(MBeanSelector.INCLUDED_KEYS_KEY, "a"));
@@ -250,17 +274,39 @@ class MBeanSelectorTest {
 
     @Test
     void whenMapHasSelectedKeysAtMultipleLevels_AddToKeyQuery() {
-        MBeanSelector selector = MBeanSelector.create(DEEP_MAP_WITH_INCLUDED_KEYS);
+        MBeanSelector selector = MBeanSelector.create(DEEP_MAP_WITH_NESTED_INCLUDED_KEYS);
 
         assertThat(selector.getKeyRequest(), hasJsonPath("$.children.groups.fields", contains("groupName")));
-        assertThat(selector.getKeyRequest(), hasJsonPath("$.children.groups.children.subgroup1.fields", contains("name1")));
-        assertThat(selector.getKeyRequest(), hasJsonPath("$.children.groups.children.subgroup2.fields", contains("name2")));
+        assertThat(selector.getKeyRequest(), hasJsonPath("$.children.groups.children.middle.children.subgroup1.fields", contains("name1")));
+        assertThat(selector.getKeyRequest(), hasJsonPath("$.children.groups.children.middle.children.subgroup2.fields", contains("name2")));
     }
 
-    private static final Map<String, Object> DEEP_MAP_WITH_INCLUDED_KEYS = ImmutableMap.of("groups",
-          ImmutableMap.of(MBeanSelector.QUERY_KEY, "groupName", MBeanSelector.INCLUDED_KEYS_KEY, "alpha|beta",
+    private static final Map<String, Object> DEEP_MAP_WITH_NESTED_INCLUDED_KEYS = ImmutableMap.of(MBeanSelector.PREFIX_KEY, "wls_", "groups",
+        ImmutableMap.of(MBeanSelector.QUERY_KEY, "groupName", MBeanSelector.INCLUDED_KEYS_KEY, "alpha|beta",
+            "middle", ImmutableMap.of(
                 "subgroup1", ImmutableMap.of(MBeanSelector.QUERY_KEY, "name1", MBeanSelector.INCLUDED_KEYS_KEY, "abc.*", MBeanSelector.VALUES_KEY, "group1Val" ),
-                "subgroup2", ImmutableMap.of(MBeanSelector.QUERY_KEY, "name2", MBeanSelector.INCLUDED_KEYS_KEY, "def.*", MBeanSelector.VALUES_KEY, "group2Val" )));
+                "subgroup2", ImmutableMap.of(MBeanSelector.QUERY_KEY, "name2", MBeanSelector.INCLUDED_KEYS_KEY, "def.*", MBeanSelector.VALUES_KEY, "group2Val" ))));
+
+    @Test
+    void whenIntermediateLevelLacksSelectedKeys_dontRequestFieldsInKeyQuery() {
+        MBeanSelector selector = MBeanSelector.create(DEEP_MAP_WITH_NESTED_INCLUDED_KEYS);
+
+        assertThat(selector.getKeyRequest(), hasJsonPath("$.children.groups.children.middle.fields", hasSize(0)));
+    }
+
+    @Test
+    void whenNestedEntriesLackFilter_excludeSubTreeFromKeyQuery() {
+        MBeanSelector selector = MBeanSelector.create(DEEP_MAP_WITHOUT_NESTED_INCLUDED_KEYS);
+
+        assertThat(selector.getKeyRequest(), hasJsonPath("$.children.groups.fields", contains("groupName")));
+        assertThat(selector.getKeyRequest(), hasNoJsonPath("$.children.groups.children"));
+    }
+
+    private static final Map<String, Object> DEEP_MAP_WITHOUT_NESTED_INCLUDED_KEYS = ImmutableMap.of("groups",
+        ImmutableMap.of(MBeanSelector.QUERY_KEY, "groupName", MBeanSelector.INCLUDED_KEYS_KEY, "alpha|beta",
+            "middle", ImmutableMap.of(
+                "subgroup1", ImmutableMap.of(MBeanSelector.QUERY_KEY, "name1", MBeanSelector.VALUES_KEY, "group1Val" ),
+                "subgroup2", ImmutableMap.of(MBeanSelector.QUERY_KEY, "name2", MBeanSelector.VALUES_KEY, "group2Val" ))));
 
     @Test
     void whenMapLacksKeyFilter_dontNeedNewKeys() {
@@ -312,6 +358,31 @@ class MBeanSelectorTest {
     }
 
     @Test
+    void afterKeysOfferedThatDoNotMatchFilter_parentSelectorHasNoChildren() {
+        MBeanSelector selector = MBeanSelector.create(MAP_WITH_INCLUDED_KEYS);
+        selector.offerKeys(MISMATCHED_KEY_RESPONSE);
+
+        assertThat(selector.getRequest(), hasNoJsonPath("$.children"));
+    }
+
+    @Test
+    void afterKeysOfferedThatDoNotMatchFilter_parentSelectorHasEmptyFieldsArray() {
+        MBeanSelector selector = MBeanSelector.create(MAP_WITH_INCLUDED_KEYS);
+        selector.offerKeys(MISMATCHED_KEY_RESPONSE);
+
+        assertThat(selector.getRequest(), hasJsonPath("$.fields", hasSize(0)));
+    }
+
+    private static final String MISMATCHED_KEY_RESPONSE_JSON = "{\"servlets\": {\"items\": [\n" +
+                "     {\"servletName\": \"delta\"},\n" +
+                "     {\"servletName\": \"epsilon\" },\n" +
+                "     {\"servletName\": \"zeta\"}\n" +
+                "]}}";
+
+    private static final JsonObject MISMATCHED_KEY_RESPONSE =
+          JsonParser.parseString(MISMATCHED_KEY_RESPONSE_JSON).getAsJsonObject();
+
+    @Test
     void whenMapHasSelectedKeysAtMultipleLevels_specifySelectedKeys() {
         MBeanSelector selector = MBeanSelector.create(DEEP_MAP_WITH_INCLUDED_KEYS);
         selector.offerKeys(DEEP_KEY_RESPONSE);
@@ -320,6 +391,11 @@ class MBeanSelectorTest {
         assertThat(selector.getRequest(), hasJsonPath("$.children.groups.children.subgroup1.name1", containsInAnyOrder("abcdef", "abc123", "abc567")));
         assertThat(selector.getRequest(), hasJsonPath("$.children.groups.children.subgroup2.name2", containsInAnyOrder("defabc", "def123", "def678")));
     }
+
+    private static final Map<String, Object> DEEP_MAP_WITH_INCLUDED_KEYS = ImmutableMap.of("groups",
+          ImmutableMap.of(MBeanSelector.QUERY_KEY, "groupName", MBeanSelector.INCLUDED_KEYS_KEY, "alpha|beta",
+                "subgroup1", ImmutableMap.of(MBeanSelector.QUERY_KEY, "name1", MBeanSelector.INCLUDED_KEYS_KEY, "abc.*", MBeanSelector.VALUES_KEY, "group1Val" ),
+                "subgroup2", ImmutableMap.of(MBeanSelector.QUERY_KEY, "name2", MBeanSelector.INCLUDED_KEYS_KEY, "def.*", MBeanSelector.VALUES_KEY, "group2Val" )));
 
     private static final String DEEP_KEY_RESPONSE_JSON = "{'groups': {'items': [\n" +
           "     {'groupName': 'alpha',\n" +
@@ -356,6 +432,52 @@ class MBeanSelectorTest {
 
     private static final JsonObject DEEP_KEY_RESPONSE =
           JsonParser.parseString(DEEP_KEY_RESPONSE_JSON.replace("'", "\"")).getAsJsonObject();
+
+    @Test
+    void whenMapHasMismatchedNested_specifySelectedKeys() {
+        MBeanSelector selector = MBeanSelector.create(DEEP_MAP_WITH_INCLUDED_KEYS);
+        selector.offerKeys(MISMATCHED_DEEP_KEY_RESPONSE);
+
+        assertThat(selector.getRequest(), hasJsonPath("$.children.groups.groupName", containsInAnyOrder("alpha", "beta")));
+        assertThat(selector.getRequest(), hasJsonPath("$.children.groups.children.subgroup1.name1", containsInAnyOrder("abcdef", "abc123", "abc567")));
+        assertThat(selector.getRequest(), hasNoJsonPath("$.children.groups.children.subgroup2"));
+    }
+
+    private static final String MISMATCHED_DEEP_KEY_RESPONSE_JSON = "{'groups': {'items': [\n" +
+          "     {'groupName': 'alpha',\n" +
+          "      'subgroup1': {'items': [\n" +
+          "          {'name1': 'abcdef'},\n" +
+          "          {'name1': 'abc123'},\n" +
+          "          {'name1': 'ab12_2'}\n" +
+          "       ]},\n" +
+          "      'subgroup2': {'items': [\n" +
+          "          {'name2': 'abcdef'},\n" +
+          "          {'name2': 'xyzabc'},\n" +
+          "          {'name2': 'jklmn'}\n" +
+          "       ]}\n" +
+          "     },\n" +
+          "     {'groupName': 'beta',\n" +
+          "      'subgroup1': {'items': [\n" +
+          "          {'name1': 'abcdef'},\n" +
+          "          {'name1': 'abc567'},\n" +
+          "          {'name1': 'abjkl'}\n" +
+          "       ]},\n" +
+          "      'subgroup2': {'items': [\n" +
+          "          {'name2': 'ghi678'},\n" +
+          "       ]}\n" +
+          "     },\n" +
+          "     {'groupName': 'gamma',\n" +
+          "      'subgroup1': {'items': [\n" +
+          "          {'name1': 'abcxyz'},\n" +
+          "       ]},\n" +
+          "      'subgroup2': {'items': [\n" +
+          "          {'name2': 'jkl987'},\n" +
+          "       ]}\n" +
+          "     }\n" +
+          "]}}";
+
+    private static final JsonObject MISMATCHED_DEEP_KEY_RESPONSE =
+          JsonParser.parseString(MISMATCHED_DEEP_KEY_RESPONSE_JSON.replace("'", "\"")).getAsJsonObject();
 
     @Test
     void whenMapHasBothIncludedAndExcludedKeys_selectKeysLeft() {

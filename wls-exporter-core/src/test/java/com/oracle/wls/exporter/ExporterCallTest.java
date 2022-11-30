@@ -22,6 +22,10 @@ class ExporterCallTest {
   private static final String ONE_VALUE_CONFIG = "queries:\n- groups:\n    key: name\n    values: testSample1";
   private static final String CONFIG_WITH_FILTER = "queries:" +
         "\n- groups:\n    key: name\n    includedKeyValues: abc.*\n    values: testSample1";
+  private static final String REQUEST_FOR_PRIVILEGED_PROPERTY = "queries:" +
+        "\n- JDBCServiceRuntime:\n    JDBCDataSourceRuntimeMBeans:\n      key: name\n      values: properties";
+  private static final String REQUEST_INCLUDES_PRIVILEGED_PROPERTY = "queries:" +
+        "\n- JDBCServiceRuntime:\n    JDBCDataSourceRuntimeMBeans:\n      prefix: ds_\n      key: name\n";
 
   private static final String KEY_RESPONSE_JSON = "{\"groups\": {\"items\": [\n" +
               "     {\"name\": \"alpha\"},\n" +
@@ -97,5 +101,25 @@ class ExporterCallTest {
     handleMetricsCall(context.withHttps());
 
     assertThat(factory.getNumQueriesSent(), equalTo(2));
+  }
+
+  @Test
+  void whenBadQueryReceivedAndConfigurationSelectsPrivilegedPropertiesProperty_explainProblem() throws IOException {
+    factory.reportBadQuery();
+    LiveConfiguration.loadFromString(REQUEST_FOR_PRIVILEGED_PROPERTY);
+
+    handleMetricsCall(context.withHttps());
+
+    assertThat(context.getResponse(), containsString("bug in the WebLogic REST API"));
+  }
+
+  @Test
+  void whenBadQueryReceivedAndConfigurationSelectsPropertiesIncludingPrivilegedProperty_explainProblem() throws IOException {
+    factory.reportBadQuery();
+    LiveConfiguration.loadFromString(REQUEST_INCLUDES_PRIVILEGED_PROPERTY);
+
+    handleMetricsCall(context.withHttps());
+
+    assertThat(context.getResponse(), containsString("bug in the WebLogic REST API"));
   }
 }
