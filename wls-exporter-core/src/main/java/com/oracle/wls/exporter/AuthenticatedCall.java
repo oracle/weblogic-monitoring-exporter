@@ -6,6 +6,7 @@ package com.oracle.wls.exporter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
+import java.util.Map;
 
 import com.oracle.wls.exporter.domain.MBeanSelector;
 import com.oracle.wls.exporter.domain.QueryType;
@@ -47,7 +48,30 @@ public abstract class AuthenticatedCall {
         webClient.addHeader("X-Requested-By", "rest-exporter");
 
         setAuthentication(webClient);
+        webClient.onSetCookieReceivedDo(c -> new NewCookieHandler(webClient).handleNewCookie(c));
+        context.getCookies().entrySet().stream().map(this::toCookie).forEach(c -> webClient.addHeader("Cookie", c));
         return webClient;
+    }
+
+    class NewCookieHandler {
+        private final WebClient webClient;
+
+        NewCookieHandler(WebClient webClient) {
+            this.webClient = webClient;
+        }
+
+        void handleNewCookie(String headerValue) {
+            context.addResponseHeader("Set-Cookie", headerValue);
+            webClient.addHeader("Cookie", headerValue);
+        }
+    }
+
+    private void handleNewCookie(String headerValue) {
+        context.addResponseHeader("Set-Cookie", headerValue);
+    }
+
+    private String toCookie(Map.Entry<String, String> entry) {
+        return entry.getKey() + '=' + entry.getValue();
     }
 
     protected void setAuthentication(WebClient webClient) {
@@ -71,7 +95,7 @@ public abstract class AuthenticatedCall {
         } catch (ForbiddenException e) {
             context.sendError(HTTP_FORBIDDEN, "Not authorized");
         } catch (AuthenticationChallengeException e) {
-            context.setResponseHeader("WWW-Authenticate", e.getChallenge());
+            context.addResponseHeader("WWW-Authenticate", e.getChallenge());
             context.sendError(HTTP_UNAUTHORIZED, "Authentication required");
         } catch (ServerErrorException e) {
             final int status = e.getStatus();

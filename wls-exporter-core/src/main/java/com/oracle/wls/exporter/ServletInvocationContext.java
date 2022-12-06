@@ -8,6 +8,9 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,6 +24,8 @@ public class ServletInvocationContext implements InvocationContext {
   private final HttpServletRequest request;
   private final HttpServletResponse response;
   private final String localHostName = getLocalHostName();
+
+  private Map<String,String> cookies;
 
   public ServletInvocationContext(HttpServletRequest request, HttpServletResponse response) {
     this.request = request;
@@ -65,6 +70,21 @@ public class ServletInvocationContext implements InvocationContext {
   }
 
   @Override
+  public Map<String, String> getCookies() {
+    if (cookies == null)
+      cookies = getRequestCookies();
+    return cookies;
+  }
+
+  private Map<String, String> getRequestCookies() {
+    final Map<String, String> result = new HashMap<>();
+    if (request.getCookies() != null)
+      Arrays.stream(request.getCookies()).forEach(c -> result.put(c.getName(), c.getValue()));
+
+    return result;
+  }
+
+  @Override
   public String getInstanceName() {
       return request.getServerName() + ":" + request.getServerPort();
   }
@@ -94,7 +114,7 @@ public class ServletInvocationContext implements InvocationContext {
   }
 
   @Override
-  public void setResponseHeader(String name, String value) {
+  public void addResponseHeader(String name, String value) {
       response.setHeader(name, value);
   }
 

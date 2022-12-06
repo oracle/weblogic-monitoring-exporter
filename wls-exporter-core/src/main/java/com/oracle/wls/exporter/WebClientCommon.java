@@ -11,7 +11,11 @@ import java.net.ConnectException;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
@@ -32,6 +36,7 @@ public abstract class WebClientCommon implements WebClient {
     private boolean retryNeeded;
     private String contentType;
     private String url;
+    private final List<Consumer<String>> setCookieHandlers = new ArrayList<>();
 
     interface WebRequest {
         String getMethod();
@@ -105,26 +110,26 @@ public abstract class WebClientCommon implements WebClient {
     @Override
     public String doGetRequest() throws IOException {
         defineSessionHeaders();
-        return sendRequest(createGetRequest(url));
+        return sendRequest(createGetRequest(url)).getBody();
     }
 
     @Override
     public String doPostRequest(String postBody) throws IOException {
         if (contentType == null) contentType = APPLICATION_JSON;
         defineSessionHeaders();
-        return sendRequest(createPostRequest(url, postBody));
+        return sendRequest(createPostRequest(url, postBody)).getBody();
     }
 
     @Override
     public <T> String doPutRequest(T putBody) throws IOException {
         defineSessionHeaders();
-        return sendRequest(createPutRequest(url, putBody));
+        return sendRequest(createPutRequest(url, putBody)).getBody();
     }
 
     // Sends the specified request to the server
-    private String sendRequest(WebRequest request) throws IOException {
+    private ResponseImpl sendRequest(WebRequest request) throws IOException {
         try (HttpClientExec clientExec = createClientExec()) {
-            return getReply(clientExec.send(request));
+            return new ResponseImpl(clientExec.send(request));
         } catch (UnknownHostException | ConnectException e) {
             throw new RestPortConnectionException(request.getURI().toString());
         } catch (GeneralSecurityException e) {
@@ -132,59 +137,10 @@ public abstract class WebClientCommon implements WebClient {
         }
     }
 
-    private String getReply(WebResponse response) throws IOException {
-        processStatusCode(response);
-        try (final InputStream contents = response.getContents()) {
-            return toString(contents);
-        }
-    }
-
-    private void processStatusCode(WebResponse response) {
-        switch (response.getResponseCode()) {
-            case HTTP_BAD_REQUEST:
-                throw new RestQueryException();
-            case HTTP_UNAUTHORIZED:
-                throw createAuthenticationChallengeException(response);
-            case HTTP_FORBIDDEN:
-                throw new ForbiddenException();
-            default:
-                if (response.getResponseCode() > SC_BAD_REQUEST)
-                    throw createServerErrorException(response);
-        }
-    }
-
-    private ServerErrorException createServerErrorException(WebResponse response) {
-        try {
-            return new ServerErrorException(response.getResponseCode(), toString(response.getContents()));
-        } catch (IOException e) {
-            return new ServerErrorException(response.getResponseCode());
-        }
-    }
-
-    // Converts an input stream to a string.
-    private String toString(InputStream inputStream) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte[] buffer = new byte[4096];
-        int numBytes = 0;
-        while (numBytes >= 0) {
-            baos.write(buffer, 0, numBytes);
-            numBytes = inputStream.read(buffer);
-        }
-        return baos.toString("UTF8");
-    }
-
     final void defineSessionHeaders() {
         clearSessionHeaders();
         if (getAuthentication() != null) putSessionHeader(AUTHENTICATION_HEADER, getAuthentication());
         if (getContentType() != null) putSessionHeader(CONTENT_TYPE_HEADER, getContentType());
-    }
-
-    private AuthenticationChallengeException createAuthenticationChallengeException(WebResponse response) {
-        return new AuthenticationChallengeException(getAuthenticationHeader(response));
-    }
-
-    private String getAuthenticationHeader(WebResponse response) {
-        return response.getHeadersAsStream("WWW-Authenticate").filter(Objects::nonNull).findFirst().orElse(null);
     }
 
     static class EmptyInputStream extends InputStream {
@@ -234,6 +190,89 @@ public abstract class WebClientCommon implements WebClient {
             return retryNeeded;
         } finally {
             retryNeeded = false;
+        }
+    }
+
+    @Override
+    public void onSetCookieReceivedDo(Consumer<String> setCookieHandler) {
+        setCookieHandlers.add(setCookieHandler);
+    }
+
+    protected void invokeSetCookieHandlerCallbacks(List<String> setCookieHeaders) {
+        setCookieHandlers.forEach(setCookieHeaders::forEach);
+    }
+
+    class ResponseImpl implements WebClient.Response {
+        private final WebResponse response;
+        private final String body;
+
+        ResponseImpl(WebResponse response) throws IOException {
+            this.response = response;
+            processStatusCode();
+            reportSetCookieHeaders();
+
+            try (final InputStream contents = response.getContents()) {
+                body = asString(contents);
+            }
+        }
+
+        private void processStatusCode() {
+            switch (response.getResponseCode()) {
+                case HTTP_BAD_REQUEST:
+                    throw new RestQueryException();
+                case HTTP_UNAUTHORIZED:
+                    throw createAuthenticationChallengeException();
+                case HTTP_FORBIDDEN:
+                    throw new ForbiddenException();
+                default:
+                    if (response.getResponseCode() > SC_BAD_REQUEST)
+                        throw createServerErrorException();
+            }
+        }
+
+        private void reportSetCookieHeaders() {
+            invokeSetCookieHandlerCallbacks(getSetCookieHeaders());
+        }
+
+        private List<String> getSetCookieHeaders() {
+            return response.getHeadersAsStream("Set-Cookie").filter(Objects::nonNull).collect(Collectors.toList());
+        }
+
+        private ServerErrorException createServerErrorException() {
+            try {
+                return new ServerErrorException(response.getResponseCode(), asString(response.getContents()));
+            } catch (IOException e) {
+                return new ServerErrorException(response.getResponseCode());
+            }
+        }
+
+        private AuthenticationChallengeException createAuthenticationChallengeException() {
+            return new AuthenticationChallengeException(getAuthenticationHeader());
+        }
+
+        private String getAuthenticationHeader() {
+            return response.getHeadersAsStream("WWW-Authenticate").filter(Objects::nonNull).findFirst().orElse(null);
+        }
+
+        private String asString(InputStream inputStream) throws IOException {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int numBytes = 0;
+            while (numBytes >= 0) {
+                baos.write(buffer, 0, numBytes);
+                numBytes = inputStream.read(buffer);
+            }
+            return baos.toString("UTF8");
+        }
+
+        @Override
+        public String getBody() {
+            return body;
+        }
+
+        @Override
+        public List<String> getResponseHeaders(String headerName) {
+            return null;
         }
     }
 }

@@ -1,0 +1,6 @@
+<weblogic-web-app xmlns="http://xmlns.oracle.com/weblogic/weblogic-web-app">
+<session-descriptor>
+    <tracking-enabled>false</tracking-enabled>
+  </session-descriptor>
+
+</weblogic-web-app>

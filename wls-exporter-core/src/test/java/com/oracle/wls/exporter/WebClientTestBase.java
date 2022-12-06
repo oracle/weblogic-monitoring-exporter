@@ -5,7 +5,9 @@ package com.oracle.wls.exporter;
 
 import java.io.IOException;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -32,6 +34,7 @@ import static javax.servlet.http.HttpServletResponse.SC_NOT_IMPLEMENTED;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
@@ -416,6 +419,28 @@ abstract class WebClientTestBase {
         tearDownServer();
 
         assertThrows(RestPortConnectionException.class, () -> accessUndefinedPortRepeatedly("noConnection", 20));
+    }
+
+    @Test
+    void whenSetCookieHeaderReceivedFromServer_handleIt() throws IOException {
+        final String RESPONSE = "returned this";
+        final List<String> receivedHeaders = new ArrayList<>();
+
+        defineResource("queryWithSetCookie", new PseudoServlet() {
+            public WebResource getPostResponse() {
+                final WebResource webResource = new WebResource(RESPONSE, "text/plain");
+                webResource.addHeader("Set-Cookie: abc=def; stuff");
+                webResource.addHeader("Set-Cookie: jkl=mno");
+                webResource.addHeader("Random: not this");
+                return webResource;
+            }
+        });
+
+        WebClient webClient = withWebClient("queryWithSetCookie");
+        webClient.onSetCookieReceivedDo(receivedHeaders::add);
+        webClient.doPostRequest("ignore this");
+
+        assertThat(receivedHeaders, containsInAnyOrder("abc=def; stuff", "jkl=mno"));
     }
 
     @SuppressWarnings("SameParameterValue")

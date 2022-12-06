@@ -1,9 +1,11 @@
-// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * An interface for an object responsible for sending requests from exporter web application to
@@ -72,4 +74,17 @@ public interface WebClient {
    * Returns true if this client has been marked to retry the last request.
    */
   boolean isRetryNeeded();
+
+  /**
+   * Defines a handler to be called when a Set-Cookie header is found in a reply from the server.
+   * @param setCookieHandler the handler to call with the value of the header
+   */
+  void onSetCookieReceivedDo(Consumer<String> setCookieHandler);
+
+
+  interface Response {
+    String getBody() throws IOException;
+
+    List<String> getResponseHeaders(String headerName);
+  }
 }

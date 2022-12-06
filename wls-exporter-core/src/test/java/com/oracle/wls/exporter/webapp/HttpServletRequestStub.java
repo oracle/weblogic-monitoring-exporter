@@ -7,12 +7,15 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import javax.servlet.ServletInputStream;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -36,8 +39,9 @@ public abstract class HttpServletRequestStub implements HttpServletRequest {
     private int localPort = LOCAL_PORT;
     private String contentType = DEFAULT_CONTENT_TYPE;
     private String contents;
-    private ServletInputStream inputStream;
+    private List<Cookie> cookies = null;
     private String contextPath;
+    private ServletInputStream inputStream;
     private String servletPath = "";
     private HttpSessionStub session;
     private boolean secure;
@@ -111,6 +115,11 @@ public abstract class HttpServletRequestStub implements HttpServletRequest {
     @Override
     public String getContentType() {
         return contentType;
+    }
+
+    @Override
+    public Cookie[] getCookies() {
+        return cookies == null ? null : cookies.toArray(new Cookie[0]);
     }
 
     @Override
@@ -191,6 +200,11 @@ public abstract class HttpServletRequestStub implements HttpServletRequest {
 
     public boolean hasInvalidatedSession() {
         return session != null && !session.valid;
+    }
+
+    public void addCookie(String name, String value) {
+        if (cookies == null) cookies = new ArrayList<>();
+        cookies.add(new Cookie(name, value));
     }
 
     static abstract class HttpSessionStub implements HttpSession {

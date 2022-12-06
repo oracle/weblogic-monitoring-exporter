@@ -25,6 +25,9 @@ import static com.meterware.simplestub.Stub.createStrictStub;
 import static com.oracle.wls.exporter.sidecar.SidecarConfiguration.POD_NAME_PROPERTY;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 
 class HelidonInvocationContextTest {
@@ -86,6 +89,25 @@ class HelidonInvocationContextTest {
     assertThat(invocationContext.getInstanceName(), equalTo(POD_NAME));
   }
 
+  @Test
+  void obtainCookies() {
+    request.addHeader("Cookie", "cookie1=value1; sessionToken=abc123");
+    request.addHeader("Cookie", "cookie2=value2==; ignore");
+    request.addHeader("X-requestedBy", "exporter");
+
+    final Map<String, String> cookies = invocationContext.getCookies();
+    assertThat(cookies, hasEntry("cookie1", "value1"));
+    assertThat(cookies, hasEntry("cookie2", "value2=="));
+    assertThat(cookies, not(hasKey("X-requestedBy")));
+  }
+
+  @Test
+  void afterCookieAdded_nextCallReturnsIt() {
+    invocationContext.getCookies().put("newCookie", "newValue");
+
+    assertThat(invocationContext.getCookies(), hasEntry("newCookie", "newValue"));
+  }
+
   abstract static class ServerRequestStub implements ServerRequest {
     private final RequestHeadersStub headers = createStrictStub(RequestHeadersStub.class);
 
@@ -107,11 +129,11 @@ class HelidonInvocationContextTest {
 
   abstract static class RequestHeadersStub implements RequestHeaders {
 
-    private final Map<String, String> headers = new HashMap<>();
+    private final Map<String, List<String>> headers = new HashMap<>();
     private MediaType contentType;
 
     void addHeader(String name, String value) {
-      headers.put(name, value);
+      all(name).add(value);
     }
 
     void setContentType(MediaType contentType) {
@@ -120,7 +142,12 @@ class HelidonInvocationContextTest {
 
     @Override
     public Optional<String> first(String name) {
-      return Optional.ofNullable(headers.get(name));
+      return Optional.ofNullable(headers.get(name)).map(l->l.get(0));
+    }
+
+    @Override
+    public List<String> all(String name) {
+      return headers.computeIfAbsent(name, k -> new ArrayList<>());
     }
 
     @Override

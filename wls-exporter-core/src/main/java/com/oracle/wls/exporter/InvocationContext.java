@@ -6,6 +6,7 @@ package com.oracle.wls.exporter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.Map;
 
 /**
  * Context for the invocation of AuthenticatedCall objects. This largely acts as a facade for request and response objects.
@@ -31,6 +32,11 @@ public interface InvocationContext {
    * Returns the content type of the client request.
    */
   String getContentType();
+
+  /**
+   * Returns the cookies sent by the client.
+   */
+  Map<String, String> getCookies();
 
   /**
    * Returns an identifier for the WebLogic Server instance. It will be included in generated metrics.
@@ -64,11 +70,11 @@ public interface InvocationContext {
   void sendRedirect(String location) throws IOException;
 
   /**
-   * Sets a header on the response.
+   * Sets a header on the response to the client.
    * @param name the header name
    * @param value the value for the header
    */
-  void setResponseHeader(String name, String value);
+  void addResponseHeader(String name, String value);
 
   /**
    * Updates the response with a status but does not close the response stream.

@@ -3,12 +3,12 @@
 
 package com.oracle.wls.exporter;
 
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
 
 import com.google.common.collect.ImmutableMap;
 import com.oracle.wls.exporter.webapp.ExporterServlet;
@@ -37,7 +37,6 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -256,7 +255,7 @@ class ExporterServletTest {
 
         servlet.doGet(request, response);
 
-        assertThat(factory.getSentHeaders(), hasKey("X-Requested-By"));
+        assertThat(factory.getSentHeaders("X-Requested-By"), not(empty()));
     }
 
     @Test

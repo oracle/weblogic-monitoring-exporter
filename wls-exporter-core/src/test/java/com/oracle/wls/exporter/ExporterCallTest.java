@@ -4,6 +4,8 @@
 package com.oracle.wls.exporter;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +24,8 @@ class ExporterCallTest {
   private static final String ONE_VALUE_CONFIG = "queries:\n- groups:\n    key: name\n    values: testSample1";
   private static final String CONFIG_WITH_FILTER = "queries:" +
         "\n- groups:\n    key: name\n    includedKeyValues: abc.*\n    values: testSample1";
+  private static final String DUAL_QUERY_CONFIG = ONE_VALUE_CONFIG +
+        "\n- clubs:\n    key: name\n    values: testSample2";
 
   private static final String KEY_RESPONSE_JSON = "{\"groups\": {\"items\": [\n" +
               "     {\"name\": \"alpha\"},\n" +
@@ -29,8 +33,21 @@ class ExporterCallTest {
               "     {\"name\": \"gamma\"}\n" +
               "]}}";
 
+  private static final String QUERY_RESPONSE1_JSON = "{\"groups\": {\"items\": [\n" +
+              "     {\"name\": \"alpha\", \"testSample1\": \"first\"},\n" +
+              "     {\"name\": \"beta\", \"testSample1\": \"second\"},\n" +
+              "     {\"name\": \"gamma\", \"testSample1\": \"third\"}\n" +
+              "]}}";
+
+  private static final String QUERY_RESPONSE2_JSON = "{\"clubs\": {\"items\": [\n" +
+              "     {\"name\": \"aleph\", \"testSample2\": \"first\"},\n" +
+              "     {\"name\": \"bet\", \"testSample2\": \"second\"},\n" +
+              "     {\"name\": \"gimel\", \"testSample2\": \"third\"}\n" +
+              "]}}";
+
   private final WebClientFactoryStub factory = new WebClientFactoryStub();
   private final InvocationContextStub context = InvocationContextStub.create();
+  private final List<String> sentSetCookieHeaders = new ArrayList<>();
 
   @BeforeEach
   public void setUp() {
@@ -97,5 +114,16 @@ class ExporterCallTest {
     handleMetricsCall(context.withHttps());
 
     assertThat(factory.getNumQueriesSent(), equalTo(2));
+  }
+
+  @Test
+  void whenHaveMultipleQueries_sendServerDefinedCookieOnSecondQuery() throws IOException {
+    factory.forJson(QUERY_RESPONSE1_JSON).withResponseHeader("Set-Cookie", "cookieName=value1").addResponse();
+    factory.addJsonResponse(QUERY_RESPONSE2_JSON);
+    LiveConfiguration.loadFromString(DUAL_QUERY_CONFIG);
+
+    handleMetricsCall(context);
+
+    assertThat(factory.getSentHeaders("Cookie"), contains("cookieName=value1"));
   }
 }

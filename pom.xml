@@ -109,14 +109,26 @@
                 <plugin>
                     <artifactId>maven-war-plugin</artifactId>
                     <version>${maven-war-plugin-version}</version>
+                    <executions>
+                        <execution>
+                            <id>notices</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>war</goal>
+                            </goals>
+                            <configuration>
+                                <failOnMissingWebXml>false</failOnMissingWebXml>
+                                <warSourceDirectory>${configuration.directory}</warSourceDirectory>
+                                <webResources>
+                                    <resource>
+                                        <directory>${project.basedir}/../src/main/notices</directory>
+                                    </resource>
+                                </webResources>
+                            </configuration>
+                        </execution>
+                    </executions>
                     <configuration>
                         <failOnMissingWebXml>false</failOnMissingWebXml>
-                        <warSourceDirectory>${configuration.directory}</warSourceDirectory>
-                        <webResources>
-                            <resource>
-                                <directory>${project.basedir}/../src/main/notices</directory>
-                            </resource>
-                        </webResources>
                     </configuration>
                 </plugin>
                 <plugin>

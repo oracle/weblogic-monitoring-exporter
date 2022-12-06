@@ -24,6 +24,9 @@ public class ExporterCall extends AuthenticatedCall {
 
   @Override
   protected void invoke(WebClient webClient, InvocationContext context) throws IOException {
+//    final SetCookieHandler setCookieHandler = new SetCookieHandler(context);
+//    webClient.onSetCookieReceivedDo(setCookieHandler::addToClientCookies);
+
     LiveConfiguration.updateConfiguration();
     try (OutputStream responseStream = context.getResponseStream();
          MetricsStream metricsStream = new MetricsStream(getInstanceName(), responseStream)) {
@@ -33,6 +36,20 @@ public class ExporterCall extends AuthenticatedCall {
         displayMetrics(webClient, metricsStream);
       }
     }
+  }
+
+  static class SetCookieHandler {
+    private final InvocationContext context;
+
+    SetCookieHandler(InvocationContext context) {
+      this.context = context;
+    }
+
+    public void addToClientCookies(String newCookie) {
+      final String[] cookieParts = newCookie.split("=", 2);
+      context.getCookies().put(cookieParts[0], cookieParts[1]);
+    }
+
   }
 
   private void displayMetrics(WebClient webClient, MetricsStream metricsStream) throws IOException {

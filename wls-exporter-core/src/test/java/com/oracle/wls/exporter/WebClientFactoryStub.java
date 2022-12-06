@@ -3,13 +3,13 @@
 
 package com.oracle.wls.exporter;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.gson.Gson;
 
@@ -25,12 +25,21 @@ public class WebClientFactoryStub implements WebClientFactory {
         return webClient;
     }
 
+    interface ResponseBuilder {
+        ResponseBuilder withResponseHeader(String name, String value);
+        void addResponse();
+    }
+
     void addJsonResponse(Map<String, Object> responseMap) {
         webClient.addJsonResponse(new Gson().toJson(responseMap));
     }
 
     void addJsonResponse(String json) {
         webClient.addJsonResponse(json);
+    }
+
+    ResponseBuilder forJson(String json) {
+        return webClient.forJson(json);
     }
 
     int getNumQueriesSent() {
@@ -49,8 +58,8 @@ public class WebClientFactoryStub implements WebClientFactory {
         return webClient.postedString;
     }
 
-    Map<String,String> getSentHeaders() {
-        return webClient.sentHeaders;
+    List<String> getSentHeaders(String headerName) {
+        return Optional.ofNullable(webClient.sentHeaders.get(headerName)).orElse(Collections.emptyList());
     }
 
     String getSentAuthentication() {
@@ -90,17 +99,40 @@ public class WebClientFactoryStub implements WebClientFactory {
         private final List<String> jsonQueries = new ArrayList<>();
         private final List<TestResponse> testResponses = new ArrayList<>();
         private Iterator<TestResponse> responses;
-        private final Map<String, String> addedHeaders = new HashMap<>();
-        private Map<String, String> sentHeaders;
+        private final Map<String, List<String>> addedHeaders = new HashMap<>();
+        private Map<String, List<String>> sentHeaders;
         private String postedString;
 
-        private void addJsonResponse(String jsonResponse) {
-            addResponse(new JsonResponse(jsonResponse));
+        private void addJsonResponse(String responseJson) {
+            addResponse(new JsonResponse(responseJson));
         }
 
         private void addResponse(TestResponse response) {
             if (allResponsesHandled()) clearOldResponses();
             testResponses.add(response);
+        }
+
+        private ResponseBuilder forJson(String jsonString) {
+            return new ResponseBuilderImpl(jsonString);
+        }
+
+        class ResponseBuilderImpl implements ResponseBuilder {
+            private final JsonResponse jsonResponse;
+
+            ResponseBuilderImpl(String jsonString) {
+                this.jsonResponse = new JsonResponse(jsonString);
+            }
+
+            @Override
+            public ResponseBuilder withResponseHeader(String name, String value) {
+                jsonResponse.withResponseHeader(name, value);
+                return this;
+            }
+
+            @Override
+            public void addResponse() {
+                WebClientStub.this.addResponse(jsonResponse);
+            }
         }
 
         private boolean allResponsesHandled() {
@@ -130,7 +162,7 @@ public class WebClientFactoryStub implements WebClientFactory {
         }
 
         void throwConnectionFailure(String hostName, int port) {
-            addExceptionResponse(new RestPortConnectionException(String.format("http://%s:%d", hostName, port)));
+            addExceptionResponse(new RestPortConnectionException(String.format("https://%s:%d", hostName, port)));
         }
 
         @Override
@@ -141,7 +173,7 @@ public class WebClientFactoryStub implements WebClientFactory {
 
         @Override
         public void addHeader(String name, String value) {
-            addedHeaders.put(name, value);
+            addedHeaders.computeIfAbsent(name, n -> new ArrayList<>()).add(value);
         }
 
         @Override
@@ -162,7 +194,7 @@ public class WebClientFactoryStub implements WebClientFactory {
         }
 
         @Override
-        public <T> String doPutRequest(T putBody) throws IOException {
+        public <T> String doPutRequest(T putBody) {
             if (url == null) throw new NullPointerException("No URL specified");
             postedString = new Gson().toJson(putBody);
 
@@ -176,7 +208,13 @@ public class WebClientFactoryStub implements WebClientFactory {
 
         private String getResult(TestResponse response) {
             if (response.getException() != null) throw response.getException();
+
+            invokeSetCookieHandlerCallbacks(getSetCookieHeaders(response));
             return response.getJsonResponse();
+        }
+
+        private List<String> getSetCookieHeaders(TestResponse response) {
+            return response.getResponseHeaders("Set-Cookie");
         }
 
     }
@@ -184,6 +222,7 @@ public class WebClientFactoryStub implements WebClientFactory {
     interface TestResponse {
         WebClientException getException();
         String getJsonResponse();
+        List<String> getResponseHeaders(String headerName);
     }
 
     static class ExceptionResponse implements TestResponse {
@@ -202,13 +241,24 @@ public class WebClientFactoryStub implements WebClientFactory {
         public String getJsonResponse() {
             return null;
         }
+
+        @Override
+        public List<String> getResponseHeaders(String headerName) {
+            return Collections.emptyList();
+        }
     }
 
     static class JsonResponse implements TestResponse {
         String jsonResponse;
+        private final Map<String, List<String>> responseHeaders = new HashMap<>();
 
         JsonResponse(String jsonResponse) {
             this.jsonResponse = jsonResponse;
+        }
+
+        JsonResponse withResponseHeader(String name, String value) {
+            getResponseHeaders(name).add(value);
+            return this;
         }
 
         @Override
@@ -220,11 +270,11 @@ public class WebClientFactoryStub implements WebClientFactory {
         public String getJsonResponse() {
             return jsonResponse;
         }
-    }
 
-    static class QueryTestException extends WebClientException {
-        public QueryTestException(String message) {
-            super(message);
+        @Override
+        public List<String> getResponseHeaders(String headerName) {
+            return responseHeaders.computeIfAbsent(headerName, k -> new ArrayList<>());
         }
     }
+
 }
