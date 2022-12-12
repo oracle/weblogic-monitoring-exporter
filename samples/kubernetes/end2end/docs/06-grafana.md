@@ -9,9 +9,10 @@ Create the Grafana administrative credentials.
 ```
 kubectl --namespace monitoring create secret generic grafana-secret --from-literal=username=admin --from-literal=password=12345678
 ```
-Install the Grafana chart.
+Install the Grafana chart, in this sample we will use helm chart version 6.38.6..
 ```
-helm install --wait --name grafana --namespace monitoring --values grafana/values.yaml stable/grafana
+helm repo add grafana https://grafana.github.io/helm-charts --force-update
+helm install --wait --name grafana --namespace monitoring --values grafana/values.yaml --version 6.38.6 grafana/grafana
 ```
 ### Verification
 Wait until the Grafana pod is running.

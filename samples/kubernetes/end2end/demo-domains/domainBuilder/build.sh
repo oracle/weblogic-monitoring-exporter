@@ -1,11 +1,11 @@
 #!/bin/bash
-# Copyright 2019, Oracle and/or its affiliates.  All rights reserved.
+# Copyright 2019, 2022, Oracle and/or its affiliates.  All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 set -e  # Exit immediately if a command exits with a non-zero status.
 
-WDT_VERSION=0.24
-MONITORING_EXPORTER_VERSION=1.1.1
+WDT_VERSION=2.4.2
+MONITORING_EXPORTER_VERSION=2.1
 
 CUR_DIR="$(dirname "$(readlink -f "$0")")" # get the absolute path of this file's folder
 PRJ_ROOT=${CUR_DIR}/../../../../..
@@ -22,7 +22,7 @@ function createArchive() {
   echo "Download the metrics exporter webapp from ://github.com/oracle/weblogic-monitoring-exporter/releases/download/v${MONITORING_EXPORTER_VERSION}/get${MONITORING_EXPORTER_VERSION}.sh..."
 
   cd $PRJ_ROOT
-  curl -O -L https://github.com/oracle/weblogic-monitoring-exporter/releases/download/v${MONITORING_EXPORTER_VERSION}/get${MONITORING_EXPORTER_VERSION}.sh
+  curl -O -L https://github.com/oracle/weblogic-monitoring-exporter/releases/download/v${MONITORING_EXPORTER_VERSION}.0/get${MONITORING_EXPORTER_VERSION}.sh
   chmod 777 get${MONITORING_EXPORTER_VERSION}.sh
   bash get${MONITORING_EXPORTER_VERSION}.sh ${CUR_DIR}/../../dashboard/exporter-config.yaml
   echo 'Monitoring Exporter web application is built'
@@ -53,7 +53,7 @@ function buildImage() {
 
   echo 'Download the wdt zip...'
   wget -P ${TMP_DIR} \
-    https://github.com/oracle/weblogic-deploy-tooling/releases/download/weblogic-deploy-tooling-${WDT_VERSION}/weblogic-deploy.zip
+    https://github.com/oracle/weblogic-deploy-tooling/releases/download/release-${WDT_VERSION}/weblogic-deploy.zip
 
   imageName=$1-image:1.0
   echo "Build the domain image $imageName..."

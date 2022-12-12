@@ -10,9 +10,10 @@ Deploy the PV and PVC YAML files.
 kubectl apply -f prometheus/persistence.yaml
 kubectl apply -f prometheus/alert-persistence.yaml
 ```
-Install the Prometheus chart.
+Install the Prometheus chart, in this sample we will use version 17.0.0.
 ```
-helm install --wait --name prometheus --namespace monitoring --values  prometheus/values.yaml stable/prometheus
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts --force-update
+helm install prometheus prometheus-community/prometheus --namespace monitoring  --values prometheus/values.yaml --version 17.0.0 --wait
 ```
 Note that in the customized `values.yaml` file, we added a new job [wls-domain1](../prometheus/values.yaml#L59) to scrape data from the WebLogic domain created in the previous step.
 
