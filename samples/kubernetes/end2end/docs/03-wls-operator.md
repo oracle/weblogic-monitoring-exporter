@@ -1,5 +1,5 @@
 ## Installing the WebLogic Server Kubernetes Operator
-We depend on the [WebLogic Server Kubernetes Operator](https://github.com/oracle/weblogic-kubernetes-operator) to create and manage WebLogic domains. For detailed installation information, see [Install the Operator](https://oracle.github.io/weblogic-kubernetes-operator/userguide/managing-operators/installation/).
+We depend on the [WebLogic Server Kubernetes Operator](https://github.com/oracle/weblogic-kubernetes-operator) to create and manage WebLogic domains. For detailed installation information, see [Install the Operator](https://oracle.github.io/weblogic-kubernetes-operator/managing-operators/installation/).
 
 In this example, we provide the steps to install the operator 4.0.1 release.
 
@@ -46,6 +46,6 @@ kubectl get crd domains.weblogic.oracle
 NAME                      CREATED AT
 domains.weblogic.oracle   2019-05-28T07:17:26Z
 ```
-Now the WebLogic Server Kubernetes Operator is running and it's monitoring all namespaces created  with label weblogic weblogic-operator=enabled.The operator will be responsible for creating, running, and managing any WebLogic domains, deployed to namespaces with such labels.
+Now the WebLogic Server Kubernetes Operator is running and it's monitoring all namespaces created  with the label `weblogic weblogic-operator=enabled`. The operator will be responsible for creating, running, and managing any WebLogic domains deployed to namespaces with such labels.
 
 Next: [Running a WebLogic Domain](04-wls-domain.md)
