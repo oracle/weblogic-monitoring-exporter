@@ -10,7 +10,7 @@ Deploy the PV and PVC YAML files.
 kubectl apply -f prometheus/persistence.yaml
 kubectl apply -f prometheus/alert-persistence.yaml
 ```
-Install the Prometheus chart, in this sample we will use version 17.0.0.
+Install the Prometheus chart. In this sample we will use version 17.0.0.
 ```
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts --force-update
 helm install prometheus prometheus-community/prometheus --namespace monitoring  --values prometheus/values.yaml --version 17.0.0 --wait
