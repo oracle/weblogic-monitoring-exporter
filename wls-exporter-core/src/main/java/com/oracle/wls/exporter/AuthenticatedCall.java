@@ -66,10 +66,6 @@ public abstract class AuthenticatedCall {
         }
     }
 
-    private void handleNewCookie(String headerValue) {
-        context.addResponseHeader("Set-Cookie", headerValue);
-    }
-
     private String toCookie(Map.Entry<String, String> entry) {
         return entry.getKey() + '=' + entry.getValue();
     }

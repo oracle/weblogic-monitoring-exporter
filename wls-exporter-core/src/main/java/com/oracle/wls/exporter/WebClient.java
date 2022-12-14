@@ -4,7 +4,6 @@
 package com.oracle.wls.exporter;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -85,6 +84,5 @@ public interface WebClient {
   interface Response {
     String getBody() throws IOException;
 
-    List<String> getResponseHeaders(String headerName);
   }
 }

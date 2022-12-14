@@ -71,6 +71,7 @@ abstract class InvocationContextStub implements InvocationContext {
     return Optional.ofNullable(responseHeaders.get(name)).map(h-> h.get(0)).orElse(null);
   }
 
+  @SuppressWarnings("SameParameterValue")
   List<String> getResponseHeaders(String name) {
     return Optional.ofNullable(responseHeaders.get(name)).orElse(Collections.emptyList());
   }

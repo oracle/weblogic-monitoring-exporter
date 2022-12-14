@@ -24,9 +24,6 @@ public class ExporterCall extends AuthenticatedCall {
 
   @Override
   protected void invoke(WebClient webClient, InvocationContext context) throws IOException {
-//    final SetCookieHandler setCookieHandler = new SetCookieHandler(context);
-//    webClient.onSetCookieReceivedDo(setCookieHandler::addToClientCookies);
-
     LiveConfiguration.updateConfiguration();
     try (OutputStream responseStream = context.getResponseStream();
          MetricsStream metricsStream = new MetricsStream(getInstanceName(), responseStream)) {

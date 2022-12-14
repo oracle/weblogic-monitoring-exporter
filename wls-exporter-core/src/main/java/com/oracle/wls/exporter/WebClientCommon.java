@@ -270,9 +270,5 @@ public abstract class WebClientCommon implements WebClient {
             return body;
         }
 
-        @Override
-        public List<String> getResponseHeaders(String headerName) {
-            return null;
-        }
     }
 }
