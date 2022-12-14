@@ -17,14 +17,9 @@ import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.PORT;
 import static com.oracle.wls.exporter.webapp.HttpServletResponseStub.SINGLE_ARG_METHOD_CALLED;
 import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.anEmptyMap;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
 
-/**
- * A class which encapsulates the context for communications to and from the client.
- */
 class ServletInvocationContextTest {
 
   private final HttpServletRequestStub request = HttpServletRequestStub.createPostRequest();
@@ -57,20 +52,6 @@ class ServletInvocationContextTest {
   @Test
   void obtainInstanceName() {
     assertThat(context.getInstanceName(), equalTo(HOST_NAME + ":" + PORT));
-  }
-
-  @Test
-  void obtainCookies() {
-    request.addCookie("cookie1", "value1");
-    request.addCookie("cookie2", "value2");
-
-    assertThat(context.getCookies(), hasEntry("cookie1", "value1"));
-    assertThat(context.getCookies(), hasEntry("cookie2", "value2"));
-  }
-
-  @Test
-  void whenNoCookiesAreDefined_returnEmptyCollection() {
-    assertThat(context.getCookies(), anEmptyMap());
   }
 
   @Test
@@ -115,7 +96,7 @@ class ServletInvocationContextTest {
 
   @Test
   void whenResponseHeaderSet_isSetOnResponse() {
-    context.addResponseHeader("Header", "value");
+    context.setResponseHeader("Header", "value");
 
     assertThat(response.getHeaders("Header").stream().findFirst().orElse(null), equalTo("value"));
   }

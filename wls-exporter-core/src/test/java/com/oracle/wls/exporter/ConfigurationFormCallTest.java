@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import static com.oracle.wls.exporter.InvocationContextStub.HOST_NAME;
 import static com.oracle.wls.exporter.InvocationContextStub.PORT;
 import static com.oracle.wls.exporter.InvocationContextStub.REST_PORT;
+import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_CHALLENGE_HEADER;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -184,6 +185,6 @@ class ConfigurationFormCallTest {
     handleConfigurationFormCall(context.withConfigurationForm("replace", CONFIGURATION));
 
     assertThat(context.getResponseStatus(), equalTo(HTTP_UNAUTHORIZED));
-    assertThat(context.getResponseHeader("WWW-Authenticate"), equalTo("Basic realm=\"Test-Realm\""));
+    assertThat(context.getResponseHeader(AUTHENTICATION_CHALLENGE_HEADER), equalTo("Basic realm=\"Test-Realm\""));
   }
 }

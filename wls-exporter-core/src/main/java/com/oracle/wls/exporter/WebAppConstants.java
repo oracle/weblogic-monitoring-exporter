@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -25,8 +25,17 @@ public interface WebAppConstants {
     String MESSAGES_PAGE = "messages";
     String LOG_PAGE = "log";
 
+    /** The header sent by a web server to require authentication. **/
+    String AUTHENTICATION_CHALLENGE_HEADER = "WWW-Authenticate";
+
+    /** The header used by a web server to define a new cookie. **/
+    String SET_COOKIE_HEADER = "Set-Cookie";
+
     /** The header used by a web client to send its authentication credentials. **/
     String AUTHENTICATION_HEADER = "Authorization";
+
+    /** The header used by a web client to pass a created cookie to a server. **/
+    String COOKIE_HEADER = "Cookie";
 
     /** The header used by a web client to specify the content type of its data. **/
     String CONTENT_TYPE_HEADER = "Content-Type";
@@ -35,7 +44,7 @@ public interface WebAppConstants {
     String EFFECT_OPTION = "effect";
 
     // The possible values for the effect
-    String DEFAULT_ACTION = WebAppConstants.REPLACE_ACTION;
     String REPLACE_ACTION = "replace";
     String APPEND_ACTION = "append";
+    String DEFAULT_ACTION = REPLACE_ACTION;
 }

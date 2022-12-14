@@ -8,9 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.URI;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import com.oracle.wls.exporter.InvocationContext;
 import com.oracle.wls.exporter.UrlBuilder;
@@ -29,8 +27,6 @@ public class HelidonInvocationContext implements InvocationContext {
     private final ByteArrayOutputStream baos = new ByteArrayOutputStream(1024);
     private final PrintStream printStream = new PrintStream(baos);
     private final SidecarConfiguration configuration = new SidecarConfiguration();
-
-    private Map<String, String> cookies;
 
     public HelidonInvocationContext(ServerRequest request, ServerResponse response) {
         this.request = request;
@@ -57,49 +53,6 @@ public class HelidonInvocationContext implements InvocationContext {
     @Override
     public String getContentType() {
         return request.headers().contentType().map(MediaType::toString).orElse("application/json");
-    }
-
-    @Override
-    public Map<String, String> getCookies() {
-        if (cookies == null)
-            cookies = getRequestCookies();
-
-        return cookies;
-    }
-
-    private Map<String, String> getRequestCookies() {
-        return request.headers().all("Cookie").stream()
-              .map(Cookie::new)
-              .collect(Collectors.toMap(Cookie::getName, Cookie::getValue, this::keepFirst));
-    }
-
-    private static class Cookie {
-        final String name;
-        final String value;
-
-        Cookie(String cookieHeader) {
-            final String[] header = cookieHeader.split(";");
-            final String[] cookie = header[0].split("=", 2);
-            name = cookie[0];
-            value = cookie[1];
-        }
-
-        String getName() {
-            return name;
-        }
-
-        String getValue() {
-            return value;
-        }
-    }
-
-    private String keepFirst(String first, String second) {
-        return first;
-    }
-
-    String[] splitCookie(String cookieHeader) {
-        final String[] header = cookieHeader.split(";");
-        return header[0].split("=", 2);
     }
 
     @Override
@@ -133,7 +86,7 @@ public class HelidonInvocationContext implements InvocationContext {
     }
 
     @Override
-    public void addResponseHeader(String name, String value) {
+    public void setResponseHeader(String name, String value) {
         response.headers().add(name, value);
     }
 

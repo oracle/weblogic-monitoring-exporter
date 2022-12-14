@@ -22,9 +22,11 @@ abstract class InvocationContextStub implements InvocationContext {
   static final String HOST_NAME = "myhost";
   static final int PORT = 7123;
   static final int REST_PORT = 7431;
+  static final String CREDENTIALS = "Basic stuff";
+
   private final ByteArrayOutputStream responseStream = new ByteArrayOutputStream();
 
-  private final String authenticationHeader = null;
+  private String authenticationHeader = CREDENTIALS;
   private String contentType = "text/plain";
   private String redirectLocation = null;
   private InputStream requestStream = null;
@@ -80,6 +82,10 @@ abstract class InvocationContextStub implements InvocationContext {
     return responseStatus;
   }
 
+  void setAuthenticationHeader(String authenticationHeader) {
+    this.authenticationHeader = authenticationHeader;
+  }
+
   @Override
   public void close() {
   }
@@ -94,7 +100,6 @@ abstract class InvocationContextStub implements InvocationContext {
     return "/unitTest/";
   }
 
-  @SuppressWarnings("ConstantConditions")
   @Override
   public String getAuthenticationHeader() {
     return authenticationHeader;
@@ -103,11 +108,6 @@ abstract class InvocationContextStub implements InvocationContext {
   @Override
   public String getContentType() {
     return contentType;
-  }
-
-  @Override
-  public Map<String, String> getCookies() {
-    return cookies;
   }
 
   @Override
@@ -131,7 +131,7 @@ abstract class InvocationContextStub implements InvocationContext {
   }
 
   @Override
-  public void addResponseHeader(String name, String value) {
+  public void setResponseHeader(String name, String value) {
     responseHeaders.computeIfAbsent(name, n -> new ArrayList<>()).add(value);
   }
 

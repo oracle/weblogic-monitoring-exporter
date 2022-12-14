@@ -14,6 +14,7 @@ import java.util.Optional;
 import com.google.gson.Gson;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
+import static com.oracle.wls.exporter.WebAppConstants.SET_COOKIE_HEADER;
 
 public class WebClientFactoryStub implements WebClientFactory {
     private final WebClientStub webClient = createStrictStub(WebClientStub.class);
@@ -121,6 +122,7 @@ public class WebClientFactoryStub implements WebClientFactory {
 
             ResponseBuilderImpl(String jsonString) {
                 this.jsonResponse = new JsonResponse(jsonString);
+                WebClientStub.this.addedHeaders.clear();
             }
 
             @Override
@@ -214,7 +216,7 @@ public class WebClientFactoryStub implements WebClientFactory {
         }
 
         private List<String> getSetCookieHeaders(TestResponse response) {
-            return response.getResponseHeaders("Set-Cookie");
+            return response.getResponseHeaders(SET_COOKIE_HEADER);
         }
 
     }

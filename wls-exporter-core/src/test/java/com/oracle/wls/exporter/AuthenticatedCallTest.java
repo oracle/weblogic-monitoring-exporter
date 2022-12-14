@@ -4,11 +4,18 @@
 package com.oracle.wls.exporter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.meterware.simplestub.Memento;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static com.oracle.wls.exporter.InvocationContextStub.CREDENTIALS;
+import static com.oracle.wls.exporter.WebAppConstants.COOKIE_HEADER;
+import static com.oracle.wls.exporter.WebAppConstants.SET_COOKIE_HEADER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
@@ -17,28 +24,93 @@ class AuthenticatedCallTest {
 
   private final WebClientFactoryStub webClientFactory = new WebClientFactoryStub();
   private final InvocationContextStub invocationContext = InvocationContextStub.create();
-  private final CallStub callStub = new CallStub(webClientFactory, invocationContext);
+  private final AuthenticatedCallStub callStub = new AuthenticatedCallStub(webClientFactory, invocationContext);
+  private final List<Memento> mementos = new ArrayList<>();
+
+  @BeforeEach
+  void setUp() throws NoSuchFieldException {
+    AuthenticatedCall.clearCookies();
+
+    mementos.add(SystemClockTestSupport.installClock());
+  }
+
+  @AfterEach
+  void tearDown() {
+    mementos.forEach(Memento::revert);
+  }
 
   @Test
   void whenInvocationContextContainsNoCookieHeaders_callToServerContinues() throws IOException {
 
     callStub.doWithAuthentication();
 
-    assertThat(webClientFactory.getSentHeaders("Cookie"), empty());
+    assertThat(webClientFactory.getSentHeaders(COOKIE_HEADER), empty());
+  }
+
+  @Test
+  void withNoAuthenticationWhenResponseFromRestApiContainsSetCookieHeaders_ignoreThem() throws IOException {
+    invocationContext.setAuthenticationHeader(null);
+    configureResponseWithSetCookieHeaders();
+
+    callStub.doWithAuthentication();
+
+    assertThat(callStub.getCookies(CREDENTIALS), empty());
+  }
+
+  private void configureResponseWithSetCookieHeaders() {
+    webClientFactory.forJson("{}")
+          .withResponseHeader(SET_COOKIE_HEADER, "cookie1=value1; http-only")
+          .withResponseHeader(SET_COOKIE_HEADER, "cookie2=value2; secure")
+          .addResponse();
+  }
+
+  @Test 
+  void whenResponseFromRestApiContainsSetCookieHeaders_cacheThem() throws IOException {
+    configureResponseWithSetCookieHeaders();
+
+    callStub.doWithAuthentication();
+
+    assertThat(callStub.getCookies(CREDENTIALS), containsInAnyOrder("cookie1=value1", "cookie2=value2"));
+  }
+
+  @Test
+  void whenResponseFromRestApiContainsSetCookieHeaders_ignoreForDifferentCredentials() throws IOException {
+    configureResponseWithSetCookieHeaders();
+
+    callStub.doWithAuthentication();
+
+    assertThat(callStub.getCookies("other credentials"), empty());
   }
 
   @Test
   void whenInvocationContextContainsCookieHeaders_forwardThemToTheServer() throws IOException {
-    invocationContext.addCookie("cookie1", "value1");
-    invocationContext.addCookie("cookie2", "value2");
-
+    callStub.handleNewCookie("cookie1=value1; http-only");
+    callStub.handleNewCookie("cookie2=value2; secure");
+    webClientFactory.forJson("{}").addResponse();
+    
     callStub.doWithAuthentication();
 
     final List<String> cookieHeaders
-          = webClientFactory.getSentHeaders("Cookie").stream()
+          = webClientFactory.getSentHeaders(COOKIE_HEADER).stream()
           .map(this::trimParameters)
           .collect(Collectors.toList());
     assertThat(cookieHeaders, containsInAnyOrder("cookie1=value1", "cookie2=value2"));
+  }
+
+  @Test
+  void wheCookiesExpired_removeThem() throws IOException {
+    callStub.handleNewCookie("cookie1=value1; http-only");
+    callStub.handleNewCookie("cookie2=value2; secure");
+    webClientFactory.forJson("{}").addResponse();
+
+    SystemClockTestSupport.increment(AuthenticatedCall.COOKIE_LIFETIME_SECONDS + 1);
+    callStub.doWithAuthentication();
+
+    final List<String> cookieHeaders
+          = webClientFactory.getSentHeaders(COOKIE_HEADER).stream()
+          .map(this::trimParameters)
+          .collect(Collectors.toList());
+    assertThat(cookieHeaders, empty());
   }
 
   private String trimParameters(String cookieHeader) {
@@ -48,24 +120,8 @@ class AuthenticatedCallTest {
       return cookieHeader.substring(0, cookieHeader.indexOf(';'));
   }
 
-  @Test
-  void whenResponseFromRestApiContainsSetCookieHeaders_forwardThemToTheClient() throws IOException {
-    webClientFactory.forJson("{}")
-          .withResponseHeader("Set-Cookie", "cookie1=value1; http-only")
-          .withResponseHeader("Set-Cookie", "cookie2=value2; secure")
-          .addResponse();
-
-    callStub.doWithAuthentication();
-
-    final List<String> setCookieHeaders
-          = invocationContext.getResponseHeaders("Set-Cookie").stream()
-              .map(this::trimParameters)
-              .collect(Collectors.toList());
-    assertThat(setCookieHeaders, containsInAnyOrder("cookie1=value1", "cookie2=value2"));
-  }
-
-  static class CallStub extends AuthenticatedCall {
-    CallStub(WebClientFactory webClientFactory, InvocationContext context) {
+  static class AuthenticatedCallStub extends AuthenticatedCall {
+    AuthenticatedCallStub(WebClientFactory webClientFactory, InvocationContext context) {
       super(webClientFactory, context);
     }
 

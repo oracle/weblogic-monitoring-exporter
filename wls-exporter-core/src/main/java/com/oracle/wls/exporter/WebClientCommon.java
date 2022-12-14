@@ -18,8 +18,10 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_CHALLENGE_HEADER;
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
 import static com.oracle.wls.exporter.WebAppConstants.CONTENT_TYPE_HEADER;
+import static com.oracle.wls.exporter.WebAppConstants.SET_COOKIE_HEADER;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
@@ -235,7 +237,7 @@ public abstract class WebClientCommon implements WebClient {
         }
 
         private List<String> getSetCookieHeaders() {
-            return response.getHeadersAsStream("Set-Cookie").filter(Objects::nonNull).collect(Collectors.toList());
+            return response.getHeadersAsStream(SET_COOKIE_HEADER).filter(Objects::nonNull).collect(Collectors.toList());
         }
 
         private ServerErrorException createServerErrorException() {
@@ -251,7 +253,7 @@ public abstract class WebClientCommon implements WebClient {
         }
 
         private String getAuthenticationHeader() {
-            return response.getHeadersAsStream("WWW-Authenticate").filter(Objects::nonNull).findFirst().orElse(null);
+            return response.getHeadersAsStream(AUTHENTICATION_CHALLENGE_HEADER).filter(Objects::nonNull).findFirst().orElse(null);
         }
 
         private String asString(InputStream inputStream) throws IOException {

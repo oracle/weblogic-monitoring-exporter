@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static com.oracle.wls.exporter.InMemoryFileSystem.withNoParams;
+import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_CHALLENGE_HEADER;
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
 import static com.oracle.wls.exporter.matchers.CommentsOnlyMatcher.containsOnlyComments;
 import static com.oracle.wls.exporter.matchers.MetricsNamesSnakeCaseMatcher.usesSnakeCase;
@@ -212,7 +213,7 @@ class ExporterServletTest {
         servlet.doGet(request, response);
 
         assertThat(response.getStatus(), equalTo(SC_UNAUTHORIZED));
-        assertThat(response, containsHeader("WWW-Authenticate", "Basic realm=\"Test-Realm\""));
+        assertThat(response, containsHeader(AUTHENTICATION_CHALLENGE_HEADER, "Basic realm=\"Test-Realm\""));
     }
 
     @Test

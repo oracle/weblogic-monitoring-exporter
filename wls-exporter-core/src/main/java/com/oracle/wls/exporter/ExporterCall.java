@@ -35,20 +35,6 @@ public class ExporterCall extends AuthenticatedCall {
     }
   }
 
-  static class SetCookieHandler {
-    private final InvocationContext context;
-
-    SetCookieHandler(InvocationContext context) {
-      this.context = context;
-    }
-
-    public void addToClientCookies(String newCookie) {
-      final String[] cookieParts = newCookie.split("=", 2);
-      context.getCookies().put(cookieParts[0], cookieParts[1]);
-    }
-
-  }
-
   private void displayMetrics(WebClient webClient, MetricsStream metricsStream) throws IOException {
     try {
       for (MBeanSelector selector : LiveConfiguration.getQueries())

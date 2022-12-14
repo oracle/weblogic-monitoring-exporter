@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
 import static com.oracle.wls.exporter.WebAppConstants.CONTENT_TYPE_HEADER;
+import static com.oracle.wls.exporter.WebAppConstants.SET_COOKIE_HEADER;
 import static com.oracle.wls.exporter.WebClient.X_REQUESTED_BY_HEADER;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_GATEWAY;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -429,8 +430,8 @@ abstract class WebClientTestBase {
         defineResource("queryWithSetCookie", new PseudoServlet() {
             public WebResource getPostResponse() {
                 final WebResource webResource = new WebResource(RESPONSE, "text/plain");
-                webResource.addHeader("Set-Cookie: abc=def; stuff");
-                webResource.addHeader("Set-Cookie: jkl=mno");
+                webResource.addHeader(SET_COOKIE_HEADER + ": abc=def; stuff");
+                webResource.addHeader(SET_COOKIE_HEADER + ": jkl=mno");
                 webResource.addHeader("Random: not this");
                 return webResource;
             }
