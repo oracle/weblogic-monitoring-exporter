@@ -72,8 +72,9 @@ public abstract class AuthenticatedCall {
         webClient.addHeader("X-Requested-By", "rest-exporter");
 
         webClient.setAuthentication(context.getAuthenticationHeader());
-        webClient.onSetCookieReceivedDo(this::handleNewCookie);
         getCookies(context.getAuthenticationHeader()).forEach(c -> webClient.addHeader(COOKIE_HEADER, c));
+        webClient.onSetCookieReceivedDo(this::handleNewCookie);
+        webClient.onSetCookieReceivedDo(c -> webClient.addHeader(COOKIE_HEADER, c));
         return webClient;
     }
 

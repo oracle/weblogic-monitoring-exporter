@@ -4,11 +4,9 @@
 package com.oracle.wls.exporter;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
@@ -50,11 +48,11 @@ class ExporterCallTest {
 
   private final WebClientFactoryStub factory = new WebClientFactoryStub();
   private final InvocationContextStub context = InvocationContextStub.create();
-  private final List<String> sentSetCookieHeaders = new ArrayList<>();
 
   @BeforeEach
   public void setUp() {
     LiveConfiguration.setServer(HOST_NAME, PORT);
+    AuthenticatedCall.clearCookies();
   }
 
   @Test
@@ -119,14 +117,14 @@ class ExporterCallTest {
     assertThat(factory.getNumQueriesSent(), equalTo(2));
   }
 
-  @Test @Disabled
+  @Test
   void whenHaveMultipleQueries_sendServerDefinedCookieOnSecondQuery() throws IOException {
-    factory.forJson(QUERY_RESPONSE1_JSON).withResponseHeader(SET_COOKIE_HEADER, "cookieName=value1").addResponse();
+    factory.forJson(QUERY_RESPONSE1_JSON).withResponseHeader(SET_COOKIE_HEADER, "cookieName=newValue").addResponse();
     factory.addJsonResponse(QUERY_RESPONSE2_JSON);
     LiveConfiguration.loadFromString(DUAL_QUERY_CONFIG);
 
     handleMetricsCall(context);
 
-    assertThat(factory.getSentHeaders(COOKIE_HEADER), contains("cookieName=value1"));
+    assertThat(factory.getSentHeaders(COOKIE_HEADER), Matchers.hasItem("cookieName=newValue"));
   }
 }
