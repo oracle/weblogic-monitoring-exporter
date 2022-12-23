@@ -1,30 +1,35 @@
-# Copyright 2017, 2019, Oracle and/or its affiliates.
+# Copyright 2017, 2022, Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 #
 # This is an sample domain resource which has domainHome in image.
 #
 
-apiVersion: "weblogic.oracle/v3"
+apiVersion: "weblogic.oracle/v9"
 kind: Domain
 metadata:
   name: domain1
-  namespace: default
+  namespace: weblogic
   labels:
-    weblogic.resourceVersion: domain-v2
     weblogic.domainUID: domain1
 spec:
   domainHome: /u01/oracle/user-projects/domains/domain1
-  domainHomeInImage: true
+  domainHomeSourceType: Image
   image: domain1-image:1.0
   imagePullPolicy: "IfNotPresent"
   webLogicCredentialsSecret:
     name: domain1-weblogic-credentials
   includeServerOutInPodLog: true
-  serverStartPolicy: "IF_NEEDED"
-  replicas: 2
+  serverStartPolicy: "IfNeeded"
   serverPod:
-    annotations:
-      prometheus.io/scrape: "false"
+    env:
+    - name: JAVA_OPTIONS
+      value: "-Dweblogic.StdoutDebugEnabled=false"
+    - name: USER_MEM_ARGS
+      value: "-Xms256m -Xmx512m -Djava.security.egd=file:/dev/./urandom "
+    resources:
+      requests:
+        cpu: "250m"
+        memory: "768Mi"
   adminServer:
     adminService:
       channels:
@@ -32,3 +37,23 @@ spec:
         nodePort: 30701
       - channelName: T3Channel
         nodePort: 30703
+  # clusters is used to configure the desired behavior for starting member servers of a cluster.
+  # If you use this entry, then the rules will be applied to ALL servers that are members of the named clusters.
+  clusters:
+  - name: cluster-1
+
+---
+
+  apiVersion: weblogic.oracle/v1
+  kind: Cluster
+  metadata:
+    name: cluster-1
+      # Update this with the namespace your domain will run in:
+    namespace: weblogic
+    labels:
+      # Update this with the `domainUID` of your domain:
+      weblogic.domainUID: domain1
+  
+  spec:
+    clusterName: cluster-1
+    replicas: 3

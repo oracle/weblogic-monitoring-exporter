@@ -11,7 +11,7 @@ export https_proxy=$http_proxy
 ```
 Verify that the download with `wget` works correctly.
 ```
-wget https://github.com/oracle/weblogic-deploy-tooling/releases/download/weblogic-deploy-tooling-0.24/weblogic-deploy.zip \
+wget https://github.com/oracle/weblogic-deploy-tooling/releases/download/release-2.4.2/weblogic-deploy.zip \
 -O /dev/null
 ```
 
@@ -34,13 +34,18 @@ The domain configuration is burned into the image. What's in the domain configur
 - Two web applications deployed to cluster: `test-webapp` and `wls-exporter`.  
 
 ### Deploy the Domain Resource
+Create namespace weblogic
+```
+kubectl create ns weblogic
+kubectl label ns weblogic weblogic-operator=enabled
+```
 Create a secret for the WebLogic administrative credential.
 ```
-kubectl -n default create secret generic domain1-weblogic-credentials \
+kubectl -n weblogic create secret generic domain1-weblogic-credentials \
       --from-literal=username=weblogic \
       --from-literal=password=welcome1
 ```
-Deploy the domain resource. The resource is deployed to the `default` namespace.
+Deploy the domain resource. The resource is deployed to the `weblogic` namespace.
 ```
 kubectl apply -f demo-domains/domain1.yaml
 ```
@@ -49,7 +54,7 @@ Now the operator will detect this new domain resource and run a WebLogic domain 
 ### Verification
 Wait until the three WebLogic Server pods are running and ready.
 ```
-kubectl get pod -l weblogic.domainName=domain1
+kubectl get pod -l weblogic.domainName=domain1 -n weblogic
 ```
 > output
 ```
@@ -60,7 +65,7 @@ domain1-managed-server-2   1/1     Running   0          32h
 ```
 Check the generated services.
 ```
-kubectl get service -l weblogic.domainName=domain1
+kubectl get service -l weblogic.domainName=domain1 -n weblogic
 ```
 > output
 ```
@@ -83,7 +88,7 @@ kubectl apply -f ./util/curl.yaml
 ```
 Wait until the curl pod is running.
 ```
-kubectl get pod curl
+kubectl get pod curl -n weblogic
 ```
 > output
 ```
@@ -92,11 +97,11 @@ curl   1/1     Running   5          1h
 ```
 Access the metrics of `managed-server-1`.
 ```
-kubectl exec curl -- curl http://weblogic:welcome1@domain1-managed-server-1:8001/wls-exporter/metrics
+kubectl exec curl -n weblogic -- curl http://weblogic:welcome1@domain1-managed-server-1:8001/wls-exporter/metrics
 ```
 Access the metrics of `managed-server-2`.
 ```
-kubectl exec curl -- curl http://weblogic:welcome1@domain1-managed-server-2:8001/wls-exporter/metrics
+kubectl exec curl -n weblogic -- curl http://weblogic:welcome1@domain1-managed-server-2:8001/wls-exporter/metrics
 ```
 > output
 ```
