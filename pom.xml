@@ -50,15 +50,15 @@
         <maven-enforcer-plugin-version>3.1.0</maven-enforcer-plugin-version>
         <maven-clean-plugin-version>3.2.0</maven-clean-plugin-version>
         <maven-compiler-plugin-version>3.10.1</maven-compiler-plugin-version>
-        <maven-install-plugin-version>3.0.1</maven-install-plugin-version>
+        <maven-install-plugin-version>3.1.0</maven-install-plugin-version>
         <maven-deploy-plugin-version>3.0.0</maven-deploy-plugin-version>
         <maven-deploy-plugin-version>3.0.0</maven-deploy-plugin-version>
-        <maven-plugin-plugin-version>3.6.4</maven-plugin-plugin-version>
+        <maven-plugin-plugin-version>3.7.0</maven-plugin-plugin-version>
         <maven-site-plugin-version>3.12.1</maven-site-plugin-version>
         <maven-jar-plugin-version>3.3.0</maven-jar-plugin-version>
         <maven-war-plugin-version>3.3.2</maven-war-plugin-version>
         <maven-resources-plugin-version>3.3.0</maven-resources-plugin-version>
-        <maven-dependency-plugin-version>3.3.0</maven-dependency-plugin-version>
+        <maven-dependency-plugin-version>3.4.0</maven-dependency-plugin-version>
 
         <java.version.range>17</java.version.range>
         <maven.version.range>[3.6.1,)</maven.version.range>
@@ -271,7 +271,7 @@
             <dependency>
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
-                <version>2.9.1</version>
+                <version>2.10</version>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
@@ -302,7 +302,7 @@
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-nop</artifactId>
-                <version>2.0.3</version>
+                <version>2.0.6</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
