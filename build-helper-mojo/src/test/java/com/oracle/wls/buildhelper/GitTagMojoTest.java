@@ -3,19 +3,23 @@
 
 package com.oracle.wls.buildhelper;
 
+import java.io.File;
+import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.lang.reflect.Field;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class GitTagMojoTest {
@@ -88,7 +92,7 @@ class GitTagMojoTest {
     mojo.execute();
 
     assertThat(inMemoryFileSystem.getContents(outputFile.getAbsolutePath()),
-          containsString("version=gcb4385f3aa (946 commits since v3.3.5-3)"));
+          containsString("version=cb4385f3aa (946 commits since v3.3.5-3)"));
   }
 
   @Test

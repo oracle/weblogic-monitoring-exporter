@@ -3,12 +3,6 @@
 
 package com.oracle.wls.buildhelper;
 
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,6 +10,12 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 
 @Mojo(name = "gitVersion", defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
 public class GitTagMojo extends AbstractMojo {
@@ -61,7 +61,7 @@ public class GitTagMojo extends AbstractMojo {
   }
 
   private String formatVersionString(String[] segments) {
-    final String commit = segments[segments.length - 1];
+    final String commit = segments[segments.length - 1].substring(1);
     final String numCommits = segments[segments.length - 2];
     final String versionParts = String.join("-", Arrays.copyOfRange(segments, 0, segments.length - 2));
     return formatVersionString(commit, numCommits, versionParts);
