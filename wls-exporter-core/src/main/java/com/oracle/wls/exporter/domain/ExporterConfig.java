@@ -24,6 +24,10 @@ import org.yaml.snakeyaml.scanner.ScannerException;
  * @author Russell Gold
  */
 public class ExporterConfig implements MetricsProcessor {
+    // Due to a bug in the WLS REST API, a query that includes this field will fail if not run with admin privileges.
+    // The code thus ensures that it is excluded from all queries.
+    private static final String[] FORBIDDEN_FIELDS = {"JDBCServiceRuntime:JDBCDataSourceRuntimeMBeans:properties"};
+
     public static final String DOMAIN_NAME_PROPERTY = "DOMAIN";
 
     private static final String QUERY_SYNC = "query_sync";
@@ -173,7 +177,7 @@ public class ExporterConfig implements MetricsProcessor {
 
     private void appendQueries(Object queriesYaml) {
         for (Map<String,Object> selectorSpec : getAsListOfMaps(queriesYaml)) {
-            appendQuery(MBeanSelector.create(selectorSpec));
+            appendQuery(MBeanSelector.create(selectorSpec).withForbiddenFields(FORBIDDEN_FIELDS));
         }
     }
 

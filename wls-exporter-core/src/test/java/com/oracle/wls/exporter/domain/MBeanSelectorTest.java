@@ -247,6 +247,38 @@ class MBeanSelectorTest {
     }
 
     @Test
+    void whenSelectorHasForbiddenFieldLeaf_querySpecListsItAsExcluded() {
+        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of(MBeanSelector.PREFIX_KEY, "top_")).withForbiddenFields("bottom");
+
+        assertThat(querySpec(selector), hasJsonPath("$.excludeFields", contains("bottom")));
+    }
+
+    @Test
+    void whenSelectorExplicitlyIncludesForbiddenField_querySpecExcludesItFromList() {
+        MBeanSelector selector = MBeanSelector.create(
+              ImmutableMap.of(MBeanSelector.VALUES_KEY, new String[] {"top", "middle", "bottom"})).withForbiddenFields("bottom");
+
+        assertThat(querySpec(selector), hasJsonPath("$.fields", containsInAnyOrder("top", "middle")));
+        assertThat(querySpec(selector), hasNoJsonPath("$.excludeFields"));
+    }
+
+    @Test
+    void whenSelectorHasNestedForbiddenField_querySpecListsItAsExcluded() {
+        MBeanSelector selector = MBeanSelector.create(DEEP_MAP).withForbiddenFields("groups:middle:subgroup1:bottom");
+
+        assertThat(querySpec(selector),
+              hasJsonPath("$.children.groups.children.middle.children.subgroup1.excludeFields", contains("bottom")));
+    }
+
+    private static final Map<String, Object> DEEP_MAP = ImmutableMap.of("groups",
+        ImmutableMap.of(MBeanSelector.QUERY_KEY, "groupName",
+            "middle", ImmutableMap.of(
+                "subgroup1", ImmutableMap.of(MBeanSelector.KEY_NAME, "name", MBeanSelector.PREFIX_KEY, "sub1_"),
+                "subgroup2", ImmutableMap.of(MBeanSelector.PREFIX_KEY, "sub2_", MBeanSelector.VALUES_KEY, "val2" ))));
+
+    // todo add actual plus real forbidden field
+
+    @Test
     void whenIncludedKeysSpecifiedWithoutKeyName_report() {
         final Map<String, Object> BAD_MAP_WITH_INCLUDED_KEYS
               = ImmutableMap.of("group", ImmutableMap.of(MBeanSelector.INCLUDED_KEYS_KEY, "a"));

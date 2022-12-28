@@ -27,6 +27,7 @@ class JsonQuerySpec {
     private Map<String, JsonQuerySpec> children = null;
     private String keyName = null;
     private List<String> selectedKeys = null;
+    private List<String> excludeFields = null;
 
     JsonQuerySpec asTopLevel() {
         addFields();
@@ -67,6 +68,7 @@ class JsonQuerySpec {
         
         result.add("links", new JsonArray());
         if (fields != null) result.add("fields", asStringArray(fields));
+        if (excludeFields != null) result.add("excludeFields", asStringArray(excludeFields));
         if (keyName != null) result.add(keyName, asStringArray(selectedKeys));
         if (children != null) asChildObject(result);
 
@@ -85,5 +87,10 @@ class JsonQuerySpec {
         for (Map.Entry<String, JsonQuerySpec> entry : children.entrySet()) {
             nesting.add(entry.getKey(), entry.getValue().toJsonObject());
         }
+    }
+
+    public void excludeField(String fieldName) {
+        if (excludeFields == null) excludeFields = new ArrayList<>();
+        excludeFields.add(fieldName);
     }
 }
