@@ -58,7 +58,7 @@
         <maven-jar-plugin-version>3.3.0</maven-jar-plugin-version>
         <maven-war-plugin-version>3.3.2</maven-war-plugin-version>
         <maven-resources-plugin-version>3.3.0</maven-resources-plugin-version>
-        <maven-dependency-plugin-version>3.3.0</maven-dependency-plugin-version>
+        <maven-dependency-plugin-version>3.4.0</maven-dependency-plugin-version>
 
         <java.version.range>17</java.version.range>
         <maven.version.range>[3.6.1,)</maven.version.range>
@@ -239,12 +239,12 @@
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
-                <version>4.5.13</version>
+                <version>4.5.14</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpcore</artifactId>
-                <version>4.4.15</version>
+                <version>4.4.16</version>
             </dependency>
             <dependency>
                 <groupId>commons-fileupload</groupId>
@@ -296,7 +296,7 @@
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpmime</artifactId>
-                <version>4.5.13</version>
+                <version>4.5.14</version>
             </dependency>
             <dependency>
               <groupId>org.junit.jupiter</groupId>
