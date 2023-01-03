@@ -1,4 +1,4 @@
-// Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.sidecar;
@@ -28,6 +28,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static com.meterware.simplestub.Stub.createStub;
+import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_CHALLENGE_HEADER;
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
 import static com.oracle.wls.exporter.domain.QueryType.RUNTIME_URL_PATTERN;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
@@ -151,11 +152,11 @@ class MetricsServiceTest {
         final TestResponse metricsResponse = getMetricsResponse();
 
         assertThat(metricsResponse.status().code(), equalTo(HTTP_UNAUTHORIZED));
-        assertThat(getAuthenticationHeader(metricsResponse), equalTo("Basic realm=\"Test-Realm\""));
+        assertThat(getAuthenticationChallengeHeader(metricsResponse), equalTo("Basic realm=\"Test-Realm\""));
     }
 
-    private String getAuthenticationHeader(TestResponse metricsResponse) {
-        return metricsResponse.headers().first("WWW-Authenticate").orElse(null);
+    private String getAuthenticationChallengeHeader(TestResponse metricsResponse) {
+        return metricsResponse.headers().first(AUTHENTICATION_CHALLENGE_HEADER).orElse(null);
     }
 
     @Test

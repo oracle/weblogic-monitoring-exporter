@@ -1,14 +1,14 @@
-// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2023, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
 
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
 
 import com.google.common.collect.ImmutableMap;
 import com.oracle.wls.exporter.webapp.ExporterServlet;
@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static com.oracle.wls.exporter.InMemoryFileSystem.withNoParams;
+import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_CHALLENGE_HEADER;
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
 import static com.oracle.wls.exporter.matchers.CommentsOnlyMatcher.containsOnlyComments;
 import static com.oracle.wls.exporter.matchers.MetricsNamesSnakeCaseMatcher.usesSnakeCase;
@@ -37,7 +38,6 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -213,7 +213,7 @@ class ExporterServletTest {
         servlet.doGet(request, response);
 
         assertThat(response.getStatus(), equalTo(SC_UNAUTHORIZED));
-        assertThat(response, containsHeader("WWW-Authenticate", "Basic realm=\"Test-Realm\""));
+        assertThat(response, containsHeader(AUTHENTICATION_CHALLENGE_HEADER, "Basic realm=\"Test-Realm\""));
     }
 
     @Test
@@ -256,7 +256,7 @@ class ExporterServletTest {
 
         servlet.doGet(request, response);
 
-        assertThat(factory.getSentHeaders(), hasKey("X-Requested-By"));
+        assertThat(factory.getSentHeaders("X-Requested-By"), not(empty()));
     }
 
     @Test
