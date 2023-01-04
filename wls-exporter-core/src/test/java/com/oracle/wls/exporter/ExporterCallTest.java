@@ -1,16 +1,19 @@
-// Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
 
 import java.io.IOException;
 
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static com.oracle.wls.exporter.InvocationContextStub.HOST_NAME;
 import static com.oracle.wls.exporter.InvocationContextStub.PORT;
+import static com.oracle.wls.exporter.WebAppConstants.COOKIE_HEADER;
+import static com.oracle.wls.exporter.WebAppConstants.SET_COOKIE_HEADER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
@@ -26,11 +29,25 @@ class ExporterCallTest {
         "\n- JDBCServiceRuntime:\n    JDBCDataSourceRuntimeMBeans:\n      key: name\n      values: properties";
   private static final String REQUEST_INCLUDES_PRIVILEGED_PROPERTY = "queries:" +
         "\n- JDBCServiceRuntime:\n    JDBCDataSourceRuntimeMBeans:\n      prefix: ds_\n      key: name\n";
+  private static final String DUAL_QUERY_CONFIG = ONE_VALUE_CONFIG +
+        "\n- clubs:\n    key: name\n    values: testSample2";
 
   private static final String KEY_RESPONSE_JSON = "{\"groups\": {\"items\": [\n" +
               "     {\"name\": \"alpha\"},\n" +
               "     {\"name\": \"beta\" },\n" +
               "     {\"name\": \"gamma\"}\n" +
+              "]}}";
+
+  private static final String QUERY_RESPONSE1_JSON = "{\"groups\": {\"items\": [\n" +
+              "     {\"name\": \"alpha\", \"testSample1\": \"first\"},\n" +
+              "     {\"name\": \"beta\", \"testSample1\": \"second\"},\n" +
+              "     {\"name\": \"gamma\", \"testSample1\": \"third\"}\n" +
+              "]}}";
+
+  private static final String QUERY_RESPONSE2_JSON = "{\"clubs\": {\"items\": [\n" +
+              "     {\"name\": \"aleph\", \"testSample2\": \"first\"},\n" +
+              "     {\"name\": \"bet\", \"testSample2\": \"second\"},\n" +
+              "     {\"name\": \"gimel\", \"testSample2\": \"third\"}\n" +
               "]}}";
 
   private final WebClientFactoryStub factory = new WebClientFactoryStub();
@@ -39,6 +56,7 @@ class ExporterCallTest {
   @BeforeEach
   public void setUp() {
     LiveConfiguration.setServer(HOST_NAME, PORT);
+    AuthenticatedCall.clearCookies();
   }
 
   @Test
@@ -121,5 +139,16 @@ class ExporterCallTest {
     handleMetricsCall(context.withHttps());
 
     assertThat(context.getResponse(), containsString("bug in the WebLogic REST API"));
+  }
+
+  @Test
+  void whenHaveMultipleQueries_sendServerDefinedCookieOnSecondQuery() throws IOException {
+    factory.forJson(QUERY_RESPONSE1_JSON).withResponseHeader(SET_COOKIE_HEADER, "cookieName=newValue").addResponse();
+    factory.addJsonResponse(QUERY_RESPONSE2_JSON);
+    LiveConfiguration.loadFromString(DUAL_QUERY_CONFIG);
+
+    handleMetricsCall(context);
+
+    assertThat(factory.getSentHeaders(COOKIE_HEADER), Matchers.hasItem("cookieName=newValue"));
   }
 }

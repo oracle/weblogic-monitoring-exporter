@@ -28,7 +28,7 @@ To trigger an alert, one WebLogic cluster must have only one Managed Server runn
   ```
 If the new domain resource is applied successfully, one WebLogic Server will begin terminating. Wait until only one Managed Server is running.
 ```
-kubectl get pod -l weblogic.domainName=domain1
+kubectl get pod -l weblogic.domainName=domain1 -n weblogic
 ```
 > output
 ```

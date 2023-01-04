@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2023, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.webapp;
@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import static com.oracle.wls.exporter.MultipartTestUtils.createEncodedForm;
 import static com.oracle.wls.exporter.MultipartTestUtils.createUploadRequest;
+import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_CHALLENGE_HEADER;
 import static com.oracle.wls.exporter.WebAppConstants.CONFIGURATION_PAGE;
 import static com.oracle.wls.exporter.matchers.ResponseHeaderMatcher.containsHeader;
 import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.LOCAL_PORT;
@@ -244,6 +245,6 @@ class ConfigurationServletTest {
         servlet.doPost(request, response);
 
         assertThat(response.getStatus(), equalTo(SC_UNAUTHORIZED));
-        assertThat(response, containsHeader("WWW-Authenticate", "Basic realm=\"Test-Realm\""));
+        assertThat(response, containsHeader(AUTHENTICATION_CHALLENGE_HEADER, "Basic realm=\"Test-Realm\""));
     }
 }
