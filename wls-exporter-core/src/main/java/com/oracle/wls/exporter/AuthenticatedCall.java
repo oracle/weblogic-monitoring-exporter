@@ -1,15 +1,24 @@
-// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2023, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.oracle.wls.exporter.domain.MBeanSelector;
 import com.oracle.wls.exporter.domain.QueryType;
 
+import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_CHALLENGE_HEADER;
+import static com.oracle.wls.exporter.WebAppConstants.COOKIE_HEADER;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
@@ -19,10 +28,26 @@ import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
  * and the WLS RESTful Management services, thus using that service's security.
  */
 public abstract class AuthenticatedCall {
+
+    /**
+     * The length of time in seconds after which a cookie is deemed to have expired.
+     */
+    static final long COOKIE_LIFETIME_SECONDS = 1000L;
+
+    /**
+     * A map of authentication credentials to lists of cookies. The cookies will be sent on any request with
+     * the specified credentials.
+     */
+    private static final Map<String,List<Cookie>> COOKIES = new HashMap<>();
+
     private final WebClientFactory webClientFactory;
     private final InvocationContext context;
     private final UrlBuilder urlBuilder;
 
+    // For unit testing only
+    static void clearCookies() {
+        COOKIES.clear();
+    }
 
     protected AuthenticatedCall(WebClientFactory webClientFactory, InvocationContext context) {
         this.webClientFactory = webClientFactory;
@@ -46,13 +71,63 @@ public abstract class AuthenticatedCall {
         final WebClient webClient = webClientFactory.createClient();
         webClient.addHeader("X-Requested-By", "rest-exporter");
 
-        setAuthentication(webClient);
+        webClient.setAuthentication(context.getAuthenticationHeader());
+        manageCookies(webClient);
         return webClient;
     }
 
-    protected void setAuthentication(WebClient webClient) {
-        webClient.setAuthentication(context.getAuthenticationHeader());
-     }
+    private void manageCookies(WebClient webClient) {
+        synchronized (COOKIES) {
+            getCookies(context.getAuthenticationHeader()).forEach(c -> webClient.addHeader(COOKIE_HEADER, c));
+            webClient.onSetCookieReceivedDo(this::handleNewCookie);
+            webClient.onSetCookieReceivedDo(c -> webClient.addHeader(COOKIE_HEADER, c));
+        }
+    }
+
+    public List<String> getCookies(String credentials) {
+        final OffsetDateTime now = SystemClock.now();
+        final List<Cookie> cookieList = getCookieList(credentials);
+        cookieList.removeIf(c -> c.isExpiredAt(now));
+        
+        return cookieList.stream().map(Cookie::getValue).collect(Collectors.toList());
+    }
+
+    private List<Cookie> getCookieList(String credentials) {
+        return Optional.ofNullable(COOKIES.get(credentials)).orElse(Collections.emptyList());
+    }
+
+    void handleNewCookie(String cookieHeader) {
+        if (context.getAuthenticationHeader() == null) return;
+
+        final Cookie cookie = new Cookie(cookieHeader);
+        COOKIES
+              .computeIfAbsent(context.getAuthenticationHeader(), h -> new ArrayList<>())
+              .add(cookie);
+    }
+
+    private static class Cookie {
+        private final String value;
+        private final OffsetDateTime expirationTime = SystemClock.now().plusSeconds(COOKIE_LIFETIME_SECONDS);
+
+        Cookie(String cookieHeader) {
+            this.value = trimParameters(cookieHeader);
+        }
+
+        String getValue() {
+            return value;
+        }
+
+        boolean isExpiredAt(OffsetDateTime now) {
+            return now.isAfter(expirationTime);
+        }
+
+        private String trimParameters(String cookieHeader) {
+          if (!cookieHeader.contains(";"))
+            return cookieHeader;
+          else
+            return cookieHeader.substring(0, cookieHeader.indexOf(';'));
+        }
+    }
 
     /**
      * Performs a servlet action, wrapping it with authentication handling.
@@ -71,7 +146,7 @@ public abstract class AuthenticatedCall {
         } catch (ForbiddenException e) {
             context.sendError(HTTP_FORBIDDEN, "Not authorized");
         } catch (AuthenticationChallengeException e) {
-            context.setResponseHeader("WWW-Authenticate", e.getChallenge());
+            context.setResponseHeader(AUTHENTICATION_CHALLENGE_HEADER, e.getChallenge());
             context.sendError(HTTP_UNAUTHORIZED, "Authentication required");
         } catch (ServerErrorException e) {
             final int status = e.getStatus();
