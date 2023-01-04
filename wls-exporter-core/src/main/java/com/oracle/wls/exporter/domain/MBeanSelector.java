@@ -246,13 +246,10 @@ public class MBeanSelector {
     }
 
     private String[] getNestedForbiddenFields(String key) {
-        if (forbiddenFields == null)
-            return null;
-        else
-            return Arrays.stream(forbiddenFields)
-                  .map(f -> withoutMatchingTopLevel(f, key))
-                  .filter(Objects::nonNull)
-                  .toArray(String[]::new);
+        return Arrays.stream(forbiddenFields)
+              .map(f -> withoutMatchingTopLevel(f, key))
+              .filter(Objects::nonNull)
+              .toArray(String[]::new);
     }
 
     private String withoutMatchingTopLevel(String forbiddenField, String key) {
@@ -625,19 +622,4 @@ public class MBeanSelector {
         return jdbcSourceRuntimeSelector.values.isEmpty() || jdbcSourceRuntimeSelector.values.contains("properties");
     }
 
-    private static final PrivilegeProperty[] privilegeProperties = {
-          new PrivilegeProperty("properties", "JDBCServiceRuntime", "JDBCDataSourceRuntimeMBeans")
-    };
-
-    static class PrivilegeProperty {
-        final String propertyName;
-        final String[] parentSelectorNames;
-
-        PrivilegeProperty(String propertyName, String... parentSelectorNames) {
-            this.propertyName = propertyName;
-            this.parentSelectorNames = parentSelectorNames;
-        }
-
-
-    }
 }

@@ -276,7 +276,14 @@ class MBeanSelectorTest {
                 "subgroup1", ImmutableMap.of(MBeanSelector.KEY_NAME, "name", MBeanSelector.PREFIX_KEY, "sub1_"),
                 "subgroup2", ImmutableMap.of(MBeanSelector.PREFIX_KEY, "sub2_", MBeanSelector.VALUES_KEY, "val2" ))));
 
-    // todo add actual plus real forbidden field
+
+    @Test
+    void whenSelectorHasAttempedNestingDeeperThanForbiddenLeaf_ignoreIt() {
+        MBeanSelector selector = MBeanSelector.create(DEEP_MAP).withForbiddenFields("groups:middle");
+
+        assertThat(querySpec(selector),
+              hasJsonPath("$.children.groups.children.middle.children.subgroup2.fields", contains("val2")));
+    }
 
     @Test
     void whenIncludedKeysSpecifiedWithoutKeyName_report() {
