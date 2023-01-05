@@ -25,7 +25,6 @@ import static com.oracle.wls.exporter.WebAppConstants.SET_COOKIE_HEADER;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 /**
  * A client for sending http requests.  Note that it does not do any authentication by itself.
@@ -227,7 +226,7 @@ public abstract class WebClientCommon implements WebClient {
                 case HTTP_FORBIDDEN:
                     throw new ForbiddenException();
                 default:
-                    if (response.getResponseCode() > SC_BAD_REQUEST)
+                    if (response.getResponseCode() > HTTP_BAD_REQUEST)
                         throw createServerErrorException();
             }
         }

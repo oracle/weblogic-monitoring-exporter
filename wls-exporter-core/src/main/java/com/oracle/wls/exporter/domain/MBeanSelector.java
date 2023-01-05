@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2023, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -6,6 +6,7 @@ package com.oracle.wls.exporter.domain;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -15,6 +16,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -61,6 +63,7 @@ public class MBeanSelector {
     private Map<String, MBeanSelector> nestedSelectors = new LinkedHashMap<>();
     private QueryType queryType = QueryType.RUNTIME;
     private long lastKeyTime = 0;
+    private String[] forbiddenFields;
 
     private static MBeanSelector createDomainNameSelector() {
         Map<String,Object> yaml = new HashMap<>();
@@ -228,6 +231,39 @@ public class MBeanSelector {
         return new MBeanSelector(map);
     }
 
+    MBeanSelector withForbiddenFields(String... forbiddenFields) {
+        setForbiddenFields(forbiddenFields);
+        return this;
+    }
+
+    private void setForbiddenFields(String[] forbiddenFields) {
+        this.forbiddenFields = forbiddenFields;
+        nestedSelectors.entrySet().forEach(this::defineNestedForbiddenFields);
+    }
+
+    private void defineNestedForbiddenFields(Map.Entry<String, MBeanSelector> entry) {
+        entry.getValue().setForbiddenFields(getNestedForbiddenFields(entry.getKey()));
+    }
+
+    private String[] getNestedForbiddenFields(String key) {
+        return Arrays.stream(forbiddenFields)
+              .map(f -> withoutMatchingTopLevel(f, key))
+              .filter(Objects::nonNull)
+              .toArray(String[]::new);
+    }
+
+    private String withoutMatchingTopLevel(String forbiddenField, String key) {
+        final int index = forbiddenField.indexOf(':');
+        if (index < 0)
+            return null;
+        else if (!key.equalsIgnoreCase(forbiddenField.substring(0, index))) {
+            return null;
+        } else {
+            return forbiddenField.substring(index+1);
+        }
+    }
+
+
     /**
      * Returns the type of mbean to process, from among those captured by this selector. If empty or null,
      * processes all captured mbeans.
@@ -284,6 +320,7 @@ public class MBeanSelector {
     String[] getQueryValues() {
         final List<String> result = new ArrayList<>(values);
         if (stringValues != null) result.addAll(stringValues.keySet());
+        getActiveForbiddenFields().forEach(result::remove);
 
         return result.toArray(new String[0]);
     }
@@ -313,13 +350,16 @@ public class MBeanSelector {
      * @return a JSON string
      */
     public String getRequest() {
-        return toQuerySpec().toJson(new Gson());
+        return toQuerySpec().asTopLevel().toJson(new Gson());
     }
 
     JsonQuerySpec toQuerySpec() {
         JsonQuerySpec spec = new JsonQuerySpec();
-        if (!useAllValues())
+        if (useAllValues()) {
+            getActiveForbiddenFields().forEach(spec::excludeField);
+        } else {
             selectQueryFields(spec, getQueryValues());
+        }
         if (currentSelectorHasFilter() && !filter.isEmpty())
             spec.setFilter(key, filter);
 
@@ -328,6 +368,17 @@ public class MBeanSelector {
                 spec.addChild(entry.getKey(), entry.getValue().toQuerySpec());
 
         return spec;
+    }
+
+    private List<String> getActiveForbiddenFields() {
+        if (forbiddenFields == null)
+            return Collections.emptyList();
+        else
+            return Arrays.stream(forbiddenFields).filter(this::isLeafField).collect(Collectors.toList());
+    }
+
+    private boolean isLeafField(String forbiddenField) {
+        return !forbiddenField.contains(":");
     }
 
     private boolean isEnabled() {
@@ -354,10 +405,14 @@ public class MBeanSelector {
 
     JsonQuerySpec toKeyQuerySpec() {
         JsonQuerySpec spec = new JsonQuerySpec();
-        if (currentSelectorHasFilter()) spec.addFields(key);
+        if (currentSelectorHasFilter())
+            spec.addFields(key);
+        else
+            spec.addFields();
 
         for (Map.Entry<String, MBeanSelector> selector : nestedSelectors.entrySet())
-            spec.addChild(selector.getKey(), selector.getValue().toKeyQuerySpec());
+            if (selector.getValue().hasFilter())
+                spec.addChild(selector.getKey(), selector.getValue().toKeyQuerySpec());
 
         return spec;
     }
@@ -552,4 +607,19 @@ public class MBeanSelector {
     void postProcessMetrics(Map<String, Object> metrics, MetricsProcessor processor) {
         queryType.postProcessMetrics(metrics, processor);
     }
+
+    public boolean isRequestForPrivilegedProperty() {
+        if (queryType != QueryType.RUNTIME) return false;
+        
+        return Optional.ofNullable(nestedSelectors.get("JDBCServiceRuntime"))
+              .map(MBeanSelector::isJDBCDataSourceRuntimeMBeansPropertiesRequest)
+              .orElse(false);
+    }
+
+    private boolean isJDBCDataSourceRuntimeMBeansPropertiesRequest() {
+        final MBeanSelector jdbcSourceRuntimeSelector = nestedSelectors.get("JDBCDataSourceRuntimeMBeans");
+        if (jdbcSourceRuntimeSelector == null) return false;
+        return jdbcSourceRuntimeSelector.values.isEmpty() || jdbcSourceRuntimeSelector.values.contains("properties");
+    }
+
 }

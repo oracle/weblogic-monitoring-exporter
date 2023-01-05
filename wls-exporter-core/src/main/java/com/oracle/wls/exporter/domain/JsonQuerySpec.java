@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2023, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -27,6 +27,12 @@ class JsonQuerySpec {
     private Map<String, JsonQuerySpec> children = null;
     private String keyName = null;
     private List<String> selectedKeys = null;
+    private List<String> excludeFields = null;
+
+    JsonQuerySpec asTopLevel() {
+        addFields();
+        return this;
+    }
 
     /**
      * Specifies the name of any mbean values which should be retrieved.
@@ -62,6 +68,7 @@ class JsonQuerySpec {
         
         result.add("links", new JsonArray());
         if (fields != null) result.add("fields", asStringArray(fields));
+        if (excludeFields != null) result.add("excludeFields", asStringArray(excludeFields));
         if (keyName != null) result.add(keyName, asStringArray(selectedKeys));
         if (children != null) asChildObject(result);
 
@@ -80,5 +87,10 @@ class JsonQuerySpec {
         for (Map.Entry<String, JsonQuerySpec> entry : children.entrySet()) {
             nesting.add(entry.getKey(), entry.getValue().toJsonObject());
         }
+    }
+
+    public void excludeField(String fieldName) {
+        if (excludeFields == null) excludeFields = new ArrayList<>();
+        excludeFields.add(fieldName);
     }
 }
