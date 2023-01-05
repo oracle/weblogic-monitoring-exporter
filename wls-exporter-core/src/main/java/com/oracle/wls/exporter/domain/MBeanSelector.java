@@ -350,7 +350,7 @@ public class MBeanSelector {
      * @return a JSON string
      */
     public String getRequest() {
-        return toQuerySpec().asTopLevel().toJson(new Gson());
+        return toQuerySpec().toJson(new Gson());
     }
 
     JsonQuerySpec toQuerySpec() {

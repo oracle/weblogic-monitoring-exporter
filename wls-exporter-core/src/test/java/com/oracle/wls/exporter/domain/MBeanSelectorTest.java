@@ -231,19 +231,11 @@ class MBeanSelectorTest {
     }
 
     @Test
-    void whenTopLevelSelectorHasNoFields_fieldsListIsEmpty() {
-        MBeanSelector selector = MBeanSelector.create(ImmutableMap.of("servlets",
-                ImmutableMap.of(MBeanSelector.VALUES_KEY, new String[] {"first", "second"})));
-
-        assertThat(querySpec(selector), hasJsonPath("$.fields", hasSize(0)));
-    }
-
-    @Test
-    void whenTopLevelSelectorHasPrefixAndNoFields_fieldsListIsEmpty() {
+    void whenTopLevelSelectorHasPrefixAndNoFields_dontRequestFields() {
         MBeanSelector selector = MBeanSelector.create(ImmutableMap.of(MBeanSelector.PREFIX_KEY, "top_", "servlets",
                 ImmutableMap.of(MBeanSelector.VALUES_KEY, new String[] {"first", "second"})));
 
-        assertThat(querySpec(selector), hasJsonPath("$.fields", hasSize(0)));
+        assertThat(querySpec(selector), hasNoJsonPath("$.fields"));
     }
 
     @Test

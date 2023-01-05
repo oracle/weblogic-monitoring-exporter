@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import com.google.gson.Gson;
@@ -29,18 +30,13 @@ class JsonQuerySpec {
     private List<String> selectedKeys = null;
     private List<String> excludeFields = null;
 
-    JsonQuerySpec asTopLevel() {
-        addFields();
-        return this;
-    }
-
     /**
      * Specifies the name of any mbean values which should be retrieved.
      * @param newFields the field names to add to any previous defined
      */
     void addFields(String... newFields) {
         if (fields == null) fields = new ArrayList<>();
-        fields.addAll(Arrays.asList(newFields));
+        Arrays.stream(newFields).filter(Objects::nonNull).forEach(fields::add);
     }
 
     /**
