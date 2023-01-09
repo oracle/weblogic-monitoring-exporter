@@ -8,13 +8,15 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_TIME;
+
 /**
  * A diagnostic class that records requests sent to WLS and the replies received.
  */
 public class WlsRestExchanges {
 
   public static final int MAX_EXCHANGES = 5;
-  private static final String TEMPLATE = "REQUEST to %s:%n%s%nREPLY:%n%s%n";
+  private static final String TEMPLATE = "At %s, REQUEST to %s:%n%s%nREPLY:%n%s%n";
 
   private static final Queue<String> exchanges = new ConcurrentLinkedDeque<>();
 
@@ -35,8 +37,12 @@ public class WlsRestExchanges {
    * @param response the returned JSON string
    */
   public static void addExchange(String url, String request, String response) {
-      exchanges.add(String.format(TEMPLATE, url, request, response));
+      exchanges.add(String.format(TEMPLATE, getCurrentTime(), url, request, response));
       if (exchanges.size() > MAX_EXCHANGES) exchanges.remove();
+  }
+
+  private static String getCurrentTime() {
+    return ISO_LOCAL_TIME.format(SystemClock.now());
   }
 
   /**
