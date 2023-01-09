@@ -44,6 +44,9 @@ public class MBeanSelector {
     static final String EXCLUDED_KEYS_KEY = "excludedKeyValues";
     static final String VALUES_KEY = "values";
     static final String STRING_VALUES_KEY = "stringValues";
+
+    /** The name of the field on which all runtime mbeans are filtered. **/
+    static final String FILTER_KEY = "name";
     static final String TYPE_FIELD_NAME = "type";
     static final MBeanSelector DOMAIN_NAME_SELECTOR = createDomainNameSelector();
     static final String NESTING = "  ";
@@ -361,7 +364,7 @@ public class MBeanSelector {
             selectQueryFields(spec, getQueryValues());
         }
         if (currentSelectorHasFilter() && !filter.isEmpty())
-            spec.setFilter(key, filter);
+            spec.setFilter(FILTER_KEY, filter);
 
         for (Map.Entry<String, MBeanSelector> entry : nestedSelectors.entrySet())
             if (entry.getValue().isEnabled())
@@ -400,13 +403,13 @@ public class MBeanSelector {
      * @return a JSON string
      */
     public String getKeyRequest() {
-        return toKeyQuerySpec().toJson(new Gson());
+        return toKeyQuerySpec().asTopLevel().toJson(new Gson());
     }
 
     JsonQuerySpec toKeyQuerySpec() {
         JsonQuerySpec spec = new JsonQuerySpec();
         if (currentSelectorHasFilter())
-            spec.addFields(key);
+            spec.addFields(FILTER_KEY);
         else
             spec.addFields();
 
@@ -480,8 +483,10 @@ public class MBeanSelector {
 
 
     private void acceptItem(JsonObject entry) {
-        final JsonElement keyElement = entry.get(key);
-        if (keyElement.isJsonPrimitive() && keyElement.getAsJsonPrimitive().isString()) {
+        final JsonElement keyElement = entry.get(FILTER_KEY);
+        if (keyElement == null)
+            offerKeys(entry);
+        else if (keyElement.isJsonPrimitive() && keyElement.getAsJsonPrimitive().isString()) {
             final String offeredKey = keyElement.getAsJsonPrimitive().getAsString();
             if (isSelectedKey(offeredKey)) {
                 filter.add(offeredKey);
