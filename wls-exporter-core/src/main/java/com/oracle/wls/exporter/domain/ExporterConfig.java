@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2023, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -24,6 +24,10 @@ import org.yaml.snakeyaml.scanner.ScannerException;
  * @author Russell Gold
  */
 public class ExporterConfig implements MetricsProcessor {
+    // Due to a bug in the WLS REST API, a query that includes this field will fail if not run with admin privileges.
+    // The code thus ensures that it is excluded from all queries.
+    private static final String[] FORBIDDEN_FIELDS = {"JDBCServiceRuntime:JDBCDataSourceRuntimeMBeans:properties"};
+
     public static final String DOMAIN_NAME_PROPERTY = "DOMAIN";
 
     private static final String QUERY_SYNC = "query_sync";
@@ -173,7 +177,7 @@ public class ExporterConfig implements MetricsProcessor {
 
     private void appendQueries(Object queriesYaml) {
         for (Map<String,Object> selectorSpec : getAsListOfMaps(queriesYaml)) {
-            appendQuery(MBeanSelector.create(selectorSpec));
+            appendQuery(MBeanSelector.create(selectorSpec).withForbiddenFields(FORBIDDEN_FIELDS));
         }
     }
 
