@@ -364,7 +364,7 @@ public class MBeanSelector {
             selectQueryFields(spec, getQueryValues());
         }
         if (currentSelectorHasFilter() && !filter.isEmpty())
-            spec.setFilter(FILTER_KEY, filter);
+            spec.setFilter(filter);
 
         for (Map.Entry<String, MBeanSelector> entry : nestedSelectors.entrySet())
             if (entry.getValue().isEnabled())

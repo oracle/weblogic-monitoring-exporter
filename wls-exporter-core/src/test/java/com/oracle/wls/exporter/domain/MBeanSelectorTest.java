@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.both;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.equalTo;
@@ -186,6 +187,12 @@ class MBeanSelectorTest {
 
     private Map<String, Serializable> getServletMap() {
         return ImmutableMap.of(MBeanSelector.QUERY_KEY, EXPECTED_KEY, MBeanSelector.VALUES_KEY, EXPECTED_VALUES);
+    }
+
+    @Test
+    void whenTopLevelSelectorDoesNotSpecifyValues_doNotSpecifyFields() {
+        MBeanSelector selector = MBeanSelector.create(DEEP_MAP);
+        assertThat(querySpec(selector), hasJsonPath("$.fields", empty()));
     }
 
     @Test
