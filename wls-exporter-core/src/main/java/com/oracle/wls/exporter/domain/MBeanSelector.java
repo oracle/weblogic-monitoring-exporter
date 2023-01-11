@@ -108,7 +108,6 @@ public class MBeanSelector {
                     break;
             }
         }
-        validate();
     }
 
     private void addNestedSelector(String key, Object selectorValue) {
@@ -161,13 +160,6 @@ public class MBeanSelector {
             if (!duplicates.isEmpty())
                 throw new ConfigurationException("Duplicate string values " + duplicates + " for " + stringValue.getKey());
         }
-    }
-
-    private void validate() {
-        if (getKey() == null && includedKeys != null)
-            throw new ConfigurationException("Included key values specified without key field");
-        if (getKey() == null && excludedKeys != null)
-            throw new ConfigurationException("Excluded key values specified without key field");
     }
 
     /**
@@ -517,10 +509,16 @@ public class MBeanSelector {
     }
 
     private MBeanSelector(MBeanSelector first, MBeanSelector second) {
+        rejectConflicts(first, second);
         copyScalars(first);
         combineValues(first, second);
         combineStringValues(first, second);
         combineNestedSelectors(first, second);
+    }
+
+    private void rejectConflicts(MBeanSelector first, MBeanSelector second) {
+        if (first.hasFilter() && second.hasFilter())
+            throw new ConfigurationException("May not merge configurations when both have filters.");
     }
 
     private void copyScalars(MBeanSelector first) {

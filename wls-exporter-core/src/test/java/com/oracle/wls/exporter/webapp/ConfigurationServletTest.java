@@ -114,6 +114,13 @@ class ConfigurationServletTest {
             "    key: name\n" +
             "    values: [age, sex]\n";
 
+    private static final String FILTERED_CONFIGURATION1 =
+            "queries:\n" + "" +
+            "- groups:\n" +
+            "    prefix: new_\n" +
+            "    key: name\n" +
+            "    values: [sample1, sample2]\n";
+
     @Test
     void whenPostWithoutFile_reportFailure() {
         assertThrows(ServletException.class, () -> servlet.doPost(createPostRequest(), response));

@@ -40,6 +40,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author Russell Gold
@@ -670,6 +671,24 @@ class MBeanSelectorTest {
         assertThat(result.getKeyName(), equalTo("numbers"));
         assertThat(result.getIncludedKeys(), equalTo(INCLUDED));
         assertThat(result.getExcludedKeys(), equalTo(EXCLUDED));
+    }
+
+    @Test
+    void whenBothConfigurationsHaveFilters_rejectMerge() {
+        MBeanSelector selector1 = createSelectorWithTopLevelFilter();
+        MBeanSelector selector2 = createSelectorWithSecondLevelFilter();
+
+        assertThrows(ConfigurationException.class, () -> selector1.merge(selector2));
+    }
+
+    private MBeanSelector createSelectorWithTopLevelFilter() {
+        return MBeanSelector.create(ImmutableMap.of("includedKeyValues", "Abcd", "servlets",
+                ImmutableMap.of(MBeanSelector.VALUES_KEY, new String[] {"first", "second"})));
+    }
+
+    private MBeanSelector createSelectorWithSecondLevelFilter() {
+        return MBeanSelector.create(ImmutableMap.of("servlets",
+                ImmutableMap.of("excludedKeyValues", "A.*", MBeanSelector.VALUES_KEY, new String[] {"first", "second"})));
     }
 
     @Test
