@@ -40,6 +40,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -678,7 +679,7 @@ class MBeanSelectorTest {
         MBeanSelector selector1 = createSelectorWithTopLevelFilter();
         MBeanSelector selector2 = createSelectorWithoutFilter();
 
-        selector1.merge(selector2);
+        assertDoesNotThrow(() -> selector1.merge(selector2));
     }
 
     @Test
@@ -686,7 +687,7 @@ class MBeanSelectorTest {
         MBeanSelector selector1 = createSelectorWithoutFilter();
         MBeanSelector selector2 = createSelectorWithSecondLevelFilter();
 
-        selector1.merge(selector2);
+        assertDoesNotThrow(() -> selector1.merge(selector2));
     }
 
     @Test
