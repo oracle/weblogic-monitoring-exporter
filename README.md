@@ -10,7 +10,9 @@ Metrics are selected using a [YAML configuration file](#Configuration).
 The exporter is available in two forms:
  - A [web application](#web-application) that you deploy to the server from which metrics are to be extracted.
  You may include a configuration file directly in the WAR file, and you may temporarily modify the configuration in a
- running system by using a web form. If a [coordination configurator](config_coordinator/README.md) is running and configured,
+ running system by using a web form, either by selecting a replacement configuration or one to append to the current one,
+ with the caveat that if both the original and appended configurations have filters, the update will be rejected. 
+ If a [coordination configurator](config_coordinator/README.md) is running and configured,
  that temporary configuration will be sent to all servers configured to use it.
 
  - A [separate process](#sidecar) that is run alongside a server instance. You supply the configuration to such a
@@ -288,7 +290,7 @@ vulnerability disclosure process.
 
 ## License
 
-Copyright (c) 2019, 2022 Oracle and/or its affiliates.
+Copyright (c) 2019, 2023 Oracle and/or its affiliates.
 
 Released under the Universal Permissive License v1.0 as shown at
 <https://oss.oracle.com/licenses/upl/>.

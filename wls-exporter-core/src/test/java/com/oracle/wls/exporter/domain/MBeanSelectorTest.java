@@ -674,11 +674,32 @@ class MBeanSelectorTest {
     }
 
     @Test
+    void whenOnlyInitialConfigurationHasFilters_permitMerge() {
+        MBeanSelector selector1 = createSelectorWithTopLevelFilter();
+        MBeanSelector selector2 = createSelectorWithoutFilter();
+
+        selector1.merge(selector2);
+    }
+
+    @Test
+    void whenOnlySecondConfigurationsHasFilters_permitMerge() {
+        MBeanSelector selector1 = createSelectorWithoutFilter();
+        MBeanSelector selector2 = createSelectorWithSecondLevelFilter();
+
+        selector1.merge(selector2);
+    }
+
+    @Test
     void whenBothConfigurationsHaveFilters_rejectMerge() {
         MBeanSelector selector1 = createSelectorWithTopLevelFilter();
         MBeanSelector selector2 = createSelectorWithSecondLevelFilter();
 
         assertThrows(ConfigurationException.class, () -> selector1.merge(selector2));
+    }
+
+    private MBeanSelector createSelectorWithoutFilter() {
+        return MBeanSelector.create(ImmutableMap.of("servlets",
+                ImmutableMap.of(MBeanSelector.VALUES_KEY, new String[] {"first", "second"})));
     }
 
     private MBeanSelector createSelectorWithTopLevelFilter() {
