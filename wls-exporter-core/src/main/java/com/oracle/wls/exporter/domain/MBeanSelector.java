@@ -44,6 +44,9 @@ public class MBeanSelector {
     static final String EXCLUDED_KEYS_KEY = "excludedKeyValues";
     static final String VALUES_KEY = "values";
     static final String STRING_VALUES_KEY = "stringValues";
+
+    /** The name of the field on which all runtime mbeans are filtered. **/
+    static final String FILTER_KEY = "name";
     static final String TYPE_FIELD_NAME = "type";
     static final MBeanSelector DOMAIN_NAME_SELECTOR = createDomainNameSelector();
     static final String NESTING = "  ";
@@ -105,7 +108,6 @@ public class MBeanSelector {
                     break;
             }
         }
-        validate();
     }
 
     private void addNestedSelector(String key, Object selectorValue) {
@@ -158,13 +160,6 @@ public class MBeanSelector {
             if (!duplicates.isEmpty())
                 throw new ConfigurationException("Duplicate string values " + duplicates + " for " + stringValue.getKey());
         }
-    }
-
-    private void validate() {
-        if (getKey() == null && includedKeys != null)
-            throw new ConfigurationException("Included key values specified without key field");
-        if (getKey() == null && excludedKeys != null)
-            throw new ConfigurationException("Excluded key values specified without key field");
     }
 
     /**
@@ -361,7 +356,7 @@ public class MBeanSelector {
             selectQueryFields(spec, getQueryValues());
         }
         if (currentSelectorHasFilter() && !filter.isEmpty())
-            spec.setFilter(key, filter);
+            spec.setFilter(filter);
 
         for (Map.Entry<String, MBeanSelector> entry : nestedSelectors.entrySet())
             if (entry.getValue().isEnabled())
@@ -400,13 +395,13 @@ public class MBeanSelector {
      * @return a JSON string
      */
     public String getKeyRequest() {
-        return toKeyQuerySpec().toJson(new Gson());
+        return toKeyQuerySpec().asTopLevel().toJson(new Gson());
     }
 
     JsonQuerySpec toKeyQuerySpec() {
         JsonQuerySpec spec = new JsonQuerySpec();
         if (currentSelectorHasFilter())
-            spec.addFields(key);
+            spec.addFields(FILTER_KEY);
         else
             spec.addFields();
 
@@ -480,8 +475,10 @@ public class MBeanSelector {
 
 
     private void acceptItem(JsonObject entry) {
-        final JsonElement keyElement = entry.get(key);
-        if (keyElement.isJsonPrimitive() && keyElement.getAsJsonPrimitive().isString()) {
+        final JsonElement keyElement = entry.get(FILTER_KEY);
+        if (keyElement == null)
+            offerKeys(entry);
+        else if (keyElement.isJsonPrimitive() && keyElement.getAsJsonPrimitive().isString()) {
             final String offeredKey = keyElement.getAsJsonPrimitive().getAsString();
             if (isSelectedKey(offeredKey)) {
                 filter.add(offeredKey);
@@ -512,10 +509,16 @@ public class MBeanSelector {
     }
 
     private MBeanSelector(MBeanSelector first, MBeanSelector second) {
+        rejectConflicts(first, second);
         copyScalars(first);
         combineValues(first, second);
         combineStringValues(first, second);
         combineNestedSelectors(first, second);
+    }
+
+    private void rejectConflicts(MBeanSelector first, MBeanSelector second) {
+        if (first.hasFilter() && second.hasFilter())
+            throw new ConfigurationException("May not merge configurations when both have filters.");
     }
 
     private void copyScalars(MBeanSelector first) {
