@@ -100,14 +100,19 @@ class MetricsScraper {
 
         private void scrapeItem() {
             if (excludeByType()) return;
-            String itemQualifiers = getItemQualifiers();
+            final String itemQualifiers = getItemQualifiers();
 
             for (String valueName : getValueNames()) {
-                if (valueName.equals(selector.getKey())) continue;
-                JsonElement value = object.get(valueName);
-                addMetric(itemQualifiers, valueName, value);
+                scrapeValue(itemQualifiers, valueName);
             }
+
             scrapeSubObjects(itemQualifiers);
+        }
+
+        private void scrapeValue(String itemQualifiers, String valueName) {
+            if (valueName.equals(selector.getKey())) return;
+
+            new ScrapedMetric(itemQualifiers, valueName).add();
         }
 
         private boolean excludeByType() {
@@ -133,21 +138,17 @@ class MetricsScraper {
             return QUOTE + jsonElement.getAsString() + QUOTE;
         }
 
-        private void addMetric(String itemQualifiers, String valueName, JsonElement value) {
-            new ScrapedMetric(itemQualifiers, valueName, value).add();
-        }
-
 
         class ScrapedMetric {
+            private final String itemQualifiers;
+            private final String valueName;
             private final JsonPrimitive jsonPrimitive;
-            String itemQualifiers;
-            String valueName;
 
-            ScrapedMetric(String itemQualifiers, String valueName, JsonElement value) {
+            ScrapedMetric(String itemQualifiers, String valueName) {
                 this.itemQualifiers = itemQualifiers;
                 this.valueName = valueName;
 
-                this.jsonPrimitive = Optional.ofNullable(value)
+                this.jsonPrimitive = Optional.ofNullable(object.get(valueName))
                       .filter(JsonElement::isJsonPrimitive)
                       .map(JsonElement::getAsJsonPrimitive)
                       .orElse(null);
