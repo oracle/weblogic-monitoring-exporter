@@ -1,16 +1,16 @@
-// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2023, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 import static com.oracle.wls.exporter.domain.MapUtils.isNullOrEmptyString;
 
@@ -134,42 +134,63 @@ class MetricsScraper {
         }
 
         private void addMetric(String itemQualifiers, String valueName, JsonElement value) {
-            if (value != null && value.isJsonPrimitive()) {
-                addMetric(itemQualifiers, valueName, value.getAsJsonPrimitive());
+            new ScrapedMetric(itemQualifiers, valueName, value).add();
+        }
+
+
+        class ScrapedMetric {
+            private final JsonPrimitive jsonPrimitive;
+            String itemQualifiers;
+            String valueName;
+
+            ScrapedMetric(String itemQualifiers, String valueName, JsonElement value) {
+                this.itemQualifiers = itemQualifiers;
+                this.valueName = valueName;
+
+                this.jsonPrimitive = Optional.ofNullable(value)
+                      .filter(JsonElement::isJsonPrimitive)
+                      .map(JsonElement::getAsJsonPrimitive)
+                      .orElse(null);
             }
-        }
 
-        private void addMetric(String itemQualifiers, String valueName, JsonPrimitive jsonPrimitive) {
-            Optional.ofNullable(getMetricValue(valueName, jsonPrimitive))
-                .ifPresent(value -> addMetric(getMetricName(itemQualifiers, valueName), value));
-        }
+            void add() {
+                Optional.ofNullable(jsonPrimitive).map(this::toMetricValue).ifPresent(v -> metrics.put(getMetricName(), v));
+            }
 
-        private void addMetric(String metricName, Object value) {
-            metrics.put(metricName, value);
-        }
+            private Object toMetricValue(JsonPrimitive jsonPrimitive) {
+                if (jsonPrimitive.isNumber())
+                    return jsonPrimitive.getAsNumber();
+                else if (isStringMetric())
+                    return selector.getStringMetricValue(valueName, jsonPrimitive.getAsString());
+                else if (selector.acceptsStrings() && jsonPrimitive.isString())
+                    return jsonPrimitive.getAsString();
+                else
+                    return null;
+            }
 
-        private Object getMetricValue(String valueName, JsonPrimitive jsonPrimitive) {
-            if (jsonPrimitive.isNumber())
-                return jsonPrimitive.getAsNumber();
-            else if (selector.isStringMetric(valueName) && jsonPrimitive.isString())
-                return selector.getStringMetricValue(valueName, jsonPrimitive.getAsString());
-            else if (selector.acceptsStrings() && jsonPrimitive.isString())
-                return jsonPrimitive.getAsString();
-            else
-                return null;
-        }
+            private boolean isStringMetric() {
+                return selector.isStringMetric(valueName) && jsonPrimitive.isString();
+            }
 
-        private String getMetricName(String itemQualifiers, String valueName) {
-            StringBuilder sb = new StringBuilder();
-            if (selector.getPrefix() != null) sb.append(getCorrectCase(selector.getPrefix()));
-            sb.append(getCorrectCase(valueName));
-            if (!isNullOrEmptyString(itemQualifiers))
-                sb.append('{').append(itemQualifiers).append('}');
-            return sb.toString();
-        }
+            private String getMetricName() {
+                StringBuilder sb = new StringBuilder();
+                if (selector.getPrefix() != null) sb.append(getCorrectCase(selector.getPrefix()));
+                sb.append(getCorrectCase(valueName));
+                if (!isNullOrEmptyString(itemQualifiers))
+                    sb.append('{').append(augmented(itemQualifiers)).append('}');
+                return sb.toString();
+            }
 
-        private String getCorrectCase(String valueName) {
-            return metricNameSnakeCase ? SnakeCaseUtil.convert(valueName) : valueName;
+            private String getCorrectCase(String valueName) {
+                return metricNameSnakeCase ? SnakeCaseUtil.convert(valueName) : valueName;
+            }
+
+            private String augmented(String itemQualifiers) {
+                if (isStringMetric())
+                    return itemQualifiers + ",value=\"" + jsonPrimitive.getAsString() + '"';
+                else
+                    return itemQualifiers;
+            }
         }
     }
 

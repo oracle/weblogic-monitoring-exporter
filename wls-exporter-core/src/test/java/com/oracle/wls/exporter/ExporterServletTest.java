@@ -353,12 +353,12 @@ class ExporterServletTest {
 
         servlet.doGet(request, this.response);
 
-        assertThat(toHtml(this.response), containsString("color{name=\"fred\"} 0"));
-        assertThat(toHtml(this.response), containsString("color{name=\"george\"} 1"));
-        assertThat(toHtml(this.response), containsString("color{name=\"ron\"} -1"));
-        assertThat(toHtml(this.response), containsString("size{name=\"fred\"} 0"));
-        assertThat(toHtml(this.response), containsString("size{name=\"george\"} 1"));
-        assertThat(toHtml(this.response), containsString("size{name=\"ron\"} 2"));
+        assertThat(toHtml(this.response), containsString("color{name=\"fred\",value=\"red\"} 0"));
+        assertThat(toHtml(this.response), containsString("color{name=\"george\",value=\"green\"} 1"));
+        assertThat(toHtml(this.response), containsString("color{name=\"ron\",value=\"blue\"} -1"));
+        assertThat(toHtml(this.response), containsString("size{name=\"fred\",value=\"tall\"} 0"));
+        assertThat(toHtml(this.response), containsString("size{name=\"george\",value=\"grande\"} 1"));
+        assertThat(toHtml(this.response), containsString("size{name=\"ron\",value=\"venti\"} 2"));
     }
 
     private Map<String,Object> getStringResponseMap() {
