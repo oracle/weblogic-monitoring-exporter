@@ -3,6 +3,11 @@ on:
   push:
     tags:
       - v*
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: $REGISTRY/oracle/weblogic-monitoring-exporter:${{ github.ref_name }}
+
 jobs:
   build:
     name: Build
@@ -26,10 +31,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.ECNJ_GITHUB_TOKEN }}  # Needed to get PR information, if any
         run: mvn clean package -Dtag=${{ github.ref_name }}
-      - name: Build Container Image
-        env:
-          GITHUB_TOKEN: ${{ secrets.ECNJ_GITHUB_TOKEN }}  # Needed to get PR information, if any
-        run: docker build . -t ghcr.io/oracle/weblogic-monitoring-exporter:${{ github.ref_name }}
 
       - name: Create Draft Release
         id: draft-release
@@ -44,3 +45,17 @@ jobs:
           echo 'EOF' >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: false
+          tags: $IMAGE_NAME
