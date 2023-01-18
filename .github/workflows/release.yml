@@ -26,7 +26,7 @@ jobs:
       - name: Build
         env:
           GITHUB_TOKEN: ${{ secrets.ECNJ_GITHUB_TOKEN }}  # Needed to get PR information, if any
-        run: mvn clean package -Dtag=${{ env.GITHUB_REF_NAME }}
+        run: mvn clean package -Dtag=${{ github.ref }}
       - name: ImageBuild
         env:
           GITHUB_TOKEN: ${{ secrets.ECNJ_GITHUB_TOKEN }}  # Needed to get PR information, if any
