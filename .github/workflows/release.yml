@@ -6,13 +6,18 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ghcr.io/oracle/weblogic-monitoring-exporter:${{ github.ref_name }}
+  BASE_IMAGE_NAME: ghcr.io/oracle/weblogic-monitoring-exporter
 
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
     steps:
+      - name: "Set environmental variables"
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}:$VERSION" >> $GITHUB_ENV
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
@@ -30,18 +35,18 @@ jobs:
       - name: Build
         env:
           GITHUB_TOKEN: ${{ secrets.ECNJ_GITHUB_TOKEN }}  # Needed to get PR information, if any
-        run: mvn clean package -Dtag=${{ github.ref_name }}
+        run: mvn clean package -Dtag=${{ env.VERSION }}
 
       - name: Create Draft Release
         id: draft-release
         run: |
           echo 'PR_URL<<EOF' >> $GITHUB_ENV
-          gh release create ${{ github.ref_name }}\
+          gh release create ${{ env.VERSION }}\
             --draft \
             --generate-notes \
-            --title 'WebLogic Monitoring Exporter ${{ github.ref_name }}' \
+            --title 'WebLogic Monitoring Exporter ${{ env.VERSION }}' \
             --repo https://github.com/oracle/weblogic-monitoring-exporter \
-            wls-exporter-war/target/wls-exporter.war wls-exporter-war/target/classes/get_${{ github.ref_name }}.sh
+            wls-exporter-war/target/wls-exporter.war wls-exporter-war/target/classes/get_v${{ env.VERSION }}.sh
           echo 'EOF' >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -57,5 +62,5 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          push: true
+          push: false
           tags: ${{ env.IMAGE_NAME }}

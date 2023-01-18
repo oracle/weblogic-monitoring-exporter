@@ -147,7 +147,7 @@
                           </goals>
                           <configuration>
                             <sourceFile>${project.build.outputDirectory}/get.sh</sourceFile>
-                            <destinationFile>${project.build.outputDirectory}/get_${tag}.sh</destinationFile>
+                            <destinationFile>${project.build.outputDirectory}/get_v${tag}.sh</destinationFile>
                           </configuration>
                         </execution>
                       </executions>
