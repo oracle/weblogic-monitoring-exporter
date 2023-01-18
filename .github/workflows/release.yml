@@ -40,7 +40,7 @@ jobs:
             --generate-notes \
             --title 'WebLogic Monitoring Exporter ${{ github.ref_name }}' \
             --repo https://github.com/oracle/weblogic-monitoring-exporter \
-            wls-exporter-war/target/wls-exporter.war wls-exporter-war/target/get_${{ github.ref_name }}.sh
+            wls-exporter-war/target/wls-exporter.war wls-exporter-war/target/classes/get_${{ github.ref_name }}.sh
           echo 'EOF' >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
