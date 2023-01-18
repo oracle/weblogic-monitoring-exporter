@@ -26,12 +26,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.ECNJ_GITHUB_TOKEN }}  # Needed to get PR information, if any
         run: mvn clean package -Dtag=${{ github.ref_name }}
-      - name: ImageBuild
+      - name: Build Container Image
         env:
           GITHUB_TOKEN: ${{ secrets.ECNJ_GITHUB_TOKEN }}  # Needed to get PR information, if any
         run: docker build . -t ghcr.io/oracle/weblogic-monitoring-exporter:${{ github.ref_name }}
 
-      - name: Create Pull Request
+      - name: Create Draft Release
         id: draft-release
         run: |
           echo 'PR_URL<<EOF' >> $GITHUB_ENV

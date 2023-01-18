@@ -1,0 +1,19 @@
+# .github/release.yml
+# Template for release notes (used by .github/workflows/release.yml)
+
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+    authors:
+      - dependabot
+  categories:
+    - title: Major Changes
+      labels:
+        - breaking-change
+    - title: Additional Features
+      labels:
+        - enhancement
+    - title: Bug Fixes
+      labels:
+        - "*"
