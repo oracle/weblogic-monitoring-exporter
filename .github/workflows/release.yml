@@ -58,4 +58,4 @@ jobs:
         with:
           context: .
           push: false
-          tags: $IMAGE_NAME
+          tags: ${{ env.IMAGE_NAME }}
