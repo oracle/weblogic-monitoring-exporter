@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ REGISTRY }}/oracle/weblogic-monitoring-exporter:${{ github.ref_name }}
+  IMAGE_NAME: ghcr.io/oracle/weblogic-monitoring-exporter:${{ github.ref_name }}
 
 jobs:
   build:
