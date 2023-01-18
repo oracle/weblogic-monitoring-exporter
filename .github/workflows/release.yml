@@ -16,7 +16,7 @@ jobs:
       - name: "Set environmental variables"
         run: |
           VERSION=${GITHUB_REF_NAME#v}
-          echo "branch is ${{ env.GITHUB_REF }}"
+          echo "branch is ${{ github.ref }}"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "IMAGE_NAME=${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}:$VERSION" >> $GITHUB_ENV
       - uses: actions/checkout@v3
