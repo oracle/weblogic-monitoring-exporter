@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2023, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -202,13 +202,13 @@ class MetricsScraperTest {
     }
 
     @Test
-    void whenStringValuesSpecified_generateEnumeration() {
+    void whenStringValuesSpecified_generateEnumerationAndQualifier() {
         generateNestedMetrics(getStringValuedServletsMap(), SERVLET_RESPONSE);
 
         assertThat(scraper.getMetrics(),
-                   allOf(hasMetric("servlet_state{servletName=\"JspServlet\"}", 1),
-                         hasMetric("servlet_state{servletName=\"FileServlet\"}", 0),
-                         hasMetric("servlet_state{servletName=\"ready\"}", 2)));
+                   allOf(hasMetric("servlet_state{servletName=\"JspServlet\",value=\"running\"}", 1),
+                         hasMetric("servlet_state{servletName=\"FileServlet\",value=\"stopped\"}", 0),
+                         hasMetric("servlet_state{servletName=\"ready\",value=\"confused\"}", 2)));
     }
 
     private ImmutableMap<String, Object> getStringValuedServletsMap() {
