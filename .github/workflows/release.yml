@@ -16,6 +16,8 @@ jobs:
       - name: "Set environmental variables"
         run: |
           VERSION=${GITHUB_REF_NAME#v}
+          IN_MAIN=$(git branch -r --contains tags/${{ github.ref_name }} | grep "origin/main$")
+          echo "branch is ${{ GITGUB_DEF }}"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "IMAGE_NAME=${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}:$VERSION" >> $GITHUB_ENV
       - uses: actions/checkout@v3
@@ -62,5 +64,5 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          push: false
+          push: true
           tags: ${{ env.IMAGE_NAME }}

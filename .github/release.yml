@@ -5,6 +5,7 @@ changelog:
   exclude:
     labels:
       - ignore-for-release
+      - dependencies
     authors:
       - dependabot
   categories:
