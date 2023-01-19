@@ -41,7 +41,7 @@ jobs:
         id: draft-release
         run: |
           echo 'PR_URL<<EOF' >> $GITHUB_ENV
-          gh release create ${{ env.VERSION }}\
+          gh release create ${{ github.ref_name }} \
             --draft \
             --generate-notes \
             --title 'WebLogic Monitoring Exporter ${{ env.VERSION }}' \
