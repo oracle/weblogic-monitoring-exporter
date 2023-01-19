@@ -1,0 +1,66 @@
+name: Release
+on:
+  push:
+    tags:
+      - v*
+
+env:
+  REGISTRY: ghcr.io
+  BASE_IMAGE_NAME: ghcr.io/oracle/weblogic-monitoring-exporter
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Set environmental variables"
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}:$VERSION" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 17
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Build
+        env:
+          GITHUB_TOKEN: ${{ secrets.ECNJ_GITHUB_TOKEN }}  # Needed to get PR information, if any
+        run: mvn clean package -Dtag=${{ env.VERSION }}
+
+      - name: Create Draft Release
+        id: draft-release
+        run: |
+          echo 'PR_URL<<EOF' >> $GITHUB_ENV
+          gh release create ${{ env.VERSION }}\
+            --draft \
+            --generate-notes \
+            --title 'WebLogic Monitoring Exporter ${{ env.VERSION }}' \
+            --repo https://github.com/oracle/weblogic-monitoring-exporter \
+            wls-exporter-war/target/wls-exporter.war wls-exporter-war/target/classes/get_v${{ env.VERSION }}.sh
+          echo 'EOF' >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: ${{ env.IMAGE_NAME }}

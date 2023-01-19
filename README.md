@@ -1,7 +1,5 @@
 # WebLogic Monitoring Exporter
 
-[![Build Status](https://travis-ci.org/oracle/weblogic-monitoring-exporter.svg?branch=master)](https://travis-ci.org/oracle/weblogic-monitoring-exporter)
-
 The WebLogic Monitoring Exporter is a [Prometheus](http://prometheus.io)-compatible exporter of metrics from
 WebLogic Server (WLS) instances, which it obtains by using the
 [WLS RESTful Management API](https://docs.oracle.com/middleware/12213/wls/WLRUR/overview.htm#WLRUR111), available in version 12.2.1 or later.

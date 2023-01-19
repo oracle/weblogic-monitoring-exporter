@@ -19,7 +19,7 @@ public class Main {
         final MetricsService metricsService = new MetricsService(configuration, new WebClientFactoryImpl());
 
         WebServer.builder()
-                .routing(Routing.builder().register(metricsService).build())
+                .addRouting(Routing.builder().register(metricsService).build())
                 .port(metricsService.getListenPort())
                 .build()
                 .start()

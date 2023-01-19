@@ -2,7 +2,7 @@
 # Copyright (c) 2021, 2022, Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-curl -L -O https://github.com/oracle/weblogic-monitoring-exporter/releases/download/v${version}/wls-exporter.war
+curl -L -O https://github.com/oracle/weblogic-monitoring-exporter/releases/download/${tag}/wls-exporter.war
 
 if [ ! -z "$1" ]; then
   tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
