@@ -11,8 +11,6 @@
     <modules>
         <module>build-helper-mojo</module>
         <module>wls-exporter-core</module>
-        <module>wls-exporter-sidecar</module>
-        <module>wls-exporter-war</module>
     </modules>
     <packaging>pom</packaging>
 
