@@ -20,7 +20,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 @Mojo(name = "gitVersion", defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
 public class GitTagMojo extends AbstractMojo {
 
-  @Parameter(required = true, defaultValue = "${project.build.outputDirectory}/version.properties")
+  @Parameter(required = true, defaultValue = "${project.build.outputDirectory}/exporter-version.properties")
   private File outputFile;
   
   private final GitTagExecutor executor;
@@ -48,7 +48,7 @@ public class GitTagMojo extends AbstractMojo {
   }
 
   private List<String> createProperties(String versionString) {
-    return Collections.singletonList("version=" + versionString);
+    return Collections.singletonList("monitoring-exporter-version=" + versionString);
   }
 
   // parses the result of 'git describe --tag' to describe the current code version/
