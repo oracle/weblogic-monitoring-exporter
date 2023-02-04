@@ -61,7 +61,7 @@ class GitTagMojoTest {
   void hasRequiredOutputDirectoryParameter() throws NoSuchFieldException {
     assertThat(mojoTestSupport.getParameterField("outputFile").getType(), equalTo(File.class));
     assertThat(mojoTestSupport.getParameterAnnotation("outputFile").get("required"), is(true));
-    assertThat(mojoTestSupport.getParameterAnnotation("outputFile").get("defaultValue"), equalTo("${project.build.outputDirectory}/version.properties"));
+    assertThat(mojoTestSupport.getParameterAnnotation("outputFile").get("defaultValue"), equalTo("${project.build.outputDirectory}/exporter-version.properties"));
   }
 
   @Test
@@ -92,7 +92,7 @@ class GitTagMojoTest {
     mojo.execute();
 
     assertThat(inMemoryFileSystem.getContents(outputFile.getAbsolutePath()),
-          containsString("version=cb4385f3aa (946 commits since v3.3.5-3)"));
+          containsString("monitoring-exporter-version=cb4385f3aa (946 commits since v3.3.5-3)"));
   }
 
   @Test
@@ -101,7 +101,8 @@ class GitTagMojoTest {
 
     mojo.execute();
 
-    assertThat(inMemoryFileSystem.getContents(outputFile.getAbsolutePath()), containsString("version=v3.4-1"));
+    assertThat(inMemoryFileSystem.getContents(outputFile.getAbsolutePath()),
+          containsString("monitoring-exporter-version=v3.4-1"));
   }
 
   @Test

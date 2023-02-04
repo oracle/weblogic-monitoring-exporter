@@ -1,14 +1,7 @@
-// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2023, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
-
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.oracle.wls.exporter.domain.ExporterConfig;
-import com.oracle.wls.exporter.domain.MBeanSelector;
-import com.oracle.wls.exporter.domain.QuerySyncConfiguration;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -19,12 +12,22 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.oracle.wls.exporter.domain.ExporterConfig;
+import com.oracle.wls.exporter.domain.MBeanSelector;
+import com.oracle.wls.exporter.domain.QuerySyncConfiguration;
+import org.yaml.snakeyaml.Yaml;
+
 /**
  * The repository for the current exporter configuration.
  *
  * @author Russell Gold
  */
 public class LiveConfiguration {
+
+    public static final String VERSION_PROPERTY_FILE = "exporter-version.properties";
+    public static final String VERSION_PROPERTY = "monitoring-exporter-version";
 
     private LiveConfiguration() {
         // no-op
@@ -59,10 +62,10 @@ public class LiveConfiguration {
     }
 
     public static String getVersionString() {
-        try (InputStream in = LiveConfiguration.class.getClassLoader().getResourceAsStream("version.properties")) {
+        try (InputStream in = LiveConfiguration.class.getClassLoader().getResourceAsStream(VERSION_PROPERTY_FILE)) {
             Properties properties = new Properties();
             properties.load(in);
-            return properties.getProperty("version");
+            return properties.getProperty(VERSION_PROPERTY);
 
         } catch (IOException e) {
             return "** unknown version";
