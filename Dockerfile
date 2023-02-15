@@ -29,7 +29,6 @@ COPY --from=jre-build /jre jre
 # Install Java and make the operator run with a non-root user id (1000 is the `oracle` user)
 RUN set -eux; \
     microdnf -y update; \
-    microdnf -y install jq; \
     microdnf clean all; \
     for bin in /jre/bin/*; do \
         base="$(basename "$bin")"; \
