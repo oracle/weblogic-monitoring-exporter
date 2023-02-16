@@ -44,6 +44,6 @@ COPY --chown=oracle:root wls-exporter-sidecar/target/wls-exporter-sidecar.jar ./
 COPY --chown=oracle:root wls-exporter-sidecar/target/libs ./libs
 COPY --chown=oracle:root start_exporter.sh .
 
-CMD ["/start_exporter.sh"]
+ENTRYPOINT ["sh", "start_exporter.sh"]
 
 EXPOSE 8080
