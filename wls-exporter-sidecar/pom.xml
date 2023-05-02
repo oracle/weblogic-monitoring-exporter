@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+    Copyright (c) 2021, 2023, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -14,7 +14,7 @@
     <name>WebLogic Monitoring Exporter Sidecar</name>
 
     <properties>
-        <helidon.version>3.2.0</helidon.version>
+        <helidon.version>3.2.1</helidon.version>
         <mainClass>com.oracle.wls.exporter.sidecar.Main</mainClass>
 
         <version.plugin.helidon>3.0.4</version.plugin.helidon>
