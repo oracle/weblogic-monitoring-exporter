@@ -16,7 +16,6 @@ class DemoInputs {
     static final String YAML_STRING = "---\n" +
             "startDelaySeconds: 5\n" +
             "username: system\n" +
-            "password: gumby1234\n" +
             "\n" +
             "queries:\n" +
             "- serverRuntimes:\n" +
@@ -39,7 +38,6 @@ class DemoInputs {
     static final String YAML_STRING2 = "---\n" +
             "startDelaySeconds: 5\n" +
             "username: system\n" +
-            "password: gumby1234\n" +
             "queries:\n" +
             "- applicationRuntimes:\n" +
             "    key: name\n" +
