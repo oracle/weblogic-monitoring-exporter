@@ -5,6 +5,10 @@
 <weblogic-web-app xmlns="http://xmlns.oracle.com/weblogic/weblogic-web-app">
 <session-descriptor>
     <tracking-enabled>false</tracking-enabled>
-  </session-descriptor>
+</session-descriptor>
+
+<container-descriptor>
+    <prefer-web-inf-classes>true</prefer-web-inf-classes>
+</container-descriptor>
 
 </weblogic-web-app>
