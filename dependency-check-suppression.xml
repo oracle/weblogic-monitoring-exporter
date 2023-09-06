@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+    <suppress>
+        <notes><![CDATA[
+        This CVE does not apply because the POM verifies a Maven version that is not affected.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.maven/maven-artifact-manager@.*$</packageUrl>
+        <vulnerabilityName>CVE-2021-26291</vulnerabilityName>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+        This CVE does not apply because the utility is only used to read project files at build time.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.codehaus\.plexus/plexus-utils@.*$</packageUrl>
+        <vulnerabilityName>CVE-2017-1000487</vulnerabilityName>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+        This CVE does not apply because this CVE refers to an unrelated project.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/io\.netty/netty-handler@.*$</packageUrl>
+        <vulnerabilityName>CVE-2023-4586</vulnerabilityName>
+    </suppress>
+</suppressions>

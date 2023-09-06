@@ -60,9 +60,12 @@
         <maven-war-plugin-version>3.4.0</maven-war-plugin-version>
         <maven-resources-plugin-version>3.3.1</maven-resources-plugin-version>
         <maven-dependency-plugin-version>3.6.0</maven-dependency-plugin-version>
+        <dependency-check-version>8.4.0</dependency-check-version>
+
+        <skip.dependency-check>false</skip.dependency-check>
 
         <java.version.range>17</java.version.range>
-        <maven.version.range>[3.6.1,)</maven.version.range>
+        <maven.version.range>[3.8.1,)</maven.version.range>
     </properties>
 
     <build>
@@ -141,6 +144,11 @@
                     <configuration>
                         <useModulePath>false</useModulePath>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.owasp</groupId>
+                    <artifactId>dependency-check-maven</artifactId>
+                    <version>${dependency-check-version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.jacoco</groupId>
@@ -240,6 +248,26 @@
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>${maven-deploy-plugin-version}</version>
             </plugin>
+
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>${dependency-check-version}</version>
+                <configuration>
+                    <skip>${skip.dependency-check}</skip>
+                    <skipTestScope>true</skipTestScope>
+                    <failBuildOnCVSS>0</failBuildOnCVSS>
+                    <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+                    <formats>
+                        <format>HTML</format>
+                        <format>CSV</format>
+                    </formats>
+                    <suppressionFiles>
+                        <suppressionFile>dependency-check-suppression.xml</suppressionFile>
+                    </suppressionFiles>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 
@@ -280,6 +308,11 @@
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>2.13.0</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-handler</artifactId>
+                <version>4.1.97.Final</version>
             </dependency>
 
             <!-- unit test dependencies -->
