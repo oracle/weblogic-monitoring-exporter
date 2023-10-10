@@ -1,4 +1,4 @@
-// Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 
@@ -21,6 +21,7 @@ class UrlBuilderTest {
   private static final String URL_PATTERN = "%s://%s:%d/path";
   private static final String REST_HOSTNAME = "restHost";
   private static final String HOSTNAME = "wlsHost";
+  private static final String HOSTNAME_IPV6 = "2001:db8:3333:4444:CCCC:DDDD:EEEE:FFFF";
   private static final boolean CLEARTEXT = false;
   private static final int REST_PORT = 7010;
   private static final int LOCAL_PORT = 7356;
@@ -42,6 +43,14 @@ class UrlBuilderTest {
     UrlBuilder builder = createUrlBuilder().withHostName(HOSTNAME).withPort(LOCAL_PORT);
 
     assertThat(builder.createUrl(URL_PATTERN), equalTo(String.format(URL_PATTERN, "http", HOSTNAME, LOCAL_PORT)));
+  }
+
+  @Test
+  void whenHostNameIPv6_generateUrl() {
+    UrlBuilder builder = createUrlBuilder().withHostName(HOSTNAME_IPV6).withPort(LOCAL_PORT);
+
+    assertThat(builder.createUrl(URL_PATTERN),
+        equalTo(String.format(URL_PATTERN, "http", "[" + HOSTNAME_IPV6 + "]", LOCAL_PORT)));
   }
 
   private UrlBuilder createUrlBuilder() {
