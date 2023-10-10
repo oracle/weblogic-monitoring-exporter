@@ -64,7 +64,7 @@
 
         <skip.dependency-check>false</skip.dependency-check>
 
-        <java.version.range>17</java.version.range>
+        <java.version.range>21</java.version.range>
         <maven.version.range>[3.8.1,)</maven.version.range>
     </properties>
 
@@ -103,8 +103,8 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven-compiler-plugin-version}</version>
                     <configuration>
-                        <source>1.8</source>
-                        <target>1.8</target>
+                        <source>21</source>
+                        <target>21</target>
                         <compilerArgs>
                             <arg>-Xpkginfo:always</arg>
                             <arg>-Xlint:all</arg>
@@ -383,7 +383,7 @@
         <profile>
             <id>helidon-sidecar</id>
             <activation>
-                <jdk>[11,)</jdk>
+                <jdk>[21,)</jdk>
             </activation>
             <modules>
                 <module>build-helper-mojo</module>
