@@ -54,13 +54,13 @@
         <maven-install-plugin-version>3.1.1</maven-install-plugin-version>
         <maven-deploy-plugin-version>3.1.1</maven-deploy-plugin-version>
         <maven-deploy-plugin-version>3.0.0</maven-deploy-plugin-version>
-        <maven-plugin-plugin-version>3.9.0</maven-plugin-plugin-version>
+        <maven-plugin-plugin-version>3.10.1</maven-plugin-plugin-version>
         <maven-site-plugin-version>3.12.1</maven-site-plugin-version>
         <maven-jar-plugin-version>3.3.0</maven-jar-plugin-version>
         <maven-war-plugin-version>3.4.0</maven-war-plugin-version>
         <maven-resources-plugin-version>3.3.1</maven-resources-plugin-version>
         <maven-dependency-plugin-version>3.6.0</maven-dependency-plugin-version>
-        <dependency-check-version>8.4.0</dependency-check-version>
+        <dependency-check-version>8.4.2</dependency-check-version>
 
         <skip.dependency-check>false</skip.dependency-check>
 
