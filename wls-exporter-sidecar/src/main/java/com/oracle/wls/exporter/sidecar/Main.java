@@ -3,12 +3,10 @@
 
 package com.oracle.wls.exporter.sidecar;
 
-import java.util.concurrent.TimeUnit;
-
 import com.oracle.wls.exporter.WebClientFactoryImpl;
-import io.helidon.common.LogConfig;
-import io.helidon.webserver.Routing;
+import io.helidon.logging.common.LogConfig;
 import io.helidon.webserver.WebServer;
+import io.helidon.webserver.http.HttpRouting;
 
 
 // Main program for the Exporter sidecar using Helidon
@@ -19,10 +17,9 @@ public class Main {
         final MetricsService metricsService = new MetricsService(configuration, new WebClientFactoryImpl());
 
         WebServer.builder()
-                .addRouting(Routing.builder().register(metricsService).build())
+                .addRouting(HttpRouting.builder().register(metricsService))
                 .port(metricsService.getListenPort())
                 .build()
-                .start()
-                .await(10, TimeUnit.SECONDS);
+                .start();
     }
 }

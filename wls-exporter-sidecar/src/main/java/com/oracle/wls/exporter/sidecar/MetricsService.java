@@ -16,12 +16,12 @@ import com.oracle.wls.exporter.LiveConfiguration;
 import com.oracle.wls.exporter.MessagesCall;
 import com.oracle.wls.exporter.WebClientFactory;
 import io.helidon.common.configurable.ThreadPoolSupplier;
-import io.helidon.webserver.Routing;
-import io.helidon.webserver.ServerRequest;
-import io.helidon.webserver.ServerResponse;
-import io.helidon.webserver.Service;
+import io.helidon.webserver.http.HttpRules;
+import io.helidon.webserver.http.HttpService;
+import io.helidon.webserver.http.ServerRequest;
+import io.helidon.webserver.http.ServerResponse;
 
-class MetricsService implements Service {
+class MetricsService implements HttpService {
 
     private final WebClientFactory webClientFactory;
     private final ExecutorService executorService;
@@ -40,19 +40,20 @@ class MetricsService implements Service {
         this.executorService = ThreadPoolSupplier.builder()
                 .threadNamePrefix("wls-exporter-sidecar-")
                 .corePoolSize(10)
-                .prestart(true)
+                .shouldPrestart(true)
                 .build()
                 .get();
     }
 
     @Override
-    public void update(Routing.Rules rules) {
+    public void routing(HttpRules rules) {
         rules
-              .get("/", mainHandler::dispatch)
-              .get("/metrics", metricsHandler::dispatch)
-              .get("/messages", messagesHandler::dispatch)
-              .put("/configuration", configurationHandler::dispatch);
+            .get("/", mainHandler::dispatch)
+            .get("/metrics", metricsHandler::dispatch)
+            .get("/messages", messagesHandler::dispatch)
+            .put("/configuration", configurationHandler::dispatch);
     }
+
 
     int getListenPort() {
         return listenPort;

@@ -15,11 +15,12 @@ import com.meterware.simplestub.StaticStubSupport;
 import com.oracle.wls.exporter.InvocationContext;
 import com.oracle.wls.exporter.LiveConfiguration;
 import com.oracle.wls.exporter.domain.ExporterConfig;
-import io.helidon.common.http.Http;
-import io.helidon.common.http.MediaType;
+import io.helidon.http.Http;
+import io.helidon.common.media.type.MediaType;
 import io.helidon.webserver.Routing;
-import io.helidon.webserver.ServerRequest;
-import io.helidon.webserver.ServerResponse;
+import io.helidon.webserver.http.HttpRouting;
+import io.helidon.webserver.http.ServerRequest;
+import io.helidon.webserver.http.ServerResponse;
 import io.helidon.webserver.testsupport.MediaPublisher;
 import io.helidon.webserver.testsupport.TestClient;
 import io.helidon.webserver.testsupport.TestResponse;
@@ -74,7 +75,7 @@ class MetricsServiceTest {
         mementos.add(StaticStubSupport.install(ExporterConfig.class, "defaultSnakeCaseSetting", true));
         SidecarConfigurationTestSupport.preserveConfigurationProperties(mementos);
         LiveConfiguration.loadFromString(ONE_VALUE_CONFIG);
-        client = TestClient.create(Routing.builder().register(createMetricsService()));
+        client = TestClient.create(HttpRouting.builder().register(createMetricsService()));
     }
 
     @AfterEach

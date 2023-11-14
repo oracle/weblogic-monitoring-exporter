@@ -3,22 +3,21 @@
 
 package com.oracle.wls.exporter.sidecar;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.URI;
-import java.util.concurrent.TimeUnit;
 
 import com.oracle.wls.exporter.InvocationContext;
 import com.oracle.wls.exporter.UrlBuilder;
 import com.oracle.wls.exporter.WebAppConstants;
-import io.helidon.common.http.DataChunk;
-import io.helidon.common.http.Http;
-import io.helidon.common.http.MediaType;
+import io.helidon.http.DataChunk;
+import io.helidon.http.HeaderNames;
+import io.helidon.common.media.type.MediaType;
 import io.helidon.common.reactive.Single;
-import io.helidon.webserver.ServerRequest;
-import io.helidon.webserver.ServerResponse;
+import io.helidon.http.Status;
+import io.helidon.webserver.http.ServerRequest;
+import io.helidon.webserver.http.ServerResponse;
 
 public class HelidonInvocationContext implements InvocationContext {
 
@@ -47,7 +46,7 @@ public class HelidonInvocationContext implements InvocationContext {
 
     @Override
     public String getAuthenticationHeader() {
-        return request.headers().first(WebAppConstants.AUTHENTICATION_HEADER).orElse(null);
+        return request.headers().first(HeaderNames.create(WebAppConstants.AUTHENTICATION_HEADER)).orElse(null);
     }
 
     @Override
@@ -62,10 +61,7 @@ public class HelidonInvocationContext implements InvocationContext {
 
     @Override
     public InputStream getRequestStream() {
-        return request.content().as(String.class)
-                .thenApply(String::getBytes)
-                .thenApply(ByteArrayInputStream::new)
-                .await(10, TimeUnit.SECONDS);
+        return request.content().inputStream();
     }
 
     @Override
@@ -82,12 +78,12 @@ public class HelidonInvocationContext implements InvocationContext {
     public void sendRedirect(String location) {
         response.headers().location(URI.create(location));
 
-        response.status(Http.Status.FOUND_302).send();
+        response.status(Status.FOUND_302).send();
     }
 
     @Override
     public void setResponseHeader(String name, String value) {
-        response.headers().add(name, value);
+        response.headers().add(HeaderNames.create(name), value);
     }
 
     @Override
