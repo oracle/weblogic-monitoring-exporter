@@ -1,4 +1,4 @@
-# Copyright 2020, Oracle and/or its affiliates.
+# Copyright 2020, 2024, Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 ---
@@ -10,4 +10,6 @@ queries:
     key: name
     keyName: jta
     healthState:
-      prefix: health_
+      prefix: wls_jta_health_
+        stringValues:
+          state: [ok,failed,overloaded,critical,warn]
