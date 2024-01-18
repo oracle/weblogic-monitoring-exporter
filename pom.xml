@@ -61,6 +61,7 @@
         <maven-resources-plugin-version>3.3.1</maven-resources-plugin-version>
         <maven-dependency-plugin-version>3.6.1</maven-dependency-plugin-version>
         <dependency-check-version>9.0.1</dependency-check-version>
+        <netty-version>4.1.105.Final</netty-version>
 
         <skip.dependency-check>false</skip.dependency-check>
 
@@ -312,7 +313,7 @@
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-handler</artifactId>
-                <version>4.1.105.Final</version>
+                <version>${netty-version}</version>
             </dependency>
 
             <!-- unit test dependencies -->
