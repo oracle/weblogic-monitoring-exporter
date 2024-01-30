@@ -5,11 +5,21 @@
 metricsNameSnakeCase: true
 queries:
 - key: name
-  keyName: server
-  jtaRuntime:
-    key: name
-    keyName: jta
-    healthState:
-      prefix: wls_jta_health_
+  prefix: wls_server_  
+  stringValues:
+    state: [SHUTDOWN,STARTING,RUNNING,STANDBY,FORCE_SUSPENDING,RESUMING,SHUTTING_DOWN,FAILED,UNKNOWN,FAILED_NOT_RESTARTABLE,ADMIN,FORCE_SHUTTING_DOWN]
+  overallHealthState:
+    prefix: wls_server_overallhealth_
+    stringValues:
+      state: [ok,failed,overloaded,critical,warn]
+  healthState:
+    prefix: wls_server_health_
+    stringValues:
+      state: [ok,failed,overloaded,critical,warn]     
+- JTARuntime:
+      prefix: wls_jta_
+      key: name
+      healthState:
+        prefix: wls_jta_health_
         stringValues:
           state: [ok,failed,overloaded,critical,warn]
