@@ -1,10 +1,9 @@
-// Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.sidecar;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
 import java.util.function.BiFunction;
 
 import com.oracle.wls.exporter.AuthenticatedCall;
@@ -15,16 +14,15 @@ import com.oracle.wls.exporter.InvocationContext;
 import com.oracle.wls.exporter.LiveConfiguration;
 import com.oracle.wls.exporter.MessagesCall;
 import com.oracle.wls.exporter.WebClientFactory;
-import io.helidon.common.configurable.ThreadPoolSupplier;
-import io.helidon.webserver.Routing;
-import io.helidon.webserver.ServerRequest;
-import io.helidon.webserver.ServerResponse;
-import io.helidon.webserver.Service;
+import io.helidon.webserver.http.Handler;
+import io.helidon.webserver.http.ServerRequest;
+import io.helidon.webserver.http.ServerResponse;
+import io.helidon.webserver.http.HttpRules;
+import io.helidon.webserver.http.HttpService;
 
-class MetricsService implements Service {
+class MetricsService implements HttpService {
 
     private final WebClientFactory webClientFactory;
-    private final ExecutorService executorService;
 
     private final AuthenticatedHandler metricsHandler = new AuthenticatedHandler(ExporterCall::new);
     private final AuthenticatedHandler configurationHandler = new AuthenticatedHandler(ConfigurationPutCall::new);
@@ -36,37 +34,27 @@ class MetricsService implements Service {
         this.listenPort = configuration.getListenPort();
         this.webClientFactory = webClientFactory;
         LiveConfiguration.setServer(configuration.getWebLogicHost(), configuration.getWebLogicPort());
-
-        this.executorService = ThreadPoolSupplier.builder()
-                .threadNamePrefix("wls-exporter-sidecar-")
-                .corePoolSize(10)
-                .prestart(true)
-                .build()
-                .get();
     }
 
     @Override
-    public void update(Routing.Rules rules) {
-        rules
-              .get("/", mainHandler::dispatch)
-              .get("/metrics", metricsHandler::dispatch)
-              .get("/messages", messagesHandler::dispatch)
-              .put("/configuration", configurationHandler::dispatch);
+    public void routing(HttpRules rules) {
+        rules.get("/", mainHandler)
+            .get("/metrics", metricsHandler)
+            .get("/messages", messagesHandler)
+            .put("/configuration", configurationHandler);
     }
 
     int getListenPort() {
         return listenPort;
     }
 
-    abstract class Handler {
-        void dispatch(ServerRequest request, ServerResponse response) {
-            executorService.submit(() -> {
-                try {
-                    invoke(new HelidonInvocationContext(request, response));
-                } catch (IOException e) {
-                    reportServerFailure(response, e);
-                }
-            });
+    abstract class MyHandler implements Handler {
+        public void handle(ServerRequest request, ServerResponse response) {
+            try {
+                invoke(new HelidonInvocationContext(request, response));
+            } catch (IOException e) {
+                reportServerFailure(response, e);
+            }
         }
 
         void reportServerFailure(ServerResponse response, IOException e) {
@@ -76,7 +64,7 @@ class MetricsService implements Service {
         abstract void invoke(InvocationContext context) throws IOException;
     }
 
-    class AuthenticatedHandler extends Handler {
+    class AuthenticatedHandler extends MyHandler {
         private final BiFunction<WebClientFactory, InvocationContext, AuthenticatedCall> builder;
 
         AuthenticatedHandler(BiFunction<WebClientFactory, InvocationContext, AuthenticatedCall> builder) {
@@ -89,7 +77,7 @@ class MetricsService implements Service {
         }
     }
 
-    class MainHandler extends Handler {
+    class MainHandler extends MyHandler {
         void invoke(InvocationContext context) throws IOException {
             ConfigurationDisplay.displayConfiguration(context.getResponseStream());
             context.close();

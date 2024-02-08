@@ -1,22 +1,32 @@
-// Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+// Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.sidecar;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.TreeMap;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.SystemPropertySupport;
 import com.oracle.wls.exporter.InvocationContext;
 import com.oracle.wls.exporter.WebAppConstants;
-import io.helidon.common.http.MediaType;
-import io.helidon.webserver.RequestHeaders;
-import io.helidon.webserver.ServerRequest;
-import io.helidon.webserver.ServerResponse;
+import io.helidon.common.media.type.MediaType;
+import io.helidon.common.media.type.MediaTypes;
+import io.helidon.http.Header;
+import io.helidon.http.HeaderName;
+import io.helidon.http.HeaderNames;
+import io.helidon.http.HeaderValues;
+import io.helidon.http.HttpMediaType;
+import io.helidon.http.ServerRequestHeaders;
+import io.helidon.webserver.http.ServerRequest;
+import io.helidon.webserver.http.ServerResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,9 +86,9 @@ class HelidonInvocationContextTest {
 
   @Test
   void returnSpecifiedContentType() {
-    request.setContentType(MediaType.APPLICATION_XML);
+    request.setContentType(MediaTypes.APPLICATION_XML);
 
-    assertThat(invocationContext.getContentType(), equalTo(MediaType.APPLICATION_XML.toString()));
+    assertThat(invocationContext.getContentType(), equalTo(MediaTypes.APPLICATION_XML.text()));
   }
 
   @Test
@@ -100,36 +110,80 @@ class HelidonInvocationContextTest {
     }
 
     @Override
-    public RequestHeaders headers() {
+    public ServerRequestHeaders headers() {
       return headers;
     }
   }
 
-  abstract static class RequestHeadersStub implements RequestHeaders {
+  abstract static class RequestHeadersStub implements ServerRequestHeaders {
 
-    private final Map<String, List<String>> headers = new HashMap<>();
-    private MediaType contentType;
+    private final Map<String, List<String>> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private HttpMediaType contentType;
 
     void addHeader(String name, String value) {
-      all(name).add(value);
+      headers.computeIfAbsent(name, it -> new ArrayList<>())
+                      .add(value);
     }
 
     void setContentType(MediaType contentType) {
-      this.contentType = contentType;
+      this.contentType = HttpMediaType.create(contentType);
     }
 
     @Override
-    public Optional<String> first(String name) {
-      return Optional.ofNullable(headers.get(name)).map(l->l.get(0));
+    public List<String> all(HeaderName name, Supplier<List<String>> supplier) {
+      return headers.computeIfAbsent(name.defaultCase(), k -> new ArrayList<>());
     }
 
     @Override
-    public List<String> all(String name) {
-      return headers.computeIfAbsent(name, k -> new ArrayList<>());
+    public boolean contains(HeaderName headerName) {
+      return headers.containsKey(headerName.defaultCase());
     }
 
     @Override
-    public Optional<MediaType> contentType() {
+    public boolean contains(Header header) {
+      if (contains(header.headerName())) {
+        List<String> myValues = headers.get(header.name());
+        List<String> theirValues = header.allValues();
+        return myValues.equals(theirValues);
+      }
+      return false;
+    }
+
+    @Override
+    public Header get(HeaderName headerName) {
+      if (contains(headerName)) {
+        List<String> strings = headers.get(headerName.defaultCase());
+        return HeaderValues.create(headerName, strings);
+      }
+      throw new NoSuchElementException("Header " + headerName + " not defined");
+    }
+
+    @Override
+    public int size() {
+      return headers.size();
+    }
+
+    @Override
+    public List<HttpMediaType> acceptedTypes() {
+      if (contains(HeaderNames.ACCEPT)) {
+        return get(HeaderNames.ACCEPT)
+                .stream()
+                .map(HttpMediaType::create)
+                .collect(Collectors.toList());
+      }
+      return List.of();
+    }
+
+    @Override
+    public Iterator<Header> iterator() {
+      return headers.entrySet()
+              .stream()
+              .map(it -> HeaderValues.create(it.getKey(), it.getValue()))
+              .iterator();
+    }
+
+    @Override
+    public Optional<HttpMediaType> contentType() {
       return Optional.ofNullable(contentType);
     }
   }
