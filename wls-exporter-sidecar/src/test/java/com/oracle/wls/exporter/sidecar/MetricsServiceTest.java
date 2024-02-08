@@ -1,4 +1,4 @@
-// Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+// Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.sidecar;
@@ -7,29 +7,28 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
 import com.oracle.wls.exporter.InvocationContext;
 import com.oracle.wls.exporter.LiveConfiguration;
 import com.oracle.wls.exporter.domain.ExporterConfig;
-import io.helidon.common.http.Http;
-import io.helidon.common.http.MediaType;
-import io.helidon.webserver.Routing;
-import io.helidon.webserver.ServerRequest;
-import io.helidon.webserver.ServerResponse;
-import io.helidon.webserver.testsupport.MediaPublisher;
-import io.helidon.webserver.testsupport.TestClient;
-import io.helidon.webserver.testsupport.TestResponse;
+import io.helidon.common.media.type.MediaTypes;
+import io.helidon.http.HeaderNames;
+import io.helidon.http.Status;
+import io.helidon.webclient.api.ClientResponseTyped;
+import io.helidon.webclient.api.HttpClientResponse;
+import io.helidon.webclient.api.WebClient;
+import io.helidon.webserver.http.HttpRouting;
+import io.helidon.webserver.http.ServerRequest;
+import io.helidon.webserver.http.ServerResponse;
+import io.helidon.webserver.testing.junit5.RoutingTest;
+import io.helidon.webserver.testing.junit5.SetUpRoute;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static com.meterware.simplestub.Stub.createStub;
-import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_CHALLENGE_HEADER;
-import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
 import static com.oracle.wls.exporter.domain.QueryType.RUNTIME_URL_PATTERN;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
@@ -42,6 +41,7 @@ import static org.hamcrest.Matchers.stringContainsInOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@RoutingTest
 class MetricsServiceTest {
 
     private static final String ONE_VALUE_CONFIG = "queries:\n- groups:\n    key: name\n    values: testSample1";
@@ -65,16 +65,24 @@ class MetricsServiceTest {
           "  ]\n" +
           "}";
 
-    private final WebClientFactoryStub clientFactory = new WebClientFactoryStub();
-    private TestClient client;
+    private static final WebClientFactoryStub clientFactory = new WebClientFactoryStub();
     private final List<Memento> mementos = new ArrayList<>();
+    private final WebClient client;
+
+    MetricsServiceTest(WebClient client) {
+        this.client = client;
+    }
+
+    @SetUpRoute
+    static void setUpRoute(HttpRouting.Builder routing) {
+        routing.register(createMetricsService());
+    }
 
     @BeforeEach
     void setUp() throws NoSuchFieldException {
         mementos.add(StaticStubSupport.install(ExporterConfig.class, "defaultSnakeCaseSetting", true));
         SidecarConfigurationTestSupport.preserveConfigurationProperties(mementos);
         LiveConfiguration.loadFromString(ONE_VALUE_CONFIG);
-        client = TestClient.create(Routing.builder().register(createMetricsService()));
     }
 
     @AfterEach
@@ -82,7 +90,7 @@ class MetricsServiceTest {
         mementos.forEach(Memento::revert);
     }
 
-    private MetricsService createMetricsService() {
+    private static MetricsService createMetricsService() {
         return new MetricsService(new SidecarConfiguration(), clientFactory);
     }
 
@@ -121,7 +129,7 @@ class MetricsServiceTest {
 //------------- metrics --------
 
     @Test
-    void whenNoConfiguration_reportTheIssue() throws TimeoutException, InterruptedException, ExecutionException {
+    void whenNoConfiguration_reportTheIssue() {
         LiveConfiguration.loadFromString(NO_CONFIGURATION);
 
         String response = getMetrics();
@@ -129,52 +137,54 @@ class MetricsServiceTest {
         assertThat(response, containsString("# No configuration"));
     }
 
-    private String getMetrics() throws InterruptedException, ExecutionException, TimeoutException {
-        return getMetricsResponse().asString().get();
+    private String getMetrics() {
+        return getMetricsResponse().as(String.class);
     }
 
-    private TestResponse getMetricsResponse() throws InterruptedException, TimeoutException {
-        return client.path("/metrics").get();
+    private HttpClientResponse getMetricsResponse() {
+        return client.get("/metrics").request();
     }
 
     // todo test WLS hostName/port info
 
     @Test
-    void whenServerSends403StatusOnGet_returnToClient() throws Exception {
+    void whenServerSends403StatusOnGet_returnToClient() {
         clientFactory.reportNotAuthorized();
 
         assertThat(getMetricsResponse().status().code(), equalTo(HTTP_FORBIDDEN));
     }
 
     @Test
-    void whenServerSends401StatusOnGet_returnToClient() throws Exception {
+    void whenServerSends401StatusOnGet_returnToClient() {
         clientFactory.reportAuthenticationRequired("Test-Realm");
-        final TestResponse metricsResponse = getMetricsResponse();
+        final HttpClientResponse metricsResponse = getMetricsResponse();
 
         assertThat(metricsResponse.status().code(), equalTo(HTTP_UNAUTHORIZED));
         assertThat(getAuthenticationChallengeHeader(metricsResponse), equalTo("Basic realm=\"Test-Realm\""));
     }
 
-    private String getAuthenticationChallengeHeader(TestResponse metricsResponse) {
-        return metricsResponse.headers().first(AUTHENTICATION_CHALLENGE_HEADER).orElse(null);
+    private String getAuthenticationChallengeHeader(HttpClientResponse metricsResponse) {
+        return metricsResponse.headers().first(HeaderNames.WWW_AUTHENTICATE).orElse(null);
     }
 
     @Test
-    void whenClientSendsAuthenticationHeader_passToServer() throws Exception {
-        client.path("/metrics").header(AUTHENTICATION_HEADER, "auth-credentials").get();
+    void whenClientSendsAuthenticationHeader_passToServer() {
+        client.get("/metrics")
+                .header(HeaderNames.AUTHORIZATION, "auth-credentials")
+                .request();
 
         assertThat(clientFactory.getSentAuthentication(), equalTo("auth-credentials"));
     }
 
     @Test
-    void onGet_sendXRequestedHeader() throws TimeoutException, InterruptedException {
-        getMetricsResponse();
+    void onGet_sendXRequestedHeader() {
+        HttpClientResponse metricsResponse = getMetricsResponse();
 
         assertThat(clientFactory.getSentHeaders(), hasKey("X-Requested-By"));
     }
 
     @Test
-    void onGet_displayMetrics() throws Exception {
+    void onGet_displayMetrics() {
         LiveConfiguration.loadFromString(TWO_VALUE_CONFIG);
         clientFactory.addJsonResponse(getGroupResponseMap());
 
@@ -194,12 +204,12 @@ class MetricsServiceTest {
     }
 
     @Test
-    void testMetricsEndpoint() throws TimeoutException, InterruptedException, ExecutionException {
-        TestResponse testResponse = getMetricsResponse();
+    void testMetricsEndpoint() {
+        HttpClientResponse testResponse = getMetricsResponse();
 
-        assertEquals(Http.Status.OK_200, testResponse.status());
+        assertEquals(Status.OK_200, testResponse.status());
 
-        String response = testResponse.asString().get();
+        String response = testResponse.as(String.class);
 
         validateResponse(response, "wls_scrape_mbeans_count_total{instance=\"");
         validateResponse(response, "wls_scrape_duration_seconds{instance=\"");
@@ -215,8 +225,10 @@ class MetricsServiceTest {
     // -------------- put configuration  ---------
 
     @Test
-    void afterPutConfiguration_displayMetrics() throws TimeoutException, InterruptedException, ExecutionException {
-        client.path("/configuration").put(MediaPublisher.create(MediaType.APPLICATION_YAML, TWO_VALUE_CONFIG));
+    void afterPutConfiguration_displayMetrics() {
+        client.put("/configuration")
+                .contentType(MediaTypes.APPLICATION_YAML)
+                .submit(TWO_VALUE_CONFIG);
         clientFactory.addJsonResponse(getGroupResponseMap());
 
         final String metrics = getMetrics();
@@ -227,8 +239,10 @@ class MetricsServiceTest {
     }
 
     @Test
-    void afterPutJsonConfiguration_displayMetrics() throws TimeoutException, InterruptedException, ExecutionException {
-        client.path("/configuration").put(MediaPublisher.create(MediaType.APPLICATION_YAML, JSON_TWO_VALUE_CONFIG));
+    void afterPutJsonConfiguration_displayMetrics() {
+        client.put("/configuration")
+                .contentType(MediaTypes.APPLICATION_YAML)
+                .submit(JSON_TWO_VALUE_CONFIG);
         clientFactory.addJsonResponse(getGroupResponseMap());
 
         final String metrics = getMetrics();
@@ -241,12 +255,12 @@ class MetricsServiceTest {
     // ---------- get configuration --------
 
     @Test
-    void retrieveConfiguration() throws TimeoutException, InterruptedException, ExecutionException {
-        final TestResponse testResponse = client.path("/").get();
+    void retrieveConfiguration() {
+        final ClientResponseTyped<String> testResponse = client.get("/").request(String.class);
 
-        assertEquals(Http.Status.OK_200, testResponse.status());
+        assertEquals(Status.OK_200, testResponse.status());
 
-        String response = testResponse.asString().get();
+        String response = testResponse.entity();
 
         assertThat(response, containsString(ONE_VALUE_CONFIG));
     }
@@ -255,16 +269,18 @@ class MetricsServiceTest {
 
 
     @Test
-    void afterMetricsReceived_viewMessages() throws TimeoutException, InterruptedException, ExecutionException {
-        client.path("/configuration").put(MediaPublisher.create(MediaType.APPLICATION_YAML, JSON_TWO_VALUE_CONFIG));
+    void afterMetricsReceived_viewMessages() {
+        client.put("/configuration")
+                .contentType(MediaTypes.APPLICATION_YAML)
+                .submit(JSON_TWO_VALUE_CONFIG);
         clientFactory.addJsonResponse(getGroupResponseMap());
         getMetrics();
 
-        final TestResponse testResponse = client.path("/messages").get();
+        final ClientResponseTyped<String> testResponse = client.get("/messages").request(String.class);
 
-        assertEquals(Http.Status.OK_200, testResponse.status());
+        assertEquals(Status.OK_200, testResponse.status());
 
-        String response = testResponse.asString().get();
+        String response = testResponse.entity();
 
         assertThat(response, stringContainsInOrder(Arrays.asList("REQUEST to", "fields", "testSample1")));
     }
