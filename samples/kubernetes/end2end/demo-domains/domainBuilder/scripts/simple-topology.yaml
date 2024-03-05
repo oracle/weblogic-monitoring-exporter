@@ -1,4 +1,4 @@
-# Copyright 2019, Oracle and/or its affiliates.
+# Copyright 2019, 2024, Oracle and/or its affiliates.
 # Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 domainInfo:
     AdminUserName: '@@PROP:ADMIN_USER@@'
@@ -39,7 +39,7 @@ resources:
                     JNDIName: dc1
                     GlobalTransactionsProtocol: OnePhaseCommit
                 JDBCDriverParams:
-                    DriverName: org.gjt.mm.mysql.Driver
+                    DriverName: com.mysql.cj.jdbc.Driver
                     URL: 'jdbc:mysql://mysql.default.svc.cluster.local:3306/@@PROP:DOMAIN_NAME@@'
                     PasswordEncrypted: '@@PROP:MYSQL_PWD@@'
                     Properties:
