@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ExporterQueries {
-    static final int MAX_QUERIES = 6;
+    static final int MAX_QUERIES = 15;
 
     private static final List<String> queries = new ArrayList<>();
 
