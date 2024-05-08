@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2023, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2024, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.webapp;
@@ -47,6 +47,7 @@ public abstract class HttpServletRequestStub implements HttpServletRequest {
     private boolean secure;
     private String hostName = HOST_NAME;
     private int port = PORT;
+    private String remoteHost;
 
     public static HttpServletRequestStub createGetRequest() {
         return createStrictStub(HttpServletRequestStub.class, "GET");
@@ -180,6 +181,11 @@ public abstract class HttpServletRequestStub implements HttpServletRequest {
     }
 
     @Override
+    public String getRemoteHost() {
+        return remoteHost;
+    }
+
+    @Override
     public ServletInputStream getInputStream() {
         if (inputStream == null)
             inputStream = Stub.createStrictStub(ServletInputStreamStub.class, contents);
@@ -205,6 +211,11 @@ public abstract class HttpServletRequestStub implements HttpServletRequest {
     public void addCookie(String name, String value) {
         if (cookies == null) cookies = new ArrayList<>();
         cookies.add(new Cookie(name, value));
+    }
+
+    public HttpServletRequest withRemoteHost(String remoteHost) {
+        this.remoteHost = remoteHost;
+        return this;
     }
 
     static abstract class HttpSessionStub implements HttpSession {

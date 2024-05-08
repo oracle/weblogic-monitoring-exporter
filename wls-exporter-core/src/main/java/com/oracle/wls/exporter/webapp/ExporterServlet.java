@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2024, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.webapp;
@@ -10,11 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.oracle.wls.exporter.ExporterCall;
-import com.oracle.wls.exporter.ServletInvocationContext;
-import com.oracle.wls.exporter.WebAppConstants;
-import com.oracle.wls.exporter.WebClientFactory;
-import com.oracle.wls.exporter.WebClientFactoryImpl;
+import com.oracle.wls.exporter.*;
 
 /**
  * The servlet which produces the exported metrics.
@@ -43,6 +39,7 @@ public class ExporterServlet extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         ServletUtils.setServer(req);
+        ExporterQueries.addQuery(req);
         ExporterCall call = new ExporterCall(webClientFactory, new ServletInvocationContext(req, resp));
         call.doWithAuthentication();
     }
