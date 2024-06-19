@@ -66,6 +66,8 @@
 
         <java.version.range>21</java.version.range>
         <maven.version.range>[3.8.1,)</maven.version.range>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
     </properties>
 
     <build>

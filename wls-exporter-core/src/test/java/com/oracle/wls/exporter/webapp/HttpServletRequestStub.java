@@ -19,6 +19,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.google.common.base.Objects;
 import com.meterware.simplestub.Stub;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
@@ -202,6 +203,24 @@ public abstract class HttpServletRequestStub implements HttpServletRequest {
     @Override
     public boolean isSecure() {
         return secure;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        HttpServletRequestStub that = (HttpServletRequestStub) o;
+        return secure == that.secure
+                && Objects.equal(method, that.method)
+                && Objects.equal(contentType, that.contentType)
+                && Objects.equal(contextPath, that.contextPath)
+                && Objects.equal(servletPath, that.servletPath)
+                && Objects.equal(remoteHost, that.remoteHost);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(method, contentType, contextPath, servletPath, secure, remoteHost);
     }
 
     public boolean hasInvalidatedSession() {

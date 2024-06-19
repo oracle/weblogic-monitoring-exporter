@@ -49,7 +49,8 @@ public class QueriesServlet extends HttpServlet {
         @Override
         protected void invoke(WebClient webClient, InvocationContext context) throws IOException {
             try (PrintStream out = context.getResponseStream()) {
-                for (String message : ExporterQueries.getQueries())
+                out.println(ExporterQueries.getQueryHeader());
+                for (String message : ExporterQueries.getQueryReport())
                     out.println(message);
             }
         }

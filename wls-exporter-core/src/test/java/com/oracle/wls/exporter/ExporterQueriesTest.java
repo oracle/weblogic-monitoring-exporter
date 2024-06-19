@@ -11,18 +11,19 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
-
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
 import static com.oracle.wls.exporter.ExporterQueries.MAX_QUERIES;
-import static com.oracle.wls.exporter.ExporterQueryFormatter.format;
+import static com.oracle.wls.exporter.ExporterQueriesTest.QueryCompletion.completion;
+import static com.oracle.wls.exporter.ExporterQuery.INSTANT_FORMATTER;
+import static com.oracle.wls.exporter.ExporterQuery.QUERY_TIMEOUT_SECONDS;
 import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.createGetRequest;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -37,7 +38,7 @@ public class ExporterQueriesTest {
 
     @BeforeEach
     void setUp() throws NoSuchFieldException {
-        mementos.add(StaticStubSupport.install(ExporterQueries.class, "clock", clock));
+        mementos.add(StaticStubSupport.install(ExporterQuery.class, "clock", clock));
 
         clock.setCurrentMsec(startInstant.toEpochMilli());
         ExporterQueries.clear();
@@ -50,18 +51,73 @@ public class ExporterQueriesTest {
 
     @Test
     void whenMultipleQueriesReceived_collectThem() {
-        receiveQueries(this::sameTime, 3);
+        receiveQueries(3);
 
-        assertThat(ExporterQueries.getQueries(), hasItems(
-                format("host1", startInstant),
-                format("host2", startInstant),
-                format("host3", startInstant)));
+        assertThat(getQueryHosts(), hasItems("host1", "host2", "host3"));
     }
 
-    private void receiveQueries(Consumer<ClockStub> timeUpdates, int numHosts) {
-        for (int i = 1; i <= numHosts; i++) {
-            ExporterQueries.addQuery(createRequestFrom(toHostName(String.valueOf(i))));
-            timeUpdates.accept(clock);
+    private List<String> getQueryHosts() {
+        return ExporterQueries.getQueries().stream().map(ExporterQuery::getRequest).map(ServletRequest::getRemoteHost).collect(Collectors.toList());
+    }
+
+    void receiveQueries(int numQueries, QueryCompletion... exceptions) {
+        List<HttpServletRequest> requests = createQueries(numQueries);
+
+        for (int i = 0; i < numQueries; i++) {
+            HttpServletRequest request = requests.get(i);
+            ExporterQueries.addQuery(request);
+            clock.incrementSeconds(1);
+            getExceptionFor(i, exceptions).takeAction(request, clock);
+
+        }
+
+    }
+
+    private QueryCompletionAction getExceptionFor(int i, QueryCompletion[] exceptions) {
+        for (QueryCompletion exception : exceptions) {
+            if (exception.index == i) {
+                return exception.action;
+            }
+        }
+        return QueryCompletionAction.COMPLETE;
+    }
+
+    private List<HttpServletRequest> createQueries(int numQueries) {
+        return IntStream.rangeClosed(1, numQueries).boxed().map(String::valueOf).map(this::toHostName).map(this::createRequestFrom).collect(Collectors.toList());
+    }
+
+    private enum QueryCompletionAction {
+        COMPLETE {
+            @Override
+            void takeAction(HttpServletRequest request, ClockStub clock) {
+                ExporterQueries.completeQuery(request);
+                clock.incrementSeconds(1);
+            }
+        },
+        OVERLAP {
+            @Override
+            void takeAction(HttpServletRequest request, ClockStub clock) {
+                clock.incrementSeconds(4);
+                ExporterQueries.completeQuery(request);
+                clock.decrementSeconds(4);
+            }
+        },
+        NONE;
+
+        void takeAction(HttpServletRequest request, ClockStub clock) {}
+    }
+
+    static class QueryCompletion {
+        private final int index;
+        private final QueryCompletionAction action;
+
+        private QueryCompletion(int index, QueryCompletionAction action) {
+            this.index = index;
+            this.action = action;
+        }
+
+        static QueryCompletion completion(int index, QueryCompletionAction action) {
+            return new QueryCompletion(index, action);
         }
     }
 
@@ -71,37 +127,114 @@ public class ExporterQueriesTest {
 
     @Test
     void afterMultipleQueriesReceived_clearRemovesThem() {
-        receiveQueries(this::sameTime, 3);
+        receiveQueries(3);
         ExporterQueries.clear();
 
         assertThat(ExporterQueries.getQueries(), empty());
     }
 
     @Test
-    void whenMultipleQueriesReceivedOverTime_collectThem() {
-        receiveQueries(this::addOneSecond, 3);
+    void whenQueryMarkedCompleted_reportTimeToComplete() {
+        HttpServletRequest request = createRequestFrom("host1");
+        ExporterQueries.addQuery(request);
+        clock.incrementSeconds(1);
+        ExporterQueries.completeQuery(request);
 
-        assertThat(ExporterQueries.getQueries(), hasItems(
-                format("host1", startInstant),
-                format("host2", startInstant.plus(1, ChronoUnit.SECONDS)),
-                format("host3", startInstant.plus(2, ChronoUnit.SECONDS))));
+        assertThat(ExporterQueries.getQueryReport(), hasItem(containsString("in 1000 msec")));
+
+    }
+
+    @Test
+    void whenQueryIncompleteButNotStuck_reportIt() {
+        receiveQueries(1, completion(0, QueryCompletionAction.NONE));
+
+        clock.incrementSeconds(QUERY_TIMEOUT_SECONDS / 2);
+
+        assertThat(ExporterQueries.getQueryReport(), not(hasItem(containsString("STUCK"))));
+    }
+
+    @Test
+    void whenQueryIsStuck_reportIt() {
+        receiveQueries(1, completion(0, QueryCompletionAction.NONE));
+
+        clock.incrementSeconds(QUERY_TIMEOUT_SECONDS);
+
+        assertThat(ExporterQueries.getQueryReport(), hasItem(containsString("STUCK")));
+    }
+
+    @Test
+    void reportTwoIncompleteQueries_asNotOverlapping() {
+        ExporterQuery query1 = createQueryFrom("host1");
+        clock.incrementSeconds(1);
+        ExporterQuery query2 = createQueryFrom("host2");
+
+        assertThat(query1.overlaps(query2), is(false));
+    }
+
+    @Test
+    void reportQueriesOverlap_ifSecondStartsBetweenStartAndEndOfFirst() {
+        ExporterQuery query1 = createQueryFrom("host1");
+        clock.incrementSeconds(1);
+        ExporterQuery query2 = createQueryFrom("host2");
+        clock.incrementSeconds(1);
+        query1.complete();
+
+        assertThat(query1.overlaps(query2), is(true));
+    }
+
+    @Test
+    void reportQueriesOverlap_ifFirstStartsBetweenStartAndEndOfSecond() {
+        ExporterQuery query1 = createQueryFrom("host1");
+        clock.incrementSeconds(1);
+        ExporterQuery query2 = createQueryFrom("host2");
+        clock.incrementSeconds(1);
+        query1.complete();
+
+        assertThat(query2.overlaps(query1), is(true));
+    }
+
+    @Test
+    void whenQueryNotCompletedAndTimeSinceNotEverLimit_isNotMarkedAsStuck() {
+        ExporterQuery query = createQueryFrom("host1");
+
+        assertThat(query.isStuck(), is(false));
+    }
+
+    @Test
+    void whenQueryNotCompletedAndTimeSinceReceivedOverLimit_isMarkedAsStuck() {
+        ExporterQuery query = createQueryFrom("host1");
+        clock.incrementSeconds(QUERY_TIMEOUT_SECONDS);
+
+        assertThat(query.isStuck(), is(true));
+    }
+
+    @Test
+    void whenQueryCompletedAndTimeSinceReceivedOverLimit_isNotMarkedAsStuck() {
+        ExporterQuery query = createQueryFrom("host1");
+        clock.incrementSeconds(QUERY_TIMEOUT_SECONDS);
+        query.complete();
+
+        assertThat(query.isStuck(), is(false));
+    }
+
+    private ExporterQuery createQueryFrom(String host) {
+        return new ExporterQuery(createRequestFrom(host));
     }
 
     @Test
     void whenMoreThanAllowedQueriesReceived_pruneThem() {
-        receiveQueries(this::addOneSecond, NUM_QUERIES);
+        receiveQueries(NUM_QUERIES);
 
-        assertThat(ExporterQueries.getQueries(), hasSize(MAX_QUERIES));
-        assertThat(ExporterQueries.getQueries(), hasItems(getPrunedMatchers(NUM_QUERIES)));
+        final int firstHost = NUM_QUERIES - MAX_QUERIES + 1;
+        assertThat(getQueryHosts(), hasItems(getHostMatchers(firstHost, NUM_QUERIES)));
     }
 
     @SuppressWarnings({"unchecked", "SameParameterValue"})
-    private Matcher<String>[] getPrunedMatchers(int lastHost) {
-        int firstHost = lastHost - MAX_QUERIES + 1;
-        Matcher<?>[] matchers = IntStream.rangeClosed(firstHost, MAX_QUERIES)
+    private Matcher<String>[] getHostMatchers(int firstHost, int lastHost) {
+        Matcher<?>[] matchers = IntStream.rangeClosed(firstHost, lastHost)
                 .mapToObj(String::valueOf)
                 .map(this::toHostName)
-                .map(Matchers::containsString)
+                .map(Matchers::equalTo)
                 .toArray(Matcher[]::new);
         return (Matcher<String>[]) matchers;
     }
@@ -110,11 +243,42 @@ public class ExporterQueriesTest {
         return "host" + i;
     }
 
-    private void sameTime(ClockStub clockStub) {
+    @Test
+    void recordTimeOfFirstQuery() {
+        receiveQueries(NUM_QUERIES);
+
+        assertThat(ExporterQueries.getQueryHeader(), containsString(INSTANT_FORMATTER.format(startInstant)));
     }
 
-    private void addOneSecond(ClockStub clockStub) {
-        clockStub.incrementSeconds(1);
+    @Test
+    void reportNumberOfQueriesReceived() {
+        receiveQueries(NUM_QUERIES);
+
+        assertThat(ExporterQueries.getQueryHeader(), containsString(Integer.toString(NUM_QUERIES)));
+    }
+
+    @Test
+    void doNotPruneActiveRequests() {
+        receiveQueries(NUM_QUERIES, completion(0, QueryCompletionAction.NONE));
+
+        assertThat(getQueryHosts(), hasItem("host1"));
+        assertThat(getQueryHosts(), not(hasItem("host2")));
+    }
+
+    @Test
+    void doNotPruneOverlappingQueries() {
+        receiveQueries(NUM_QUERIES, completion(2, QueryCompletionAction.OVERLAP));
+
+        assertThat(getQueryHosts(), hasItem("host3"));
+        assertThat(getQueryHosts(), hasItem("host4"));
+    }
+
+    @Test
+    void whenMoreThanMaximumActiveQueries_keepThem() {
+        QueryCompletion[] queryCompletions = IntStream.range(0, NUM_QUERIES).boxed().map(i -> completion(i, QueryCompletionAction.NONE)).toArray(QueryCompletion[]::new);
+        receiveQueries(NUM_QUERIES, queryCompletions);
+
+        assertThat(ExporterQueries.getQueries(), hasSize(NUM_QUERIES));
     }
 }
 

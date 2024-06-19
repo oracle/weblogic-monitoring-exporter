@@ -1,4 +1,4 @@
-// Copyright (c) 2022, Oracle and/or its affiliates.
+// Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -18,6 +18,10 @@ abstract public class ClockStub extends Clock {
 
   public void incrementSeconds(long seconds) {
     this.currentMsec += 1000 * seconds;
+  }
+
+  public void decrementSeconds(long seconds) {
+    this.currentMsec -= 1000 * seconds;
   }
 
   @Override

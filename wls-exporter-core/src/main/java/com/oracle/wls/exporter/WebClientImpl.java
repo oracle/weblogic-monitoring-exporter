@@ -142,6 +142,7 @@ public class WebClientImpl extends WebClientCommon {
                   .setDefaultHeaders(getDefaultHeaders())
                   .setSSLSocketFactory(acceptor.getSslConnectionSocketFactory())
                   .setConnectionManager(acceptor.getConnectionManager())
+                  .setConnectionReuseStrategy((response, context) -> false)
                   .build();
         }
 

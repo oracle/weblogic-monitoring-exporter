@@ -7,6 +7,7 @@ import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
 import com.oracle.wls.exporter.ClockStub;
 import com.oracle.wls.exporter.ExporterQueries;
+import com.oracle.wls.exporter.ExporterQuery;
 import com.oracle.wls.exporter.WebClientFactoryStub;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +41,7 @@ public class QueriesServletTest {
 
     @BeforeEach
     void setUp() throws NoSuchFieldException {
-        mementos.add(StaticStubSupport.install(ExporterQueries.class, "clock", clock));
+        mementos.add(StaticStubSupport.install(ExporterQuery.class, "clock", clock));
 
         clock.setCurrentMsec(startInstant.toEpochMilli());
         ExporterQueries.clear();
@@ -81,6 +82,6 @@ public class QueriesServletTest {
         servlet.doGet(request, response);
 
         assertThat(response.getHtml(),
-                stringContainsInOrder("Received from host1 at ", "Received from host2 at "));
+                stringContainsInOrder("Request from host1", "Request from host2"));
     }
 }

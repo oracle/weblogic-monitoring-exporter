@@ -42,6 +42,7 @@ public class ExporterServlet extends HttpServlet {
         ExporterQueries.addQuery(req);
         ExporterCall call = new ExporterCall(webClientFactory, new ServletInvocationContext(req, resp));
         call.doWithAuthentication();
+        ExporterQueries.completeQuery(req);
     }
 
 }
