@@ -50,6 +50,11 @@ public class ServletInvocationContext implements InvocationContext {
   }
 
   @Override
+  public HttpServletRequest getRequest() {
+    return request;
+  }
+
+  @Override
   public String getApplicationContext() {
     return request.getContextPath();
   }

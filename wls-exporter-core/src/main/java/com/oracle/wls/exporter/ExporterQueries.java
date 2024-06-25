@@ -14,23 +14,34 @@ public class ExporterQueries {
     static final int MAX_QUERIES = 15;
 
     private static final List<ExporterQuery> queries = new ArrayList<>();
+    static final int NUM_QUERIES_BEFORE_STUCK_QUERY_TO_RETAIN = 5;
     private static String initialQueryTime = null;
     private static long numQueriesReceived = 0;
 
     /**
+     * Returns a header for the query report.
+     */
+    public synchronized static String getQueryHeader() {
+        return "Exporter version " + LiveConfiguration.getVersionString() +
+                "\nQueries received: " + numQueriesReceived +
+                "\nqueries currently in queue: " + queries.size() +
+                "\nInitial query received at " + initialQueryTime + "\n\n";
+    }
+
+    /**
      * Returns a collection of strings that describe the received queries
      */
-    public static List<String> getQueryReport() {
+    public synchronized static List<String> getQueryReport() {
         return queries.stream().map(ExporterQuery::toString).collect(Collectors.toList());
     }
 
-    public static List<ExporterQuery> getQueries() {
-        return Collections.unmodifiableList(queries);
-    }
-
-    public static void addQuery(HttpServletRequest request) {
+    /**
+     * Adds a new query to the list.
+     * @param request the GET request from the client
+     */
+    public synchronized static ExporterQuery addQuery(HttpServletRequest request) {
         ExporterQuery query = new ExporterQuery(request);
-        if (queries.size() == 0) {
+        if (queries.isEmpty()) {
             initialQueryTime = query.getReceivedTimeAsString();
             numQueriesReceived = 0;
         }
@@ -46,10 +57,23 @@ public class ExporterQueries {
 
         numQueriesReceived++;
         queries.add(query);
+        query.setIndex(numQueriesReceived);
+
+        return query;
     }
 
     private static boolean isRemovable(ExporterQuery testQuery) {
-        return testQuery.isComplete() && !overlapsAnother(testQuery);
+        return testQuery.isComplete() && !overlapsAnother(testQuery) && !closeToStuckThread(testQuery);
+    }
+
+    private static boolean closeToStuckThread(ExporterQuery testQuery) {
+        ExporterQuery firstStuckQuery = queries.stream().filter(ExporterQuery::isStuck).findFirst().orElse(null);
+        if (firstStuckQuery == null) {
+            return false;
+        } else {
+            final long distanceToStuckThread = firstStuckQuery.getIndex() - testQuery.getIndex();
+            return (0 < distanceToStuckThread && distanceToStuckThread <= NUM_QUERIES_BEFORE_STUCK_QUERY_TO_RETAIN);
+        }
     }
 
     private static boolean overlapsAnother(ExporterQuery testQuery) {
@@ -60,20 +84,25 @@ public class ExporterQueries {
         return false;
     }
 
-
-    public static void clear() {
-        queries.clear();
-    }
-
-    public static void completeQuery(HttpServletRequest request) {
+    /**
+     * Indicates that the specified query has been completed, meaning that a response has been received from the
+     * REST API and will be formatted and returned to the client.
+     * @param request the original GET request
+     */
+    public synchronized static void completeQuery(HttpServletRequest request) {
         queries.stream()
                 .filter(q-> q.containsRequest(request)).findFirst()
                 .ifPresent(ExporterQuery::complete);
     }
 
-    public static String getQueryHeader() {
-        return "Queries received: " + numQueriesReceived +
-                "\nInitial query received at " + initialQueryTime + "\n\n";
+
+    // called from unit tests only
+
+    public static List<ExporterQuery> getQueries() {
+        return Collections.unmodifiableList(queries);
     }
 
+    public static void clear() {
+        queries.clear();
+    }
 }

@@ -3,6 +3,7 @@
 
 package com.oracle.wls.exporter;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -16,6 +17,10 @@ public interface InvocationContext {
    * Creates an object that will generate an appropriate URL to contact WebLogic.
    */
   UrlBuilder createUrlBuilder();
+
+  default HttpServletRequest getRequest() {
+    return null;
+  }
 
   /**
    * Returns the root context of the exporter application, for use in error messages.

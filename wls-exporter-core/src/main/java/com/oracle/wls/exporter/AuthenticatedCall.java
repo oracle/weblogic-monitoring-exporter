@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 import com.oracle.wls.exporter.domain.MBeanSelector;
 import com.oracle.wls.exporter.domain.QueryType;
 
+import javax.servlet.http.HttpServletRequest;
+
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_CHALLENGE_HEADER;
 import static com.oracle.wls.exporter.WebAppConstants.COOKIE_HEADER;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
@@ -53,6 +55,10 @@ public abstract class AuthenticatedCall {
         this.webClientFactory = webClientFactory;
         this.context = context;
         this.urlBuilder = context.createUrlBuilder();
+    }
+
+    HttpServletRequest getOriginalRequest() {
+        return context.getRequest();
     }
 
     public String getAuthenticationUrl() {

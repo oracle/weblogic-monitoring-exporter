@@ -274,6 +274,15 @@ public class ExporterQueriesTest {
     }
 
     @Test
+    void doNotPruneQueriesCloseToStuckQuery() {
+        receiveQueries(2*NUM_QUERIES, completion(10, QueryCompletionAction.NONE));
+
+        assertThat(getQueryHosts(), not(hasItem("host4")));
+        assertThat(getQueryHosts(), hasItem("host6"));
+        assertThat(getQueryHosts(), hasItem("host9"));
+    }
+
+    @Test
     void whenMoreThanMaximumActiveQueries_keepThem() {
         QueryCompletion[] queryCompletions = IntStream.range(0, NUM_QUERIES).boxed().map(i -> completion(i, QueryCompletionAction.NONE)).toArray(QueryCompletion[]::new);
         receiveQueries(NUM_QUERIES, queryCompletions);

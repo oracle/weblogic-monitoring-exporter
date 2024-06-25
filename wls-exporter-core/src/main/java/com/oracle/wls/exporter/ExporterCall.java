@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 import com.google.gson.JsonObject;
@@ -17,6 +18,8 @@ import static com.oracle.wls.exporter.domain.MapUtils.isNullOrEmptyString;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 
 public class ExporterCall extends AuthenticatedCall {
+
+  private ExporterQuery exporterQuery;
 
   public ExporterCall(WebClientFactory webClientFactory, InvocationContext context) {
     super(webClientFactory, context);
@@ -82,9 +85,17 @@ public class ExporterCall extends AuthenticatedCall {
   }
 
   private Map<String, Object> getMetrics(WebClient webClient, MBeanSelector selector) throws IOException {
-    String jsonResponse = requestMetrics(webClient, selector);
-    if (isNullOrEmptyString(jsonResponse)) return Collections.emptyMap();
+    Optional.ofNullable(exporterQuery).ifPresent(ExporterQuery::makingRestCall);
+    String jsonResponse;
+    try {
+      jsonResponse = requestMetrics(webClient, selector);
+      Optional.ofNullable(exporterQuery).ifPresent(ExporterQuery::restCallReceived);
+    } catch (Exception e) {
+      Optional.ofNullable(exporterQuery).ifPresent(q -> q.restCallAborted(e));
+      throw e;
+    }
 
+    if (isNullOrEmptyString(jsonResponse)) return Collections.emptyMap();
     return LiveConfiguration.scrapeMetrics(selector, jsonResponse);
   }
 
@@ -110,5 +121,9 @@ public class ExporterCall extends AuthenticatedCall {
 
   private TreeMap<String, Object> sort(Map<String, Object> metrics) {
     return new TreeMap<>(metrics);
+  }
+
+  public void setExporterQuery(ExporterQuery exporterQuery) {
+    this.exporterQuery = exporterQuery;
   }
 }

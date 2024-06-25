@@ -4,6 +4,7 @@
 package com.oracle.wls.exporter.webapp;
 
 import java.io.IOException;
+import java.util.concurrent.Semaphore;
 import javax.servlet.ServletConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -19,6 +20,8 @@ import com.oracle.wls.exporter.*;
  */
 @WebServlet(value = "/" + WebAppConstants.METRICS_PAGE)
 public class ExporterServlet extends HttpServlet {
+    private static final boolean useSemaphores = false;
+    private static final Semaphore SEMAPHORE = new Semaphore(1);
 
     private final WebClientFactory webClientFactory;
 
@@ -38,11 +41,29 @@ public class ExporterServlet extends HttpServlet {
 
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        try {
+            ExporterQuery exporterQuery = ExporterQueries.addQuery(req);
+            if (useSemaphores) {
+                exporterQuery.waitingForSemaphore();
+                SEMAPHORE.acquire();
+                exporterQuery.proceedingAfterWait();
+            }
+            displayMetrics(req, resp, exporterQuery);
+            if (useSemaphores) {
+                exporterQuery.releasingSemaphore();
+                SEMAPHORE.release();
+            }
+            exporterQuery.complete();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void displayMetrics(HttpServletRequest req, HttpServletResponse resp, ExporterQuery exporterQuery) throws IOException {
         ServletUtils.setServer(req);
-        ExporterQueries.addQuery(req);
         ExporterCall call = new ExporterCall(webClientFactory, new ServletInvocationContext(req, resp));
+        call.setExporterQuery(exporterQuery);
         call.doWithAuthentication();
-        ExporterQueries.completeQuery(req);
     }
 
 }

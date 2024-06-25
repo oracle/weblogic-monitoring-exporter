@@ -55,7 +55,7 @@ public class WebClientImpl extends WebClientCommon {
     }
 
     @Override
-    protected HttpGetRequest createGetRequest(String url) {
+    HttpGetRequest createGetRequest(String url) {
         return new HttpGetRequest(url);
     }
 
@@ -66,7 +66,7 @@ public class WebClientImpl extends WebClientCommon {
     }
 
     @Override
-    protected WebRequest createPostRequest(String url, String postBody) {
+    WebRequest createPostRequest(String url, String postBody) {
         HttpPostRequest query = new HttpPostRequest(url);
         query.setEntity(new StringEntity(postBody, ContentType.APPLICATION_JSON));
         return query;
@@ -79,7 +79,7 @@ public class WebClientImpl extends WebClientCommon {
     }
 
     @Override
-    protected <T> WebRequest createPutRequest(String url, T putBody) {
+    <T> WebRequest createPutRequest(String url, T putBody) {
         HttpPutRequest query = new HttpPutRequest(url);
         query.setEntity(new JsonEntity<>(putBody));
         return query;

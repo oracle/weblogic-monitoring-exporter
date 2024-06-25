@@ -82,6 +82,6 @@ public class QueriesServletTest {
         servlet.doGet(request, response);
 
         assertThat(response.getHtml(),
-                stringContainsInOrder("Request from host1", "Request from host2"));
+                stringContainsInOrder("Request ", " from host1", "Request ", " from host2"));
     }
 }

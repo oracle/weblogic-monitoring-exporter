@@ -48,7 +48,7 @@ class MetricsService implements HttpService {
         return listenPort;
     }
 
-    abstract class MyHandler implements Handler {
+    abstract static class MyHandler implements Handler {
         public void handle(ServerRequest request, ServerResponse response) {
             try {
                 invoke(new HelidonInvocationContext(request, response));
@@ -77,7 +77,7 @@ class MetricsService implements HttpService {
         }
     }
 
-    class MainHandler extends MyHandler {
+    static class MainHandler extends MyHandler {
         void invoke(InvocationContext context) throws IOException {
             ConfigurationDisplay.displayConfiguration(context.getResponseStream());
             context.close();
