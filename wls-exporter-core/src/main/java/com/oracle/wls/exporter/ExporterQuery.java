@@ -49,7 +49,11 @@ public class ExporterQuery {
     }
 
     public void makingRestCall() {
-        restCalls.add(new RestCall(clock.instant()));
+        restCalls.add(RestCall.createRestCall(clock.instant()));
+    }
+
+    public void makingRestCallForKeys() {
+        restCalls.add(RestCall.createKeyRestCall(clock.instant()));
     }
 
     public void restCallReceived() {
@@ -67,10 +71,21 @@ public class ExporterQuery {
     static class RestCall {
         Instant started;
         Instant completed;
+        boolean keyCall;
         Throwable throwable;
 
-        public RestCall(Instant started) {
+        private RestCall(Instant started) {
             this.started = started;
+        }
+
+        public static RestCall createRestCall(Instant started) {
+            return new RestCall(started);
+        }
+
+        public static RestCall createKeyRestCall(Instant started) {
+            RestCall restCall = new RestCall(started);
+            restCall.keyCall = true;
+            return restCall;
         }
 
         public void setCompleted(Instant completed) {
@@ -83,9 +98,10 @@ public class ExporterQuery {
 
         @Override
         public String toString() {
-            final StringBuilder sb = new StringBuilder("REST call made at ").append(asString(started));
+            final StringBuilder sb = new StringBuilder("at ").append(asString(started));
             if (completed != null) {
                 Duration between = Duration.between(started, completed);
+                if (keyCall) sb.append(" for keys,");
                 sb.append(" with duration ").append(between.toMillis()).append(" msec");
             } else if (throwable instanceof AuthenticationChallengeException) {
                 sb.append(" and received authentication challenge");
@@ -132,7 +148,7 @@ public class ExporterQuery {
         sb.append("Request ").append(index).append(" from ").append(request.getRemoteHost());
         sb.append(" received at ").append(asString(queryReceivedAt));
         if (startedAt != null) sb.append(" started at ").append(asString(startedAt));
-        sb.append("\n rest calls: ").append(restCalls.stream().map(RestCall::toString).collect(Collectors.joining(", ")));
+        sb.append("\n rest calls: ").append(restCalls.stream().map(RestCall::toString).collect(Collectors.joining("\n             ")));
         if (isStuck())
             sb.append("\n and now STUCK");
         else if (completedAt != null) {

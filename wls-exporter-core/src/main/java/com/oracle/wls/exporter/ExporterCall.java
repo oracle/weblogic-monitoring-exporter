@@ -9,6 +9,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -18,6 +20,8 @@ import static com.oracle.wls.exporter.domain.MapUtils.isNullOrEmptyString;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 
 public class ExporterCall extends AuthenticatedCall {
+
+  private static final Semaphore KEY_SEMAPHORE = new Semaphore(1);
 
   private ExporterQuery exporterQuery;
 
@@ -85,34 +89,53 @@ public class ExporterCall extends AuthenticatedCall {
   }
 
   private Map<String, Object> getMetrics(WebClient webClient, MBeanSelector selector) throws IOException {
-    Optional.ofNullable(exporterQuery).ifPresent(ExporterQuery::makingRestCall);
-    String jsonResponse;
-    try {
-      jsonResponse = requestMetrics(webClient, selector);
-      Optional.ofNullable(exporterQuery).ifPresent(ExporterQuery::restCallReceived);
-    } catch (Exception e) {
-      Optional.ofNullable(exporterQuery).ifPresent(q -> q.restCallAborted(e));
-      throw e;
-    }
-
+    String jsonResponse = requestMetrics(webClient, selector);
     if (isNullOrEmptyString(jsonResponse)) return Collections.emptyMap();
     return LiveConfiguration.scrapeMetrics(selector, jsonResponse);
   }
 
   private String requestMetrics(WebClient webClient, MBeanSelector selector) throws IOException {
-    if (selector.needsNewKeys()) refreshKeys(webClient, selector);
+    refreshKeysIfNeeded(webClient, selector);
 
-    final String url = getQueryUrl(selector);
-    final String jsonResponse = webClient.withUrl(url).doPostRequest(selector.getRequest());
-    WlsRestExchanges.addExchange(url, selector.getRequest(), jsonResponse);
-    return jsonResponse;
+    try {
+      Optional.ofNullable(exporterQuery).ifPresent(ExporterQuery::makingRestCall);
+      final String url = getQueryUrl(selector);
+      final String jsonResponse = webClient.withUrl(url).doPostRequest(selector.getRequest());
+      WlsRestExchanges.addExchange(url, selector.getRequest(), jsonResponse);
+      Optional.ofNullable(exporterQuery).ifPresent(ExporterQuery::restCallReceived);
+      return jsonResponse;
+    } catch (Exception e) {
+      Optional.ofNullable(exporterQuery).ifPresent(q -> q.restCallAborted(e));
+      throw e;
+    }
+  }
+
+  private void refreshKeysIfNeeded(WebClient webClient, MBeanSelector selector) throws IOException {
+    if (!selector.needsNewKeys()) return;
+
+    try {
+      if (KEY_SEMAPHORE.tryAcquire(2, TimeUnit.SECONDS)) {
+          if (!selector.needsNewKeys()) KEY_SEMAPHORE.release();
+          else refreshKeys(webClient, selector);
+      }
+    } catch (InterruptedException ignore) {
+    }
   }
 
   private void refreshKeys(WebClient webClient, MBeanSelector selector) throws IOException {
-    final String url = getQueryUrl(selector);
-    final String keyResponse = webClient.withUrl(url).doPostRequest(selector.getKeyRequest());
-    WlsRestExchanges.addExchange(url, selector.getKeyRequest(), keyResponse);
-    selector.offerKeys(toJsonObject(keyResponse));
+    try {
+      Optional.ofNullable(exporterQuery).ifPresent(ExporterQuery::makingRestCallForKeys);
+      final String url = getQueryUrl(selector);
+      final String keyResponse = webClient.withUrl(url).doPostRequest(selector.getKeyRequest());
+      Optional.ofNullable(exporterQuery).ifPresent(ExporterQuery::restCallReceived);
+      WlsRestExchanges.addExchange(url, selector.getKeyRequest(), keyResponse);
+      selector.offerKeys(toJsonObject(keyResponse));
+    } catch (IOException e) {
+      Optional.ofNullable(exporterQuery).ifPresent(q -> q.restCallAborted(e));
+      throw e;
+    } finally {
+      KEY_SEMAPHORE.release();
+    }
   }
 
   private static JsonObject toJsonObject(String response) {

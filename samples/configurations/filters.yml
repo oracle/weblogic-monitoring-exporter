@@ -1,0 +1,20 @@
+# Copyright 2024, Oracle and/or its affiliates.
+# Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
+
+---
+metricsNameSnakeCase: true
+queries:
+  - key: name
+    keyName: server
+    applicationRuntimes:
+      key: name
+      keyName: app
+      componentRuntimes:
+        type: WebAppComponentRuntime
+        prefix: webapp_config_
+        key: name
+        excludedKeyValues: "exporter"
+        values: [deploymentState, servletReloadCheckSecs, openSessionsHighCount, openSessionsCurrentCount]
+        servlets:
+          prefix: weblogic_servlet_
+          key: servletName
