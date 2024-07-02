@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -98,16 +99,21 @@ public class ExporterCall extends AuthenticatedCall {
     refreshKeysIfNeeded(webClient, selector);
 
     try {
-      Optional.ofNullable(exporterQuery).ifPresent(ExporterQuery::makingRestCall);
+      recordQueryOperation(ExporterQuery::makingRestCall);
       final String url = getQueryUrl(selector);
+      WlsRestExchanges.WlsRestExchange wlsRestExchange = WlsRestExchanges.addExchange(url, selector.getRequest());
       final String jsonResponse = webClient.withUrl(url).doPostRequest(selector.getRequest());
-      WlsRestExchanges.addExchange(url, selector.getRequest(), jsonResponse);
-      Optional.ofNullable(exporterQuery).ifPresent(ExporterQuery::restCallReceived);
+      recordQueryOperation(ExporterQuery::restCallReceived);
+      wlsRestExchange.complete(jsonResponse);
       return jsonResponse;
     } catch (Exception e) {
-      Optional.ofNullable(exporterQuery).ifPresent(q -> q.restCallAborted(e));
+      recordQueryOperation(q -> q.restCallAborted(e));
       throw e;
     }
+  }
+
+  private void recordQueryOperation(Consumer<ExporterQuery> operation) {
+    Optional.ofNullable(exporterQuery).ifPresent(operation);
   }
 
   private void refreshKeysIfNeeded(WebClient webClient, MBeanSelector selector) throws IOException {
@@ -124,17 +130,36 @@ public class ExporterCall extends AuthenticatedCall {
 
   private void refreshKeys(WebClient webClient, MBeanSelector selector) throws IOException {
     try {
-      Optional.ofNullable(exporterQuery).ifPresent(ExporterQuery::makingRestCallForKeys);
-      final String url = getQueryUrl(selector);
-      final String keyResponse = webClient.withUrl(url).doPostRequest(selector.getKeyRequest());
-      Optional.ofNullable(exporterQuery).ifPresent(ExporterQuery::restCallReceived);
-      WlsRestExchanges.addExchange(url, selector.getKeyRequest(), keyResponse);
-      selector.offerKeys(toJsonObject(keyResponse));
+        getRequestCurrentKeys(webClient, selector).handleKeyResponse(selector);
     } catch (IOException e) {
       Optional.ofNullable(exporterQuery).ifPresent(q -> q.restCallAborted(e));
       throw e;
     } finally {
       KEY_SEMAPHORE.release();
+    }
+  }
+
+  private KeyResponse getRequestCurrentKeys(WebClient webClient, MBeanSelector selector) throws IOException {
+    recordQueryOperation(ExporterQuery::makingRestCallForKeys);
+    final String url = getQueryUrl(selector);
+    WlsRestExchanges.WlsRestExchange wlsRestExchange = WlsRestExchanges.addExchange(url, selector.getKeyRequest());
+    final String jsonResponse = webClient.withUrl(url).doPostRequest(selector.getKeyRequest());
+    return new KeyResponse(wlsRestExchange, jsonResponse);
+  }
+
+  private class KeyResponse {
+    public final WlsRestExchanges.WlsRestExchange wlsRestExchange;
+    public final String jsonResponse;
+
+    private KeyResponse(WlsRestExchanges.WlsRestExchange wlsRestExchange, String jsonResponse) {
+      this.wlsRestExchange = wlsRestExchange;
+      this.jsonResponse = jsonResponse;
+    }
+
+    private void handleKeyResponse(MBeanSelector selector) {
+      recordQueryOperation(ExporterQuery::restCallReceived);
+      wlsRestExchange.complete(jsonResponse);
+      selector.offerKeys(toJsonObject(jsonResponse));
     }
   }
 
