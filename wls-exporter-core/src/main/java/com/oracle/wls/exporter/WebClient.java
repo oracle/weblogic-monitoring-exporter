@@ -3,6 +3,7 @@
 
 package com.oracle.wls.exporter;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.function.Consumer;
 
@@ -81,8 +82,7 @@ public interface WebClient {
   void onSetCookieReceivedDo(Consumer<String> setCookieHandler);
 
 
-  interface Response {
+  interface Response extends Closeable {
     String getBody() throws IOException;
-
   }
 }

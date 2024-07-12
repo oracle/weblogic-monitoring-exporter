@@ -110,25 +110,29 @@ public abstract class WebClientCommon implements WebClient {
 
     @Override
     public String doGetRequest() throws IOException {
-        defineSessionHeaders();
-        return sendRequest(createGetRequest(url)).getBody();
+        try (ResponseImpl response = sendRequest(createGetRequest(url)) ) {
+            return response.getBody();
+        }
     }
 
     @Override
     public String doPostRequest(String postBody) throws IOException {
         if (contentType == null) contentType = APPLICATION_JSON;
-        defineSessionHeaders();
-        return sendRequest(createPostRequest(url, postBody)).getBody();
+        try (ResponseImpl response = sendRequest(createPostRequest(url, postBody))) {
+            return response.getBody();
+        }
     }
 
     @Override
     public <T> String doPutRequest(T putBody) throws IOException {
-        defineSessionHeaders();
-        return sendRequest(createPutRequest(url, putBody)).getBody();
+        try (ResponseImpl response = sendRequest(createPutRequest(url, putBody))) {
+            return response.getBody();
+        }
     }
 
     // Sends the specified request to the server
     private ResponseImpl sendRequest(WebRequest request) throws IOException {
+        defineSessionHeaders();
         try (HttpClientExec clientExec = createClientExec()) {
             return new ResponseImpl(clientExec.send(request));
         } catch (UnknownHostException | ConnectException e) {
@@ -215,6 +219,11 @@ public abstract class WebClientCommon implements WebClient {
             try (final InputStream contents = response.getContents()) {
                 body = asString(contents);
             }
+        }
+
+        @Override
+        public void close() throws IOException {
+            response.close();
         }
 
         private void processStatusCode() {
