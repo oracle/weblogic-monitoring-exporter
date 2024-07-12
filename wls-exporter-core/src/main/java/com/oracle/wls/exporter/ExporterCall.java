@@ -5,10 +5,7 @@ package com.oracle.wls.exporter;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -25,6 +22,7 @@ public class ExporterCall extends AuthenticatedCall {
   private static final Semaphore KEY_SEMAPHORE = new Semaphore(1);
 
   private ExporterQuery exporterQuery;
+  private final ApacheDebug apacheDebug = new ApacheDebug();
 
   public ExporterCall(WebClientFactory webClientFactory, InvocationContext context) {
     super(webClientFactory, context);
@@ -96,6 +94,7 @@ public class ExporterCall extends AuthenticatedCall {
   }
 
   private String requestMetrics(WebClient webClient, MBeanSelector selector) throws IOException {
+    apacheDebug.install();
     refreshKeysIfNeeded(webClient, selector);
 
     try {
@@ -106,9 +105,31 @@ public class ExporterCall extends AuthenticatedCall {
       recordQueryOperation(ExporterQuery::restCallReceived);
       wlsRestExchange.complete(jsonResponse);
       return jsonResponse;
-    } catch (Exception e) {
+    } catch (Throwable e) {
       recordQueryOperation(q -> q.restCallAborted(e));
       throw e;
+    } finally {
+      apacheDebug.revert();
+    }
+  }
+
+  private static class ApacheDebug {
+    private final Map<String, String> debugProperties = new HashMap<>();
+
+    public ApacheDebug() {
+      debugProperties.put("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
+      debugProperties.put("org.apache.commons.logging.simplelog.showdatetime", "true");
+      debugProperties.put("org.apache.commons.logging.simplelog.log.org.apache.http", "DEBUG");
+      debugProperties.put("org.apache.commons.logging.simplelog.log.org.apache.http.wire", "ERROR");
+    }
+
+    void install() {
+      debugProperties.forEach(System::setProperty);
+    }
+
+    void revert() {
+      debugProperties.keySet().forEach(System::clearProperty);
+
     }
   }
 
