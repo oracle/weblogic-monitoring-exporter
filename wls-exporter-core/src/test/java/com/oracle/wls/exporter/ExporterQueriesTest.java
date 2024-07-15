@@ -262,7 +262,7 @@ public class ExporterQueriesTest {
         receiveQueries(NUM_QUERIES, completion(0, QueryCompletionAction.NONE));
 
         assertThat(getQueryHosts(), hasItem("host1"));
-        assertThat(getQueryHosts(), not(hasItem("host2")));
+        assertThat(getQueryHosts(), not(hasItem("host6")));
     }
 
     @Test
@@ -275,11 +275,15 @@ public class ExporterQueriesTest {
 
     @Test
     void doNotPruneQueriesCloseToStuckQuery() {
-        receiveQueries(2*NUM_QUERIES, completion(10, QueryCompletionAction.NONE));
+        receiveQueries(4*NUM_QUERIES,
+                completion(10, QueryCompletionAction.NONE),
+                completion(20, QueryCompletionAction.NONE));
 
         assertThat(getQueryHosts(), not(hasItem("host4")));
-        assertThat(getQueryHosts(), hasItem("host6"));
+        assertThat(getQueryHosts(), hasItem("host8"));
         assertThat(getQueryHosts(), hasItem("host9"));
+        assertThat(getQueryHosts(), hasItem("host12"));
+        assertThat(getQueryHosts(), hasItem("host19"));
     }
 
     @Test

@@ -14,7 +14,7 @@ public class ExporterQueries {
     static final int MAX_QUERIES = 15;
 
     private static final List<ExporterQuery> queries = new ArrayList<>();
-    static final int NUM_QUERIES_BEFORE_STUCK_QUERY_TO_RETAIN = 5;
+    static final int NUM_QUERIES_CLOSE_TO_STUCK_QUERY_TO_RETAIN = 3;
     private static String initialQueryTime = null;
     private static long numQueriesReceived = 0;
 
@@ -67,13 +67,18 @@ public class ExporterQueries {
     }
 
     private static boolean closeToStuckThread(ExporterQuery testQuery) {
-        ExporterQuery firstStuckQuery = queries.stream().filter(ExporterQuery::isStuck).findFirst().orElse(null);
-        if (firstStuckQuery == null) {
-            return false;
-        } else {
-            final long distanceToStuckThread = firstStuckQuery.getIndex() - testQuery.getIndex();
-            return (0 < distanceToStuckThread && distanceToStuckThread <= NUM_QUERIES_BEFORE_STUCK_QUERY_TO_RETAIN);
+        List<Long> stuckIndices = queries.stream().filter(ExporterQuery::isStuck).map(ExporterQuery::getIndex).collect(Collectors.toList());
+        if (!stuckIndices.isEmpty()) {
+            for (Long index : stuckIndices) {
+                if (isClose(testQuery.getIndex(), index))
+                    return true;
+            }
         }
+        return false;
+    }
+
+    private static boolean isClose(long queryIndex, long stuckQueryIndex) {
+        return Math.abs(queryIndex - stuckQueryIndex) <= NUM_QUERIES_CLOSE_TO_STUCK_QUERY_TO_RETAIN;
     }
 
     private static boolean overlapsAnother(ExporterQuery testQuery) {
