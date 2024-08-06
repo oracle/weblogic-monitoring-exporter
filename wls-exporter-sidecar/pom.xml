@@ -14,10 +14,10 @@
     <name>WebLogic Monitoring Exporter Sidecar</name>
 
     <properties>
-        <helidon.version>4.0.10</helidon.version>
+        <helidon.version>4.0.11</helidon.version>
         <mainClass>com.oracle.wls.exporter.sidecar.Main</mainClass>
 
-        <version.plugin.helidon>4.0.6</version.plugin.helidon>
+        <version.plugin.helidon>4.0.9</version.plugin.helidon>
     </properties>
 
     <dependencyManagement>
