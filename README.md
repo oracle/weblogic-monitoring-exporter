@@ -207,7 +207,7 @@ The sidecar is a standalone process that runs the exporter.
 ### Build and run with Maven
 
 There are two ways to build the sidecar implementation. The first is with Maven, using the same `mvn install` command
-specified [above](#build-from-source). Note that this requires JDK11 or later; building the project with JDK8 will
+specified [above](#build-from-source). Note that this requires JDK21 or later; building the project with JDK8 will
 skip the sidecar module. The alternative is to [build with Docker](#build-a-docker-image).
 
 Instead of manually building them, if you want to use pre-built images, then you can pull a pre-created image from
