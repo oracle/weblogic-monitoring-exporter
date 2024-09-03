@@ -34,7 +34,7 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Build
         env:
-          GITHUB_TOKEN: ${{ secrets.ECNJ_GITHUB_TOKEN }}  # Needed to get PR information, if any
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
         run: mvn clean package -Dtag=${{ env.VERSION }}
 
       - name: Create Draft Release
