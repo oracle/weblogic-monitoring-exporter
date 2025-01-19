@@ -25,6 +25,7 @@ public class ExporterCall extends AuthenticatedCall {
   @Override
   protected void invoke(WebClient webClient, InvocationContext context) throws IOException {
     LiveConfiguration.updateConfiguration();
+    context.setResponseHeader("Content-Type", "text/plain");
     try (OutputStream responseStream = context.getResponseStream();
          MetricsStream metricsStream = new MetricsStream(getInstanceName(), responseStream)) {
       if (!LiveConfiguration.hasQueries())

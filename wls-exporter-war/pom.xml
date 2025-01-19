@@ -85,7 +85,7 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>${project.groupId}</groupId>
+                        <groupId>com.oracle.wls.exporter</groupId>
                         <artifactId>build-helper-mojo</artifactId>
                         <version>${project.version}</version>
                         <executions>
