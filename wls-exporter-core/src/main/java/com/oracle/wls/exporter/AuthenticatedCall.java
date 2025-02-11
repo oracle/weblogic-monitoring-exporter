@@ -5,6 +5,7 @@ package com.oracle.wls.exporter;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,6 +44,7 @@ public abstract class AuthenticatedCall {
     private final WebClientFactory webClientFactory;
     private final InvocationContext context;
     private final UrlBuilder urlBuilder;
+    private static final List<Retry> callRetries = new ArrayList<>();
 
     // For unit testing only
     static void clearCookies() {
@@ -53,6 +55,10 @@ public abstract class AuthenticatedCall {
         this.webClientFactory = webClientFactory;
         this.context = context;
         this.urlBuilder = context.createUrlBuilder();
+    }
+
+    public static int getRecentRetries() {
+        return callRetries.size();
     }
 
     public String getAuthenticationUrl() {
@@ -184,9 +190,12 @@ public abstract class AuthenticatedCall {
 
 
     private void performRequest(WebClient webClient) throws IOException {
+        boolean retryNeeded;
         do {
             invoke(webClient, context);
-        } while (webClient.isRetryNeeded());
+            retryNeeded = webClient.isRetryNeeded();
+            if (retryNeeded) addRetry();
+        } while (retryNeeded);
     }
 
     private void reportUnableToContactRestApiPort(String uri) throws IOException {
@@ -211,4 +220,20 @@ public abstract class AuthenticatedCall {
      */
     protected abstract void invoke(WebClient webClient, InvocationContext context) throws IOException;
 
+    private void addRetry() {
+        callRetries.removeIf(Retry::isObsolete);
+        callRetries.add(new Retry());
+    }
+
+    private static class Retry {
+        private final OffsetDateTime time;
+
+        Retry() {
+            this.time = SystemClock.now();
+        }
+
+        private boolean isObsolete() {
+            return Duration.between(time, SystemClock.now()).toMinutes() > 10;
+        }
+    }
 }

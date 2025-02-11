@@ -21,6 +21,11 @@ import org.junit.jupiter.api.Test;
 
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static com.oracle.wls.exporter.InMemoryFileSystem.withNoParams;
+import static com.oracle.wls.exporter.MetricsStream.FREE_MEMORY_METRIC;
+import static com.oracle.wls.exporter.MetricsStream.MAXIMUM_EXCHANGE_SIZE;
+import static com.oracle.wls.exporter.MetricsStream.MESSAGES_DIAGNOSTIC_SIZE;
+import static com.oracle.wls.exporter.MetricsStream.NUM_MBEANS_SCRAPED_METRIC;
+import static com.oracle.wls.exporter.MetricsStream.RECENT_MESSAGES_DIAGNOSTIC_SIZE;
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_CHALLENGE_HEADER;
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
 import static com.oracle.wls.exporter.matchers.CommentsOnlyMatcher.containsOnlyComments;
@@ -322,7 +327,11 @@ class ExporterServletTest {
 
         servlet.doGet(request, response);
 
-        assertThat(toHtml(response), containsString("wls_scrape_mbeans_count_total"));
+        assertThat(toHtml(response), containsString(NUM_MBEANS_SCRAPED_METRIC + "{instance="));
+        assertThat(toHtml(response), containsString(FREE_MEMORY_METRIC));
+        assertThat(toHtml(response), containsString(MESSAGES_DIAGNOSTIC_SIZE));
+        assertThat(toHtml(response), containsString(MAXIMUM_EXCHANGE_SIZE));
+        assertThat(toHtml(response), containsString(RECENT_MESSAGES_DIAGNOSTIC_SIZE));
     }
 
     @Test

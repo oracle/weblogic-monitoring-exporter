@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +32,6 @@ abstract class InvocationContextStub implements InvocationContext {
   private int responseStatus = 0;
   private boolean secure;
   private final Map<String, List<String>> responseHeaders = new HashMap<>();
-  private final Map<String, String> cookies = new HashMap<>();
 
   static InvocationContextStub create() {
     return createStrictStub(InvocationContextStub.class);
@@ -56,10 +54,6 @@ abstract class InvocationContextStub implements InvocationContext {
     return this;
   }
 
-  void addCookie(String name, String value) {
-    cookies.put(name, value);
-  }
-
   String getRedirectLocation() {
     return redirectLocation;
   }
@@ -71,11 +65,6 @@ abstract class InvocationContextStub implements InvocationContext {
   @SuppressWarnings("SameParameterValue")
   String getResponseHeader(String name) {
     return Optional.ofNullable(responseHeaders.get(name)).map(h-> h.get(0)).orElse(null);
-  }
-
-  @SuppressWarnings("SameParameterValue")
-  List<String> getResponseHeaders(String name) {
-    return Optional.ofNullable(responseHeaders.get(name)).orElse(Collections.emptyList());
   }
 
   int getResponseStatus() {

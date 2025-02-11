@@ -21,6 +21,14 @@ import com.sun.management.OperatingSystemMXBean;
 class MetricsStream extends PrintStream {
     private static final String PROMETHEUS_LINE_SEPARATOR = "\n"; // This is not dependent on the platform running the exporter.
     private static final double NANOSEC_PER_SECONDS = 1000000000;
+    static final String CPU_USAGE_METRIC = "wls_scrape_cpu_seconds";
+    static final String NUM_MBEANS_SCRAPED_METRIC = "wls_scrape_mbeans_count_total";
+    static final String SCRAPE_DURATION_SECONDS_METRIC = "wls_scrape_duration_seconds";
+    static final String FREE_MEMORY_METRIC = "exporter_free_memory_bytes";
+    static final String MESSAGES_DIAGNOSTIC_SIZE = "exporter_messages_diagnostics_bytes";
+    static final String MAXIMUM_EXCHANGE_SIZE = "exporter_messages_maximum_exchange_bytes";
+    static final String RECENT_MESSAGES_DIAGNOSTIC_SIZE = "exporter_messages_recent_bytes";
+    static final String RECENT_RETRIES = "exporter_recent_retries";
 
     private final PerformanceProbe performanceProbe;
     private final long startTime;
@@ -67,14 +75,19 @@ class MetricsStream extends PrintStream {
      * Prints the summary performance metrics
      */
     void printPlatformMetrics() {
-        printMetric(getCountName(), scrapeCount);
-        printMetric(getDurationName(), toSecondsString(getElapsedTime()));
-        printMetric(getCpuUsageName(), toSecondsString(getCpuUsed()));
+        printPlatformMetric(NUM_MBEANS_SCRAPED_METRIC, scrapeCount);
+        printPlatformMetric(SCRAPE_DURATION_SECONDS_METRIC, toSecondsString(getElapsedTime()));
+        printPlatformMetric(CPU_USAGE_METRIC, toSecondsString(getCpuUsed()));
+        printPlatformMetric(FREE_MEMORY_METRIC, Runtime.getRuntime().freeMemory());
+        printPlatformMetric(MESSAGES_DIAGNOSTIC_SIZE, WlsRestExchanges.getMessageAllocation());
+        printPlatformMetric(MAXIMUM_EXCHANGE_SIZE, WlsRestExchanges.getMaximumExchangeLength());
+        printPlatformMetric(RECENT_MESSAGES_DIAGNOSTIC_SIZE, WlsRestExchanges.getTotalExchangeLengthOverPastTenMinutes());
+        printPlatformMetric(RECENT_RETRIES, AuthenticatedCall.getRecentRetries());
         printMetric(getExporterVersionName(), 1);
     }
 
-    private String getDurationName() {
-        return "wls_scrape_duration_seconds" + getPlatformQualifier();
+    private void printPlatformMetric(String metricName, Object value) {
+        printMetric(metricName + getPlatformQualifier(), value);
     }
 
     /**
@@ -83,14 +96,6 @@ class MetricsStream extends PrintStream {
      */
     private String getPlatformQualifier() {
         return String.format("{instance=\"%s\"}", instance);
-    }
-
-    private String getCpuUsageName() {
-        return "wls_scrape_cpu_seconds" + getPlatformQualifier();
-    }
-
-    private String getCountName() {
-        return "wls_scrape_mbeans_count_total" + getPlatformQualifier();
     }
 
     private String getExporterVersionName() {
