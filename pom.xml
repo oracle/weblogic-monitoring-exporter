@@ -1,5 +1,5 @@
 <!--
-    Copyright (c) 2019, 2024, Oracle and/or its affiliates.
+    Copyright (c) 2019, 2025, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -50,7 +50,7 @@
         <version.plugin.surefire>3.5.2</version.plugin.surefire>
         <maven-enforcer-plugin-version>3.5.0</maven-enforcer-plugin-version>
         <maven-clean-plugin-version>3.4.1</maven-clean-plugin-version>
-        <maven-compiler-plugin-version>3.13.0</maven-compiler-plugin-version>
+        <maven-compiler-plugin-version>3.14.0</maven-compiler-plugin-version>
         <maven-install-plugin-version>3.1.3</maven-install-plugin-version>
         <maven-deploy-plugin-version>3.1.3</maven-deploy-plugin-version>
         <maven-plugin-plugin-version>3.15.1</maven-plugin-plugin-version>
@@ -349,7 +349,7 @@
             <dependency>
               <groupId>org.junit.jupiter</groupId>
               <artifactId>junit-jupiter</artifactId>
-              <version>5.11.4</version>
+              <version>5.12.0</version>
               <scope>test</scope>
             </dependency>
             <dependency>
