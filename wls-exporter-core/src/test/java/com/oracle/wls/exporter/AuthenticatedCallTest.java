@@ -64,13 +64,28 @@ class AuthenticatedCallTest {
           .addResponse();
   }
 
-  @Test 
+  @Test
   void whenResponseFromRestApiContainsSetCookieHeaders_cacheThem() throws IOException {
     configureResponseWithSetCookieHeaders();
 
     callStub.doWithAuthentication();
 
     assertThat(callStub.getCookies(CREDENTIALS), containsInAnyOrder("cookie1=value1", "cookie2=value2"));
+  }
+
+  @Test
+  void whenMultipleResponsesContainsSetCookieHeadersWithTheSameName_keepOnlyTheLast() throws IOException {
+    handleServerCookieWithValue("value1");
+    handleServerCookieWithValue("value2");
+
+    assertThat(callStub.getCookies(CREDENTIALS), containsInAnyOrder("cookie1=value2"));
+  }
+
+  private void handleServerCookieWithValue(String cookieValue) throws IOException {
+    webClientFactory.forJson("{}")
+          .withResponseHeader(SET_COOKIE_HEADER, "cookie1=" + cookieValue)
+          .addResponse();
+    callStub.doWithAuthentication();
   }
 
   @Test

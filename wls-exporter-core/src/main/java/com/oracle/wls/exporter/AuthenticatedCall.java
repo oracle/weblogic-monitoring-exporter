@@ -8,11 +8,13 @@ import java.io.PrintStream;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.oracle.wls.exporter.domain.MBeanSelector;
@@ -39,7 +41,7 @@ public abstract class AuthenticatedCall {
      * A map of authentication credentials to lists of cookies. The cookies will be sent on any request with
      * the specified credentials.
      */
-    private static final Map<String,List<Cookie>> COOKIES = new HashMap<>();
+    private static final Map<String,Map<String,Cookie>> COOKIES = new HashMap<>();
 
     private final WebClientFactory webClientFactory;
     private final InvocationContext context;
@@ -92,14 +94,16 @@ public abstract class AuthenticatedCall {
 
     public List<String> getCookies(String credentials) {
         final OffsetDateTime now = SystemClock.now();
-        final List<Cookie> cookieList = getCookieList(credentials);
+        final Collection<Cookie> cookieList = getCookieList(credentials);
         cookieList.removeIf(c -> c.isExpiredAt(now));
         
         return cookieList.stream().map(Cookie::getValue).collect(Collectors.toList());
     }
 
-    private List<Cookie> getCookieList(String credentials) {
-        return Optional.ofNullable(COOKIES.get(credentials)).orElse(Collections.emptyList());
+    private Collection<Cookie> getCookieList(String credentials) {
+        return Optional.ofNullable(COOKIES.get(credentials))
+              .map(Map::values)
+              .orElse(Collections.emptySet());
     }
 
     void handleNewCookie(String cookieHeader) {
@@ -107,8 +111,8 @@ public abstract class AuthenticatedCall {
 
         final Cookie cookie = new Cookie(cookieHeader);
         COOKIES
-              .computeIfAbsent(context.getAuthenticationHeader(), h -> new ArrayList<>())
-              .add(cookie);
+              .computeIfAbsent(context.getAuthenticationHeader(), h -> new HashMap<>())
+              .put(cookie.getCookieName(), cookie);
     }
 
     private static class Cookie {
@@ -121,6 +125,13 @@ public abstract class AuthenticatedCall {
 
         String getValue() {
             return value;
+        }
+
+        String getCookieName() {
+            if (!value.contains("="))
+                return value;
+            else
+                return value.substring(0, value.indexOf('='));
         }
 
         boolean isExpiredAt(OffsetDateTime now) {
