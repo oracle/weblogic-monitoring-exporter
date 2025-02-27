@@ -1,4 +1,4 @@
-// Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+// Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.sidecar;
@@ -14,6 +14,7 @@ import com.oracle.wls.exporter.InvocationContext;
 import com.oracle.wls.exporter.LiveConfiguration;
 import com.oracle.wls.exporter.domain.ExporterConfig;
 import io.helidon.common.media.type.MediaTypes;
+import io.helidon.http.Header;
 import io.helidon.http.HeaderNames;
 import io.helidon.http.Status;
 import io.helidon.webclient.api.ClientResponseTyped;
@@ -36,6 +37,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.Matchers.stringContainsInOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -178,9 +180,25 @@ class MetricsServiceTest {
 
     @Test
     void onGet_sendXRequestedHeader() {
-        HttpClientResponse metricsResponse = getMetricsResponse();
+        getMetricsResponse();
 
         assertThat(clientFactory.getSentHeaders(), hasKey("X-Requested-By"));
+    }
+
+    @Test
+    void metricsResponseContainsContentTypeHeader() {
+      Header contentTypeHeader = getContentTypeHeader(getMetricsResponse());
+
+        assertThat(contentTypeHeader, notNullValue());
+        assertThat(contentTypeHeader.values(), equalTo("text/plain"));
+    }
+
+    private Header getContentTypeHeader(HttpClientResponse metricsResponse) {
+        return metricsResponse.headers().stream().filter(this::isContentType).findFirst().orElse(null);
+    }
+
+    private boolean isContentType(Header header) {
+        return "Content-Type".equalsIgnoreCase(header.name());
     }
 
     @Test
