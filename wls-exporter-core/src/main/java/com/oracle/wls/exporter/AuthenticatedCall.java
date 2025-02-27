@@ -1,17 +1,20 @@
-// Copyright (c) 2017, 2023, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.oracle.wls.exporter.domain.MBeanSelector;
@@ -38,11 +41,12 @@ public abstract class AuthenticatedCall {
      * A map of authentication credentials to lists of cookies. The cookies will be sent on any request with
      * the specified credentials.
      */
-    private static final Map<String,List<Cookie>> COOKIES = new HashMap<>();
+    private static final Map<String,Map<String,Cookie>> COOKIES = new HashMap<>();
 
     private final WebClientFactory webClientFactory;
     private final InvocationContext context;
     private final UrlBuilder urlBuilder;
+    private static final List<Retry> callRetries = new ArrayList<>();
 
     // For unit testing only
     static void clearCookies() {
@@ -53,6 +57,10 @@ public abstract class AuthenticatedCall {
         this.webClientFactory = webClientFactory;
         this.context = context;
         this.urlBuilder = context.createUrlBuilder();
+    }
+
+    public static int getRecentRetries() {
+        return callRetries.size();
     }
 
     public String getAuthenticationUrl() {
@@ -86,14 +94,16 @@ public abstract class AuthenticatedCall {
 
     public List<String> getCookies(String credentials) {
         final OffsetDateTime now = SystemClock.now();
-        final List<Cookie> cookieList = getCookieList(credentials);
+        final Collection<Cookie> cookieList = getCookieList(credentials);
         cookieList.removeIf(c -> c.isExpiredAt(now));
         
         return cookieList.stream().map(Cookie::getValue).collect(Collectors.toList());
     }
 
-    private List<Cookie> getCookieList(String credentials) {
-        return Optional.ofNullable(COOKIES.get(credentials)).orElse(Collections.emptyList());
+    private Collection<Cookie> getCookieList(String credentials) {
+        return Optional.ofNullable(COOKIES.get(credentials))
+              .map(Map::values)
+              .orElse(Collections.emptySet());
     }
 
     void handleNewCookie(String cookieHeader) {
@@ -101,8 +111,8 @@ public abstract class AuthenticatedCall {
 
         final Cookie cookie = new Cookie(cookieHeader);
         COOKIES
-              .computeIfAbsent(context.getAuthenticationHeader(), h -> new ArrayList<>())
-              .add(cookie);
+              .computeIfAbsent(context.getAuthenticationHeader(), h -> new HashMap<>())
+              .put(cookie.getCookieName(), cookie);
     }
 
     private static class Cookie {
@@ -115,6 +125,13 @@ public abstract class AuthenticatedCall {
 
         String getValue() {
             return value;
+        }
+
+        String getCookieName() {
+            if (!value.contains("="))
+                return value;
+            else
+                return value.substring(0, value.indexOf('='));
         }
 
         boolean isExpiredAt(OffsetDateTime now) {
@@ -184,9 +201,12 @@ public abstract class AuthenticatedCall {
 
 
     private void performRequest(WebClient webClient) throws IOException {
+        boolean retryNeeded;
         do {
             invoke(webClient, context);
-        } while (webClient.isRetryNeeded());
+            retryNeeded = webClient.isRetryNeeded();
+            if (retryNeeded) addRetry();
+        } while (retryNeeded);
     }
 
     private void reportUnableToContactRestApiPort(String uri) throws IOException {
@@ -211,4 +231,20 @@ public abstract class AuthenticatedCall {
      */
     protected abstract void invoke(WebClient webClient, InvocationContext context) throws IOException;
 
+    private void addRetry() {
+        callRetries.removeIf(Retry::isObsolete);
+        callRetries.add(new Retry());
+    }
+
+    private static class Retry {
+        private final OffsetDateTime time;
+
+        Retry() {
+            this.time = SystemClock.now();
+        }
+
+        private boolean isObsolete() {
+            return Duration.between(time, SystemClock.now()).toMinutes() > 10;
+        }
+    }
 }
