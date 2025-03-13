@@ -1,7 +1,7 @@
-// Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2019, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-package com.oracle.wls.exporter.webapp;
+package com.oracle.wls.exporter.javax;
 
 import java.io.IOException;
 import java.lang.reflect.Modifier;
@@ -16,8 +16,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static com.oracle.wls.exporter.WlsRestExchanges.MAX_EXCHANGES;
-import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.createGetRequest;
-import static com.oracle.wls.exporter.webapp.HttpServletResponseStub.createServletResponse;
+import static com.oracle.wls.exporter.javax.HttpServletRequestStub.createGetRequest;
+import static com.oracle.wls.exporter.javax.HttpServletResponseStub.createServletResponse;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.both;

@@ -89,7 +89,7 @@ public class LiveConfiguration {
         LiveConfiguration.serverPort = serverPort;
     }
 
-    static Integer getConfiguredRestPort() {
+    public static Integer getConfiguredRestPort() {
         return Optional.ofNullable(config).map(ExporterConfig::getRestPort).orElse(null);
     }
 
@@ -226,7 +226,7 @@ public class LiveConfiguration {
     static class NullConfigurationUpdater implements ConfigurationUpdater {
         @Override
         public long getLatestConfigurationTimestamp() {
-            return 0;
+            return 0L;
         }
 
         @Override

@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -6,7 +6,7 @@ package com.oracle.wls.exporter;
 import com.google.common.collect.ImmutableMap;
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
-import com.oracle.wls.exporter.webapp.ServletUtils;
+import com.oracle.wls.exporter.javax.ServletUtils;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -22,7 +22,7 @@ import static com.meterware.simplestub.Stub.createStrictStub;
 /**
  * @author Russell Gold
  */
-public class InMemoryFileSystem {
+public class InMemoryResources {
     private static Map<String, InputStream> resources;
     private static final List<Memento> mementos = new ArrayList<>();
 
@@ -75,7 +75,7 @@ public class InMemoryFileSystem {
 
         @Override
         public InputStream getResourceAsStream(String path) {
-            return !ServletUtils.CONFIG_YML.equals(path) ? null : InMemoryFileSystem.resources.get(path);
+            return !ServletUtils.CONFIG_YML.equals(path) ? null : InMemoryResources.resources.get(path);
         }
     }
 }

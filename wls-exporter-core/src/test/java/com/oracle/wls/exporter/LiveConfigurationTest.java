@@ -8,15 +8,15 @@ import java.io.ByteArrayInputStream;
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
 import com.oracle.wls.exporter.domain.ExporterConfig;
-import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
-import com.oracle.wls.exporter.webapp.ServletUtils;
+import com.oracle.wls.exporter.javax.HttpServletRequestStub;
+import com.oracle.wls.exporter.javax.ServletUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
-import static com.oracle.wls.exporter.InMemoryFileSystem.withNoParams;
-import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.HOST_NAME;
-import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.PORT;
+import static com.oracle.wls.exporter.InMemoryResources.withNoParams;
+import static com.oracle.wls.exporter.javax.HttpServletRequestStub.HOST_NAME;
+import static com.oracle.wls.exporter.javax.HttpServletRequestStub.PORT;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
@@ -70,14 +70,14 @@ class LiveConfigurationTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        InMemoryFileSystem.install();
+        InMemoryResources.install();
         ConfigurationUpdaterStub.install();
         ServletUtils.setServer(HttpServletRequestStub.createPostRequest());
     }
 
     @AfterEach
     public void tearDown() {
-        InMemoryFileSystem.uninstall();
+        InMemoryResources.uninstall();
         ConfigurationUpdaterStub.uninstall();
     }
 
@@ -89,7 +89,7 @@ class LiveConfigurationTest {
     }
 
     private void init(String configuration) {
-        InMemoryFileSystem.defineResource(ServletUtils.CONFIG_YML, configuration);
+        InMemoryResources.defineResource(ServletUtils.CONFIG_YML, configuration);
         ServletUtils.initializeConfiguration(withNoParams());
     }
 

@@ -11,16 +11,17 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 
 import com.google.common.collect.ImmutableMap;
-import com.oracle.wls.exporter.webapp.ExporterServlet;
-import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
-import com.oracle.wls.exporter.webapp.HttpServletResponseStub;
-import com.oracle.wls.exporter.webapp.ServletUtils;
+import com.oracle.wls.exporter.javax.ExporterServlet;
+import com.oracle.wls.exporter.javax.HttpServletRequestStub;
+import com.oracle.wls.exporter.javax.HttpServletResponseStub;
+import com.oracle.wls.exporter.javax.ServletInvocationContext;
+import com.oracle.wls.exporter.javax.ServletUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
-import static com.oracle.wls.exporter.InMemoryFileSystem.withNoParams;
+import static com.oracle.wls.exporter.InMemoryResources.withNoParams;
 import static com.oracle.wls.exporter.MetricsStream.FREE_MEMORY_METRIC;
 import static com.oracle.wls.exporter.MetricsStream.MAXIMUM_EXCHANGE_SIZE;
 import static com.oracle.wls.exporter.MetricsStream.MESSAGES_DIAGNOSTIC_SIZE;
@@ -32,8 +33,8 @@ import static com.oracle.wls.exporter.matchers.CommentsOnlyMatcher.containsOnlyC
 import static com.oracle.wls.exporter.matchers.MetricsNamesSnakeCaseMatcher.usesSnakeCase;
 import static com.oracle.wls.exporter.matchers.PrometheusMetricsMatcher.followsPrometheusRules;
 import static com.oracle.wls.exporter.matchers.ResponseHeaderMatcher.containsHeader;
-import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.createGetRequest;
-import static com.oracle.wls.exporter.webapp.HttpServletResponseStub.createServletResponse;
+import static com.oracle.wls.exporter.javax.HttpServletRequestStub.createGetRequest;
+import static com.oracle.wls.exporter.javax.HttpServletResponseStub.createServletResponse;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -79,7 +80,7 @@ class ExporterServletTest {
     @BeforeEach
     public void setUp() throws Exception {
         locale = Locale.getDefault();
-        InMemoryFileSystem.install();
+        InMemoryResources.install();
         ConfigurationUpdaterStub.install();
         LiveConfiguration.setServer(WLS_HOST, LOCAL_PORT);
         WlsRestExchanges.clear();
@@ -89,7 +90,7 @@ class ExporterServletTest {
     @AfterEach
     public void tearDown() {
         Locale.setDefault(locale);
-        InMemoryFileSystem.uninstall();
+        InMemoryResources.uninstall();
         ConfigurationUpdaterStub.uninstall();
     }
 
@@ -108,33 +109,6 @@ class ExporterServletTest {
         WebServlet annotation = ExporterServlet.class.getAnnotation(WebServlet.class);
 
         assertThat(annotation.value(), arrayContaining("/metrics"));
-    }
-
-    @Test
-    void whenConfigParamNotFound_configurationHasNoQueries() throws Exception {
-        servlet.init(withNoParams());
-
-        servlet.doGet(request, response);
-
-        assertThat(LiveConfiguration.hasQueries(), is(false));
-    }
-
-    @Test
-    void whenConfigFileNameNotAbsolute_getReportsTheIssue() throws Exception {
-        servlet.init(withNoParams());
-
-        servlet.doGet(request, response);
-
-        assertThat(toHtml(response), containsString("# No configuration"));
-    }
-
-    @Test
-    void whenConfigFileNotFound_getReportsTheIssue() throws Exception {
-        servlet.init(withNoParams());
-
-        servlet.doGet(request, response);
-
-        assertThat(toHtml(response), containsString("# No configuration"));
     }
 
     @Test
@@ -242,7 +216,7 @@ class ExporterServletTest {
     }
 
     private void initServlet(String configuration) {
-        InMemoryFileSystem.defineResource(ServletUtils.CONFIG_YML, configuration);
+        InMemoryResources.defineResource(ServletUtils.CONFIG_YML, configuration);
         servlet.init(withNoParams());
     }
 

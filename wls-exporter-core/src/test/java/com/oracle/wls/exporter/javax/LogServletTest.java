@@ -1,7 +1,7 @@
 // Copyright (c) 2019, 2022, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-package com.oracle.wls.exporter.webapp;
+package com.oracle.wls.exporter.javax;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServlet;
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
 import com.oracle.wls.exporter.ErrorLog;
-import com.oracle.wls.exporter.InMemoryFileSystem;
+import com.oracle.wls.exporter.InMemoryResources;
 import com.oracle.wls.exporter.LiveConfiguration;
 import com.oracle.wls.exporter.WebClientException;
 import org.junit.jupiter.api.AfterEach;
@@ -34,14 +34,14 @@ class LogServletTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        InMemoryFileSystem.install();
+        InMemoryResources.install();
         LiveConfiguration.loadFromString("");
     }
 
     @AfterEach
     public void tearDown() {
         mementos.forEach(Memento::revert);
-        InMemoryFileSystem.uninstall();
+        InMemoryResources.uninstall();
     }
 
     @Test

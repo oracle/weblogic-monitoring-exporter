@@ -1,4 +1,4 @@
-// Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -7,12 +7,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
-import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
+import com.oracle.wls.exporter.javax.HttpServletRequestStub;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 
-import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.createPostRequest;
+import static com.oracle.wls.exporter.javax.HttpServletRequestStub.createPostRequest;
 
 public class MultipartTestUtils {
 

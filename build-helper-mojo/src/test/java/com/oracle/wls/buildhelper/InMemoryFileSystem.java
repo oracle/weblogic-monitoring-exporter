@@ -1,10 +1,9 @@
-// Copyright (c) 2018, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2018, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.buildhelper;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -18,14 +17,25 @@ import java.util.*;
 
 import static com.meterware.simplestub.Stub.createStrictStub;
 
+/**
+ * An in-memory implementation of the file system to allow unit testing of file operations without touching the
+ * real file system. This offers both complete control of what the unit tests access, and makes them much faster.
+ * Since it is used only for unit testing, we can assume Unix-style paths.
+ */
 public abstract class InMemoryFileSystem extends FileSystem {
+  private static final String DIRECTORY_OBJECT = "**reserved string: directory**";
+  private static final String SEPARATOR = "/";
+
   private static InMemoryFileSystem instance;
   private final FileSystemProviderStub provider = createStrictStub(FileSystemProviderStub.class);
 
   public static InMemoryFileSystem createInstance() {
-    return instance = createStrictStub(InMemoryFileSystem.class);
+    instance = createStrictStub(InMemoryFileSystem.class);
+    instance.defineFile(SEPARATOR, DIRECTORY_OBJECT);
+    return instance;
   }
 
+  @SuppressWarnings("unused")
   public void defineFile(File file, String contents) {
     instance.defineFileContents(file.getPath(), contents);
   }
@@ -42,16 +52,12 @@ public abstract class InMemoryFileSystem extends FileSystem {
     provider.throwExceptionOnAccess = path;
   }
 
-  public Path getPath(@Nonnull String first, @Nonnull String... more) {
+  public @Nonnull Path getPath(@Nonnull String first, @Nonnull String... more) {
     return PathStub.createPathStub(createPathString(first, more));
   }
 
-  private void throwException(String pathString) {
-    throw new IllegalArgumentException(pathString);
-  }
-
   private String createPathString(String first, String[] more) {
-    return more.length == 0 ? first : first + "/" + String.join("/", more);
+    return more.length == 0 ? first : first + SEPARATOR + String.join(SEPARATOR, more);
   }
 
   @Override
@@ -60,8 +66,18 @@ public abstract class InMemoryFileSystem extends FileSystem {
   }
 
   private void defineFileContents(String filePath, String contents) {
+    if (!filePath.startsWith(SEPARATOR)) throw new RuntimeException("Must specify full absolute path");
     provider.fileContents.put(filePath, contents);
+
+    String directoryPath = "";
+    for (String name : filePath.split(SEPARATOR)) {
+      if (name.isEmpty()) continue;
+      directoryPath += (SEPARATOR + name);
+      if (!provider.fileContents.containsKey(directoryPath))
+        provider.fileContents.put(directoryPath, DIRECTORY_OBJECT);
+    }
   }
+
 
   enum PathType {
     DIRECTORY {
@@ -69,11 +85,21 @@ public abstract class InMemoryFileSystem extends FileSystem {
       boolean isDirectory() {
         return true;
       }
+
+      @Override
+      boolean matches(Object o) {
+        return DIRECTORY_OBJECT == o;
+      }
     },
     FILE {
       @Override
       boolean isRegularFile() {
         return true;
+      }
+
+      @Override
+      boolean matches(Object o) {
+        return o instanceof String;
       }
     };
 
@@ -83,6 +109,15 @@ public abstract class InMemoryFileSystem extends FileSystem {
 
     boolean isRegularFile() {
       return false;
+    }
+
+    abstract boolean matches(Object o);
+
+    static PathType getPathTypeFor(Object object) {
+      for (PathType type : PathType.values())
+        if (type.matches(object)) return type;
+
+      return null;
     }
   }
 
@@ -98,7 +133,7 @@ public abstract class InMemoryFileSystem extends FileSystem {
     }
 
     @Override
-    public FileSystem getFileSystem() {
+    public @Nonnull FileSystem getFileSystem() {
       return instance;
     }
 
@@ -108,19 +143,97 @@ public abstract class InMemoryFileSystem extends FileSystem {
     }
 
     protected String getLastElement() {
-      final int beginIndex = filePath.lastIndexOf(File.separatorChar);
+      final int beginIndex = filePath.lastIndexOf(SEPARATOR);
       return beginIndex < 0 ? filePath : filePath.substring(beginIndex + 1);
     }
 
     @Override
     public Path getParent() {
-      final int beginIndex = filePath.lastIndexOf(File.separatorChar);
-      return beginIndex < 0 ? createPathStub("/") : createPathStub(filePath.substring(0, beginIndex));
+      final int beginIndex = filePath.lastIndexOf(SEPARATOR);
+      if (beginIndex > 0)
+        return createPathStub(filePath.substring(0, beginIndex));
+      else if (beginIndex < 0 || this.equals(getRoot()))
+        return null;
+      else
+        return getRoot();
     }
 
     @Override
-    public String toString() {
+    public Path getRoot() {
+      return createPathStub(SEPARATOR);
+    }
+
+    @Override
+    public boolean isAbsolute() {
+      return filePath.startsWith(SEPARATOR);
+    }
+
+    @Override
+    public @Nonnull Path toAbsolutePath() {
+      return isAbsolute() ? this : getRoot().resolve(this);
+    }
+
+    @Override
+    public boolean endsWith(@Nonnull Path other) {
+      return filePath.endsWith(SEPARATOR + other);
+    }
+
+    @Override
+    public int getNameCount() {
+      return filePath.split(SEPARATOR).length;
+    }
+
+    @Override
+    public @Nonnull Path getName(int index) {
+      return createPathStub(filePath.split(SEPARATOR)[index]);
+    }
+
+    @Override
+    public @Nonnull Path resolve(@Nonnull String other) {
+      String newPath = filePath;
+      if (needsFileSeparator(other, newPath)) newPath += SEPARATOR;
+      return createPathStub(newPath + other);
+    }
+
+    private static boolean needsFileSeparator(String other, String newPath) {
+      return !newPath.endsWith(SEPARATOR) && !other.startsWith(SEPARATOR);
+    }
+
+    @Override
+    public @Nonnull Path resolve(@Nonnull Path other) {
+      return resolve(((PathStub) other).filePath);
+    }
+
+    @Override
+    public @Nonnull Path relativize(Path other) {
+      if (other.getClass() != getClass())
+        throw new RuntimeException("Attempted to use other Path type");
+
+      final String otherPath = ((PathStub) other).filePath;
+      if (otherPath.startsWith(filePath)) {
+        String substring = otherPath.substring(filePath.length());
+        if (substring.startsWith(SEPARATOR)) substring = substring.substring(1);
+        return createPathStub(substring);
+      }
+
+      throw new RuntimeException("Only relative paths supported");
+    }
+
+    @Override
+    public @Nonnull String toString() {
       return filePath;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (!(o instanceof PathStub paths)) return false;
+      return Objects.equals(filePath, paths.filePath);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(filePath);
     }
   }
 
@@ -139,7 +252,7 @@ public abstract class InMemoryFileSystem extends FileSystem {
 
     @Override
     public void checkAccess(Path path, AccessMode... modes) throws IOException {
-      if (null == getRawFileType(getFilePath(path))) {
+      if (null == getPathType(getFilePath(path))) {
         throw new NoSuchFileException("File " + getFilePath(path) + " does not exist");
       }
     }
@@ -155,7 +268,9 @@ public abstract class InMemoryFileSystem extends FileSystem {
     }
 
     @Override
-    public void createDirectory(Path dir, FileAttribute<?>... attrs) {
+    public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
+      verifyParentDirectory(dir);
+      fileContents.put(getFilePath(dir), DIRECTORY_OBJECT);
     }
 
     @SuppressWarnings("unchecked")
@@ -175,8 +290,14 @@ public abstract class InMemoryFileSystem extends FileSystem {
               .map(s -> createStrictStub(ReadOnlyByteChannelStub.class, s))
               .orElseThrow(() -> new FileNotFoundException(path.toString()));
       } else {
+        verifyParentDirectory(path);
         return createStrictStub(WriteableByteChannelStub.class, getFilePath(path));
       }
+    }
+
+    private void verifyParentDirectory(Path path) throws IOException {
+      if (getPathType(getFilePath(path.getParent())) != PathType.DIRECTORY)
+        throw new IOException("Parent directory does not exist. May not create " + path);
     }
 
     private BasicFileAttributes createAttributes(String filePath) {
@@ -184,20 +305,7 @@ public abstract class InMemoryFileSystem extends FileSystem {
     }
 
     private PathType getPathType(String filePath) {
-      return Optional.ofNullable(getRawFileType(filePath)).orElse(PathType.DIRECTORY);
-    }
-
-    @Nullable
-    private PathType getRawFileType(String filePath) {
-      for (String key : fileContents.keySet()) {
-        if (key.startsWith(filePath + '/')) {
-          return PathType.DIRECTORY;
-        }
-        if (key.equals(filePath)) {
-          return PathType.FILE;
-        }
-      }
-      return null;
+      return PathType.getPathTypeFor(fileContents.get(filePath));
     }
 
     @Override
@@ -240,9 +348,9 @@ public abstract class InMemoryFileSystem extends FileSystem {
     final List<Path> paths = new ArrayList<>();
 
     public DirectoryStreamStub(FileSystemProviderStub parent, String root) {
-      for (String key : parent.fileContents.keySet()) {
-        if (key.startsWith(root + "/")) {
-          paths.add(PathStub.createPathStub(key));
+      for (Map.Entry<String,String> entry : parent.fileContents.entrySet()) {
+        if (!entry.getValue().equals(DIRECTORY_OBJECT) && entry.getKey().startsWith(root + SEPARATOR)) {
+          paths.add(PathStub.createPathStub(entry.getKey()));
         }
       }
     }
@@ -270,6 +378,11 @@ public abstract class InMemoryFileSystem extends FileSystem {
     @Override
     public long size() {
       return contents.length;
+    }
+
+    @Override
+    public long position() {
+      return index;
     }
 
     @Override

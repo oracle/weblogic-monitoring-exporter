@@ -1,7 +1,7 @@
-// Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2019, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-package com.oracle.wls.exporter.webapp;
+package com.oracle.wls.exporter.javax;
 
 import java.io.IOException;
 import javax.servlet.annotation.WebServlet;
@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.oracle.wls.exporter.MessagesCall;
-import com.oracle.wls.exporter.ServletInvocationContext;
 import com.oracle.wls.exporter.WebClientFactory;
 import com.oracle.wls.exporter.WebClientFactoryImpl;
 
@@ -24,6 +23,7 @@ public class MessagesServlet extends HttpServlet {
 
     private final WebClientFactory webClientFactory;
 
+    @SuppressWarnings("unused")
     public MessagesServlet() {
         this(new WebClientFactoryImpl());
     }

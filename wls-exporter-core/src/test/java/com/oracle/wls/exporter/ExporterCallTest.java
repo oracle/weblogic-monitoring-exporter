@@ -1,4 +1,4 @@
-// Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+// Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -18,6 +18,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 
 class ExporterCallTest {
   private static final String URL_PATTERN = "http://%s:%d/management/weblogic/latest/serverRuntime/search";
@@ -57,6 +58,15 @@ class ExporterCallTest {
   public void setUp() {
     LiveConfiguration.setServer(HOST_NAME, PORT);
     AuthenticatedCall.clearCookies();
+  }
+
+  @Test
+  void whenConfigParamNotFound_configurationHasNoQueries() throws Exception {
+    LiveConfiguration.loadFromString("");
+
+    handleMetricsCall(context);
+
+    assertThat(LiveConfiguration.hasQueries(), is(false));
   }
 
   @Test
