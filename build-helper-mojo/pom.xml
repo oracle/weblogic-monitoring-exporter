@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Copyright (c) 2019, 2024, Oracle and/or its affiliates.
+    Copyright (c) 2019, 2025, Oracle and/or its affiliates.
     Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -17,10 +17,26 @@
 
     <name>Exporter Build Helper Maven Mojo</name>
 
+    <properties>
+        <maven.compiler.release>17</maven.compiler.release>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
+            <version>3.9.9</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-core</artifactId>
+            <version>3.9.9</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-artifact</artifactId>
             <version>3.9.9</version>
             <scope>provided</scope>
         </dependency>

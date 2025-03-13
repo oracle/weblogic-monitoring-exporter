@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -18,8 +18,8 @@ import com.google.common.collect.ImmutableMap;
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
 import com.meterware.simplestub.SystemPropertySupport;
-import com.oracle.wls.exporter.webapp.HttpServletRequestStub;
-import com.oracle.wls.exporter.webapp.ServletUtils;
+import com.oracle.wls.exporter.javax.HttpServletRequestStub;
+import com.oracle.wls.exporter.javax.ServletUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -192,11 +192,11 @@ class MetricsStreamTest {
             return ((long) (Math.random() * 100 * NANOSEC_PER_SECONDS));
         }
         void incrementElapsedTime(double seconds) {
-            currentTime += seconds * NANOSEC_PER_SECONDS;
+            currentTime += (long) (seconds * NANOSEC_PER_SECONDS);
         }
 
         void incrementCpuTime(double seconds) {
-            currentCpu += seconds * NANOSEC_PER_SECONDS;
+            currentCpu += (long) (seconds * NANOSEC_PER_SECONDS);
         }
 
         @Override

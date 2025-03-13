@@ -1,7 +1,7 @@
 // Copyright (c) 2017, 2023, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-package com.oracle.wls.exporter.webapp;
+package com.oracle.wls.exporter.javax;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServlet;
 import com.oracle.wls.exporter.AuthenticatedCall;
 import com.oracle.wls.exporter.InvocationContext;
 import com.oracle.wls.exporter.LiveConfiguration;
-import com.oracle.wls.exporter.ServletInvocationContext;
 import com.oracle.wls.exporter.UrlBuilder;
 import com.oracle.wls.exporter.WebClient;
 import com.oracle.wls.exporter.WebClientFactory;
@@ -25,9 +24,9 @@ import static com.oracle.wls.exporter.MultipartTestUtils.createUploadRequest;
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_CHALLENGE_HEADER;
 import static com.oracle.wls.exporter.WebAppConstants.CONFIGURATION_PAGE;
 import static com.oracle.wls.exporter.matchers.ResponseHeaderMatcher.containsHeader;
-import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.LOCAL_PORT;
-import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.createPostRequest;
-import static com.oracle.wls.exporter.webapp.HttpServletResponseStub.createServletResponse;
+import static com.oracle.wls.exporter.javax.HttpServletRequestStub.LOCAL_PORT;
+import static com.oracle.wls.exporter.javax.HttpServletRequestStub.createPostRequest;
+import static com.oracle.wls.exporter.javax.HttpServletResponseStub.createServletResponse;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -78,7 +77,7 @@ class ConfigurationServletTest {
     private static final String CONFIGURATION =
             "hostName: " + HttpServletRequestStub.HOST_NAME + "\n" +
             "port: " + HttpServletRequestStub.PORT + "\n" +
-            "queries:\n" + "" +
+            "queries:\n" +
             "- groups:\n" +
             "    prefix: new_\n" +
             "    key: name\n" +
@@ -88,7 +87,7 @@ class ConfigurationServletTest {
             "hostName: " + HttpServletRequestStub.HOST_NAME + "\n" +
             "port: " + HttpServletRequestStub.PORT + "\n" +
             "restPort: " + REST_PORT + "\n" +
-            "queries:\n" + "" +
+            "queries:\n" +
             "- groups:\n" +
             "    prefix: new_\n" +
             "    key: name\n" +
@@ -97,7 +96,7 @@ class ConfigurationServletTest {
     private static final String ADDED_CONFIGURATION =
             "hostName: localhost\n" +
             "port: 7001\n" +
-            "queries:\n" + "" +
+            "queries:\n" +
             "- people:\n" +
             "    key: name\n" +
             "    values: [age, sex]\n";
@@ -105,7 +104,7 @@ class ConfigurationServletTest {
     private static final String COMBINED_CONFIGURATION =
             "hostName: " + HttpServletRequestStub.HOST_NAME + "\n" +
             "port: " + HttpServletRequestStub.PORT + "\n" +
-            "queries:\n" + "" +
+            "queries:\n" +
             "- groups:\n" +
             "    prefix: new_\n" +
             "    key: name\n" +
@@ -226,7 +225,7 @@ class ConfigurationServletTest {
 
     private static final String ADDED_CONFIGURATION_WITH_BAD_BOOLEAN =
             "metricsNameSnakeCase: blabla\n" +
-            "queries:\n" + "" +
+            "queries:\n" +
             "- people:\n" +
             "    key: name\n" +
             "    values: [age, sex]\n";

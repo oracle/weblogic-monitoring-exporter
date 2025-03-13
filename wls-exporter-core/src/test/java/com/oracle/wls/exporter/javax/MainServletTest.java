@@ -1,19 +1,19 @@
-// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-package com.oracle.wls.exporter.webapp;
+package com.oracle.wls.exporter.javax;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 
 import com.oracle.wls.exporter.ConfigurationUpdaterStub;
-import com.oracle.wls.exporter.InMemoryFileSystem;
+import com.oracle.wls.exporter.InMemoryResources;
 import com.oracle.wls.exporter.LiveConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static com.oracle.wls.exporter.InMemoryFileSystem.withNoParams;
+import static com.oracle.wls.exporter.InMemoryResources.withNoParams;
 import static com.oracle.wls.exporter.WebAppConstants.CONFIGURATION_PAGE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayContaining;
@@ -32,7 +32,7 @@ class MainServletTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        InMemoryFileSystem.install();
+        InMemoryResources.install();
         ConfigurationUpdaterStub.install();
         LiveConfiguration.loadFromString("");
         request.setContextPath("/exporter");
@@ -40,7 +40,7 @@ class MainServletTest {
 
     @AfterEach
     public void tearDown() {
-        InMemoryFileSystem.uninstall();
+        InMemoryResources.uninstall();
         ConfigurationUpdaterStub.uninstall();
     }
 
@@ -96,7 +96,7 @@ class MainServletTest {
 
     @Test
     void getRequestShowsCurrentConfiguration() throws Exception {
-        InMemoryFileSystem.defineResource(ServletUtils.CONFIG_YML, PARSED_CONFIGURATION);
+        InMemoryResources.defineResource(ServletUtils.CONFIG_YML, PARSED_CONFIGURATION);
         servlet.init(withNoParams());
 
         servlet.doGet(request, response);
@@ -106,7 +106,7 @@ class MainServletTest {
 
     @Test
     void whenNewConfigAvailable_getRequestShowsNewConfiguration() throws Exception {
-        InMemoryFileSystem.defineResource(ServletUtils.CONFIG_YML, EMPTY_CONFIGURATION);
+        InMemoryResources.defineResource(ServletUtils.CONFIG_YML, EMPTY_CONFIGURATION);
         servlet.init(withNoParams());
 
         ConfigurationUpdaterStub.newConfiguration(1, PARSED_CONFIGURATION);
@@ -117,7 +117,7 @@ class MainServletTest {
 
     @Test
     void whenNewConfigHasNoQueries_displayEmptyConfiguration() throws Exception {
-        InMemoryFileSystem.defineResource(ServletUtils.CONFIG_YML, PARSED_CONFIGURATION);
+        InMemoryResources.defineResource(ServletUtils.CONFIG_YML, PARSED_CONFIGURATION);
         servlet.init(withNoParams());
 
         ConfigurationUpdaterStub.newConfiguration(1, "queries:\n");

@@ -1,25 +1,27 @@
-// Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
-package com.oracle.wls.exporter.webapp;
+package com.oracle.wls.exporter.javax;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 
-import com.oracle.wls.exporter.ServletInvocationContext;
 import org.junit.jupiter.api.Test;
 
 import static com.oracle.wls.exporter.WebAppConstants.AUTHENTICATION_HEADER;
-import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.HOST_NAME;
-import static com.oracle.wls.exporter.webapp.HttpServletRequestStub.PORT;
-import static com.oracle.wls.exporter.webapp.HttpServletResponseStub.SINGLE_ARG_METHOD_CALLED;
+import static com.oracle.wls.exporter.javax.HttpServletRequestStub.HOST_NAME;
+import static com.oracle.wls.exporter.javax.HttpServletRequestStub.PORT;
+import static com.oracle.wls.exporter.javax.HttpServletResponseStub.SINGLE_ARG_METHOD_CALLED;
 import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
+/**
+ * A unit test for the Servlet implementation of the InvocationContext.
+ */
 class ServletInvocationContextTest {
 
   private final HttpServletRequestStub request = HttpServletRequestStub.createPostRequest();
