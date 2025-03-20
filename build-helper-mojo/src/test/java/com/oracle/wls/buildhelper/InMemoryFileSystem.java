@@ -3,7 +3,6 @@
 
 package com.oracle.wls.buildhelper;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -52,7 +51,7 @@ public abstract class InMemoryFileSystem extends FileSystem {
     provider.throwExceptionOnAccess = path;
   }
 
-  public @Nonnull Path getPath(@Nonnull String first, @Nonnull String... more) {
+  public Path getPath(String first, String... more) {
     return PathStub.createPathStub(createPathString(first, more));
   }
 
@@ -133,7 +132,7 @@ public abstract class InMemoryFileSystem extends FileSystem {
     }
 
     @Override
-    public @Nonnull FileSystem getFileSystem() {
+    public FileSystem getFileSystem() {
       return instance;
     }
 
@@ -169,12 +168,12 @@ public abstract class InMemoryFileSystem extends FileSystem {
     }
 
     @Override
-    public @Nonnull Path toAbsolutePath() {
+    public Path toAbsolutePath() {
       return isAbsolute() ? this : getRoot().resolve(this);
     }
 
     @Override
-    public boolean endsWith(@Nonnull Path other) {
+    public boolean endsWith(Path other) {
       return filePath.endsWith(SEPARATOR + other);
     }
 
@@ -184,12 +183,12 @@ public abstract class InMemoryFileSystem extends FileSystem {
     }
 
     @Override
-    public @Nonnull Path getName(int index) {
+    public Path getName(int index) {
       return createPathStub(filePath.split(SEPARATOR)[index]);
     }
 
     @Override
-    public @Nonnull Path resolve(@Nonnull String other) {
+    public Path resolve(String other) {
       String newPath = filePath;
       if (needsFileSeparator(other, newPath)) newPath += SEPARATOR;
       return createPathStub(newPath + other);
@@ -200,12 +199,12 @@ public abstract class InMemoryFileSystem extends FileSystem {
     }
 
     @Override
-    public @Nonnull Path resolve(@Nonnull Path other) {
+    public Path resolve(Path other) {
       return resolve(((PathStub) other).filePath);
     }
 
     @Override
-    public @Nonnull Path relativize(Path other) {
+    public Path relativize(Path other) {
       if (other.getClass() != getClass())
         throw new RuntimeException("Attempted to use other Path type");
 
@@ -220,7 +219,7 @@ public abstract class InMemoryFileSystem extends FileSystem {
     }
 
     @Override
-    public @Nonnull String toString() {
+    public String toString() {
       return filePath;
     }
 
@@ -357,7 +356,6 @@ public abstract class InMemoryFileSystem extends FileSystem {
 
     @SuppressWarnings("unchecked")
     @Override
-    @Nonnull
     public Iterator<T> iterator() {
       return (Iterator<T>) paths.iterator();
     }
