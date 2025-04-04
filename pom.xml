@@ -60,7 +60,7 @@
         <maven-resources-plugin-version>3.3.1</maven-resources-plugin-version>
         <maven-dependency-plugin-version>3.8.1</maven-dependency-plugin-version>
         <dependency-check-version>12.1.0</dependency-check-version>
-        <netty-version>4.1.119.Final</netty-version>
+        <netty-version>4.2.0.Final</netty-version>
 
         <skip.dependency-check>false</skip.dependency-check>
 
@@ -153,7 +153,7 @@
                 <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>0.8.12</version>
+                    <version>0.8.13</version>
                     <executions>
                         <execution>
                             <id>prepare-agent</id>
