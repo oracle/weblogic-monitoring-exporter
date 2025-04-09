@@ -40,6 +40,11 @@ public abstract class HttpServletResponseStub implements HttpServletResponse {
     }
 
     @Override
+    public boolean isCommitted() {
+      return false;  // or true, depending on your test scenario
+    }
+
+    @Override
     public ServletOutputStream getOutputStream() {
         return out;
     }
