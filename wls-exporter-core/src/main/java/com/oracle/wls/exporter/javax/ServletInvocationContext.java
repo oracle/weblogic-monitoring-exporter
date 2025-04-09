@@ -85,6 +85,20 @@ public class ServletInvocationContext implements InvocationContext {
   }
 
   @Override
+  public void sendError(int status, String msg) throws IOException{
+    if (!response.isCommitted()) {
+      if (msg == null) {
+        response.sendError(status);
+      } else {
+        LOGGER.warning("Sending error : " + status + " - " + msg);
+        response.sendError(status, msg);
+      }
+    } else {
+      LOGGER.warning("Attempted to send error after response was committed: " + status + " - " + msg);
+    }
+  }
+/*
+  @Override
   public void sendError(int status, String msg) throws IOException {
     if (msg == null) {
       response.sendError(status);
@@ -92,6 +106,8 @@ public class ServletInvocationContext implements InvocationContext {
       response.sendError(status, msg);
     }
   }
+
+ */
 
   @Override
   public void sendRedirect(String location) throws IOException {
