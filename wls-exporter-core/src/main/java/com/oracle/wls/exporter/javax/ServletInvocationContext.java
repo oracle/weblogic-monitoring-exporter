@@ -17,12 +17,15 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.util.logging.Logger;
+
 
 /**
  * An implementation for the InvocationContext for a servlet web application.
  */
 public class ServletInvocationContext implements InvocationContext {
 
+  private static final Logger LOGGER = Logger.getLogger(ServletInvocationContext.class.getName());
   private final HttpServletRequest request;
   private final HttpServletResponse response;
   private final String localHostName = getLocalHostName();
