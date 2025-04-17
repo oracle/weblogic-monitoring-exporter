@@ -1,4 +1,4 @@
-// Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2019, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -28,9 +28,7 @@ class MetricMatcher extends org.hamcrest.TypeSafeDiagnosingMatcher<Map<String,Ob
 
     @Override
     protected boolean matchesSafely(Map<String, Object> map, Description description) {
-        if (expectedValue == null && !map.containsKey(expectedKey))
-            return true;
-        else if (matchesValue(map.get(expectedKey)))
+        if ((expectedValue == null && !map.containsKey(expectedKey)) || matchesValue(map.get(expectedKey)))
             return true;
 
         description.appendText("map was ").appendValueList("[", ", ", "]", map.entrySet());

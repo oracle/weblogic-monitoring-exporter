@@ -1,4 +1,4 @@
-// Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+// Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.buildhelper;
@@ -107,12 +107,12 @@ class GitTagMojoTest {
 
   @Test
   void publicConstructorSuppliesLiveExecutor() throws NoSuchFieldException, IllegalAccessException {
-    GitTagMojo mojo = new GitTagMojo();
+    GitTagMojo gitTagMojo = new GitTagMojo();
 
-    Field field = mojo.getClass().getDeclaredField("executor");
+    Field field = gitTagMojo.getClass().getDeclaredField("executor");
     field.setAccessible(true);
 
-    assertThat(field.get(mojo), instanceOf(GitTagExecutor.class));
+    assertThat(field.get(gitTagMojo), instanceOf(GitTagExecutor.class));
   }
 
   @SuppressWarnings("SameParameterValue")

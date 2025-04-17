@@ -1,4 +1,4 @@
-// Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -116,13 +116,13 @@ public class UrlBuilder {
   }
 
   private Queue<WebHost> initializeHosts() {
-    final PriorityQueue<WebHost> hosts = new PriorityQueue<>(new PreferSuccesses());
+    final PriorityQueue<WebHost> webHosts = new PriorityQueue<>(new PreferSuccesses());
     for (String hostName : hostNames) {
       for (int port : ports) {
-        hosts.add(new WebHost(hostName, port));
+        webHosts.add(new WebHost(hostName, port));
       }
     }
-    return hosts;
+    return webHosts;
   }
 
   // Informs the builder that the last URL it supplied worked

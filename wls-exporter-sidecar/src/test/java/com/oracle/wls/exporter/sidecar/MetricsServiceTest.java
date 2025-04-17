@@ -47,25 +47,31 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MetricsServiceTest {
 
     private static final String ONE_VALUE_CONFIG = "queries:\n- groups:\n    key: name\n    values: testSample1";
-    private static final String TWO_VALUE_CONFIG = "queries:" +
-            "\n- groups:\n    prefix: groupValue_\n    key: name\n    values: [testSample1,testSample2]";
+    private static final String TWO_VALUE_CONFIG = """
+            queries:\
+            
+            - groups:
+                prefix: groupValue_
+                key: name
+                values: [testSample1,testSample2]""";
     private static final String NO_CONFIGURATION = "";
 
-    private static final String JSON_TWO_VALUE_CONFIG = "{\n" +
-          "  \"metricsNameSnakeCase\": true,\n" +
-          "  \"queries\": [\n" +
-          "    {\n" +
-          "      \"groups\": {\n" +
-          "        \"key\": \"name\",\n" +
-          "        \"prefix\": \"group_value_\",\n" +
-          "        \"values\": [\n" +
-          "           \"testSample1\",\n" +
-          "           \"testSample2\"\n" +
-          "          ]\n" +
-          "      }\n" +
-          "    }\n" +
-          "  ]\n" +
-          "}";
+    private static final String JSON_TWO_VALUE_CONFIG = """
+            {
+              "metricsNameSnakeCase": true,
+              "queries": [
+                {
+                  "groups": {
+                    "key": "name",
+                    "prefix": "group_value_",
+                    "values": [
+                       "testSample1",
+                       "testSample2"
+                      ]
+                  }
+                }
+              ]
+            }""";
 
     private static final WebClientFactoryStub clientFactory = new WebClientFactoryStub();
     private final List<Memento> mementos = new ArrayList<>();
@@ -146,8 +152,6 @@ class MetricsServiceTest {
     private HttpClientResponse getMetricsResponse() {
         return client.get("/metrics").request();
     }
-
-    // todo test WLS hostName/port info
 
     @Test
     void whenServerSends403StatusOnGet_returnToClient() {

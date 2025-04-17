@@ -34,7 +34,7 @@ import static org.hamcrest.Matchers.hasItems;
  * @author Russell Gold
  */
 class MetricsStreamTest {
-    private static final String Linux_LINE_SEPARATOR = "\n";
+    private static final String LINUX_LINE_SEPARATOR = "\n";
     private static final long NANOSEC_PER_SECONDS = 1000000000;
     private static final String LINE_SEPARATOR = "line.separator";
     private static final String WINDOWS_LINE_SEPARATOR = "\r\n";
@@ -50,7 +50,7 @@ class MetricsStreamTest {
     private final List<Memento> mementos = new ArrayList<>();
 
     @BeforeEach
-    public void setUp() throws NoSuchFieldException {
+    void setUp() throws NoSuchFieldException {
         initMetricsStream();
         ServletUtils.setServer(postRequest);
         mementos.add(SystemPropertySupport.preserve(LINE_SEPARATOR));
@@ -63,7 +63,7 @@ class MetricsStreamTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         mementos.forEach(Memento::revert);
     }
 
@@ -106,7 +106,7 @@ class MetricsStreamTest {
 
     private List<String> getPrintedMetricValues() {
         return Arrays.stream(getPrintedMetrics()
-              .split(Linux_LINE_SEPARATOR))
+              .split(LINUX_LINE_SEPARATOR))
               .map(this::getMetricValue)
               .collect(Collectors.toList());
     }

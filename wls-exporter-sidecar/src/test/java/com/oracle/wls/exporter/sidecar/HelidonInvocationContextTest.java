@@ -1,4 +1,4 @@
-// Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+// Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.sidecar;
@@ -11,7 +11,6 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.SystemPropertySupport;
@@ -39,7 +38,7 @@ import static org.hamcrest.Matchers.nullValue;
 
 class HelidonInvocationContextTest {
 
-  private final static String REQUEST_URL_PATTERN = "%s://%s:%d/address";
+  private static final String REQUEST_URL_PATTERN = "%s://%s:%d/address";
   private static final String POD_NAME = "server2";
 
   private final ServerRequestStub request = createStrictStub(ServerRequestStub.class);
@@ -169,7 +168,7 @@ class HelidonInvocationContextTest {
         return get(HeaderNames.ACCEPT)
                 .stream()
                 .map(HttpMediaType::create)
-                .collect(Collectors.toList());
+                .toList();
       }
       return List.of();
     }

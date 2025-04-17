@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2023, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -630,8 +630,6 @@ class MBeanSelectorTest {
         assertThat(selector.getStringMetricValue("color", "yellow"), equalTo(-1));
     }
 
-    // todo catch bad type
-
     @Test
     void whenMergingLeafElements_combineValues() {
         MBeanSelector selector1 = createLeaf("first", "second");
@@ -917,7 +915,4 @@ class MBeanSelectorTest {
     private Map<String,Object> getSubMap(Map<String, Object> map, String key) {
         return (Map<String,Object>) map.get(key);
     }
-
-    // todo - should we allow multiple types in a single filter?
-
 }

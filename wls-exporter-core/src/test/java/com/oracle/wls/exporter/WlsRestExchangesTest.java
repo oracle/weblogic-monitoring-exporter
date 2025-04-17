@@ -30,7 +30,7 @@ class WlsRestExchangesTest {
   private final List<Memento> mementos = new ArrayList<>();
 
   @BeforeEach
-  public void setUp() throws NoSuchFieldException {
+  void setUp() throws NoSuchFieldException {
     mementos.add(SystemClockTestSupport.installClock());
     WlsRestExchanges.clear();
   }

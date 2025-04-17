@@ -38,7 +38,7 @@ class MultipartContentParserTest {
   private MultipartContentParser parser;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     parser = new MultipartContentParser("multipart/form-data; boundary=" + BOUNDARY);
   }
 

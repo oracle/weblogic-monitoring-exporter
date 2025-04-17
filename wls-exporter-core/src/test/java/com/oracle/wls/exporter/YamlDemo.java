@@ -1,10 +1,9 @@
-// Copyright (c) 2017, 2023, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 
 import com.google.gson.JsonObject;
 import com.oracle.wls.exporter.domain.ExporterConfig;
@@ -18,7 +17,7 @@ import static com.oracle.wls.exporter.DemoInputs.*;
  */
 public class YamlDemo {
 
-    public static void main(String... args) throws IOException {
+    public static void main(String... args) {
         String yamlString = YAML_STRING;
         System.out.println("The following configuration:\n" + yamlString);
         ExporterConfig exporterConfig = ExporterConfig.loadConfig(new ByteArrayInputStream(yamlString.getBytes()));

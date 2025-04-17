@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -69,14 +69,14 @@ class LiveConfigurationTest {
             "    values: [sample1, sample2]\n";
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         InMemoryResources.install();
         ConfigurationUpdaterStub.install();
         ServletUtils.setServer(HttpServletRequestStub.createPostRequest());
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         InMemoryResources.uninstall();
         ConfigurationUpdaterStub.uninstall();
     }

@@ -38,7 +38,7 @@ class MessagesServletTest {
   private final HttpServletResponseStub response = createServletResponse();
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     WlsRestExchanges.clear();
   }
 
@@ -108,7 +108,4 @@ class MessagesServletTest {
 
     assertThat(response.getHtml(), containsString("request 4"));
   }
-
-  // todo report last commit
-  // todo diagnose classpath issues (all should be in the WAR)
 }

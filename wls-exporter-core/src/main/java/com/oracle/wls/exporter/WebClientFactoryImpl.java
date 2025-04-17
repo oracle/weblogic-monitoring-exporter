@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -30,6 +30,7 @@ public class WebClientFactoryImpl implements WebClientFactory {
       try {
         return getClientConstructor(className);
       } catch (NoClassDefFoundError | NoSuchMethodException ignored) {
+        // no-op
       }
     }
     
@@ -48,10 +49,6 @@ public class WebClientFactoryImpl implements WebClientFactory {
     } catch (ClassNotFoundException e) {
       throw new NoClassDefFoundError(e.getMessage());
     }
-  }
-
-  private static String getClientClassName() {
-    return isApacheClientAvailable() ? APACHE_BASED_CLIENT : JDK_BASED_CLIENT;
   }
 
   private static boolean isApacheClientAvailable() {

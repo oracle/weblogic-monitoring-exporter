@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.matchers;
@@ -21,29 +21,29 @@ class PrometheusMetricsMatcherTest {
 
     @Test
     void whenMetricsAreGrouped_matcherPasses() {
-        assertTrue(matcher.matches(toHtml(ORDERED_LIST)));
+        assertTrue(matcher.matches(toHtml(orderedList)));
     }
 
-    private final String[] ORDERED_LIST =
+    private final String[] orderedList =
             {"metric1 1", "metric2{name='red'} 23", "metric2{name='blue'} 34"};
 
     private String toHtml(String... metrics) {
-        return Arrays.stream(metrics).map((s) -> s.replace('\'', '"')).collect(joining("\n"));
+        return Arrays.stream(metrics).map(s -> s.replace('\'', '"')).collect(joining("\n"));
     }
 
     @Test
     void whenMetricsAreInterspersed_matcherFails() {
-        assertFalse(matcher.matches(toHtml(MISORDERED_LIST)));
+        assertFalse(matcher.matches(toHtml(misorderedList)));
     }
 
-    private final String[] MISORDERED_LIST =
+    private final String[] misorderedList =
             {"metric2{name='red'} 23", "metric1 1", "metric2{name='blue'} 34"};
 
     @Test
     void whenMetricsHaveNonNumericValues_matcherFails() {
-        assertFalse(matcher.matches(toHtml(TEXT_LIST)));
+        assertFalse(matcher.matches(toHtml(textList)));
     }
 
-    private final String[] TEXT_LIST =
+    private final String[] textList =
             {"metric1 1", "metric2{name='red'} 23", "metric2{name='blue'} some-color"};
 }

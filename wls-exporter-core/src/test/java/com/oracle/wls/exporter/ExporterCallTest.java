@@ -55,7 +55,7 @@ class ExporterCallTest {
   private final InvocationContextStub context = InvocationContextStub.create();
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     LiveConfiguration.setServer(HOST_NAME, PORT);
     AuthenticatedCall.clearCookies();
   }

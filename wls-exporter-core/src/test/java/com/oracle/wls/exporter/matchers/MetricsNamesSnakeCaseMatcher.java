@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.matchers;
@@ -31,9 +31,9 @@ public class MetricsNamesSnakeCaseMatcher extends org.hamcrest.TypeSafeDiagnosin
 
     private List<String> getNonSnakeCaseNames(String[] metrics) {
         return Arrays.stream(metrics)
-                .filter((s) -> !s.startsWith("#"))
+                .filter(s -> !s.startsWith("#"))
                 .map(MetricsUtils::getMetricName)
-                .filter((s) -> !SnakeCaseUtil.isCompliant(s))
+                .filter(s -> !SnakeCaseUtil.isCompliant(s))
                 .filter(new MetricsUtils.Uniq())
                 .collect(Collectors.toList());
     }

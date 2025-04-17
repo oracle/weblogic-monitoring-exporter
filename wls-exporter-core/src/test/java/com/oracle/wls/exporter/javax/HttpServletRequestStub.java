@@ -28,11 +28,11 @@ import static com.meterware.simplestub.Stub.createStrictStub;
  */
 @SuppressWarnings("SameParameterValue")
 public abstract class HttpServletRequestStub implements HttpServletRequest {
-    public final static String HOST_NAME = "myhost";
-    public final static int PORT = 7654;
-    public final static int LOCAL_PORT = 7631;
+    public static final String HOST_NAME = "myhost";
+    public static final int PORT = 7654;
+    public static final int LOCAL_PORT = 7631;
 
-    private final static String DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded";
+    private static final String DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded";
     private final Map<String,String> headers = new HashMap<>();
     private final String method;
     private String localhostName = "localhost";
@@ -207,7 +207,7 @@ public abstract class HttpServletRequestStub implements HttpServletRequest {
         cookies.add(new Cookie(name, value));
     }
 
-    static abstract class HttpSessionStub implements HttpSession {
+    abstract static class HttpSessionStub implements HttpSession {
         private boolean valid = true;
 
         @Override

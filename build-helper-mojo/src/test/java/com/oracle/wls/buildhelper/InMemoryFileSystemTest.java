@@ -16,14 +16,15 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class InMemoryFileSystemTest {
   static final String CREATED_FILE = "/top/of/the/system/MyFile.txt";
   static final String CREATED_FILE_CONTENT = "some text";
 
   private final InMemoryFileSystem fileSystem = InMemoryFileSystem.createInstance();
-  private final Path SLASH = toPath("/");
+  private final Path slash = toPath("/");
 
   @BeforeEach
   void setUp() {
@@ -39,7 +40,7 @@ class InMemoryFileSystemTest {
   void canReadDummyFile() throws IOException {
     try (BufferedReader reader = Files.newBufferedReader(toPath(CREATED_FILE))) {
       assertThat(reader.readLine(), equalTo(CREATED_FILE_CONTENT));
-    };
+    }
   }
 
   @Test
@@ -75,7 +76,7 @@ class InMemoryFileSystemTest {
 
   @Test
   void rootDirIsSlash() {
-    assertThat(toPath("/a/b/c").getRoot(), equalTo(SLASH));
+    assertThat(toPath("/a/b/c").getRoot(), equalTo(slash));
   }
 
   @Test
@@ -90,12 +91,12 @@ class InMemoryFileSystemTest {
 
   @Test
   void parentForTopLevelSubdirectory_isSlash() {
-    assertThat(toPath("/subdir").getParent(), equalTo(SLASH));
+    assertThat(toPath("/subdir").getParent(), equalTo(slash));
   }
 
   @Test
   void parentForSlash_isNull() {
-    assertThat(SLASH.getParent(), nullValue());
+    assertThat(slash.getParent(), nullValue());
   }
 
   private Path toPath(String filePath) {
@@ -137,6 +138,6 @@ class InMemoryFileSystemTest {
   void whenParentDirectoryPresent_openFileForOutput() throws IOException {
     Files.createDirectories(fileSystem.getPath("/a/b/c"));
 
-    writeToFile("/a/b/c/NewFile.txt", "something that works");
+    assertDoesNotThrow(() -> writeToFile("/a/b/c/NewFile.txt", "something that works"));
   }
 }

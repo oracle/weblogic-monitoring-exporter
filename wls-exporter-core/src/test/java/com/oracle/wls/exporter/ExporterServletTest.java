@@ -53,7 +53,7 @@ import static org.hamcrest.Matchers.notNullValue;
  * @author Russell Gold
  */
 class ExporterServletTest {
-    private static final String localHostName = ServletInvocationContext.getLocalHostName();
+    private static final String LOCAL_HOST_NAME = ServletInvocationContext.getLocalHostName();
     private static final int REST_PORT = 7654;
     private static final int LOCAL_PORT = 7001;
     private static final String WLS_HOST = "myhost";
@@ -78,7 +78,7 @@ class ExporterServletTest {
     private Locale locale;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         locale = Locale.getDefault();
         InMemoryResources.install();
         ConfigurationUpdaterStub.install();
@@ -88,7 +88,7 @@ class ExporterServletTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         Locale.setDefault(locale);
         InMemoryResources.uninstall();
         ConfigurationUpdaterStub.uninstall();
@@ -161,7 +161,7 @@ class ExporterServletTest {
 
         servlet.doGet(request, response);
 
-        assertThat(factory.getClientUrl(),  equalTo(String.format(URL_PATTERN, localHostName, LOCAL_PORT)));
+        assertThat(factory.getClientUrl(),  equalTo(String.format(URL_PATTERN, LOCAL_HOST_NAME, LOCAL_PORT)));
     }
 
     @Test

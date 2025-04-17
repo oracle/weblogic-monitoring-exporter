@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2020, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -8,7 +8,7 @@ import java.util.Map;
  * Configuration for synchronization of queries
  */
 public class QuerySyncConfiguration {
-    private static final String URL = "url";
+    private static final String URL_KEY = "url";
     private static final String REFRESH_INTERVAL = "interval";
     private static final long DEFAULT_REFRESH_INTERVAL = 10;
 
@@ -16,10 +16,10 @@ public class QuerySyncConfiguration {
     private final long refreshInterval;
 
     QuerySyncConfiguration(Map<String, Object> map) {
-        if (map == null || !map.containsKey(URL))
+        if (map == null || !map.containsKey(URL_KEY))
             throw new ConfigurationException(ConfigurationException.NO_QUERY_SYNC_URL);
 
-        url = MapUtils.getStringValue(map, URL);
+        url = MapUtils.getStringValue(map, URL_KEY);
         refreshInterval = map.containsKey(REFRESH_INTERVAL)
                 ? MapUtils.getIntegerValue(map, REFRESH_INTERVAL)
                 : DEFAULT_REFRESH_INTERVAL;

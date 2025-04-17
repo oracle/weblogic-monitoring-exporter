@@ -16,7 +16,7 @@ import static com.oracle.wls.exporter.javax.HttpServletRequestStub.createPostReq
 
 public class MultipartTestUtils {
 
-  private final static String BOUNDARY = "C3n5NKoslNBKj4wBHR8kCX6OtVYEqeFYNjorlBP";
+  private static final String BOUNDARY = "C3n5NKoslNBKj4wBHR8kCX6OtVYEqeFYNjorlBP";
 
   public static HttpServletRequestStub createUploadRequest(String contents) {
     return createPostRequest().withMultipartContent(contents, BOUNDARY);

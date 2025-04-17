@@ -31,7 +31,7 @@ class MainServletTest {
     private final HttpServletResponseStub response = HttpServletResponseStub.createServletResponse();
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         InMemoryResources.install();
         ConfigurationUpdaterStub.install();
         LiveConfiguration.loadFromString("");
@@ -39,7 +39,7 @@ class MainServletTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         InMemoryResources.uninstall();
         ConfigurationUpdaterStub.uninstall();
     }

@@ -1,4 +1,4 @@
-// Copyright 2017, 2022, Oracle and/or its affiliates.
+// Copyright 2017, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -57,14 +57,14 @@ abstract class WebClientTestBase {
     public WebClientTestBase(Supplier<WebClient> factory) {
         this.factory = factory;
     }
-    private String _hostPath;
-    private PseudoServer _server;
+    private String hostPath;
+    private PseudoServer server;
 
 
     @BeforeEach
     public void setUp() throws IOException {
-        _server = new PseudoServer();
-        _hostPath = "http://localhost:" + _server.getConnectedPort();
+        server = new PseudoServer();
+        hostPath = "http://localhost:" + server.getConnectedPort();
         sentInfo = null;
         sentHeaders.clear();
     }
@@ -75,7 +75,7 @@ abstract class WebClientTestBase {
     }
 
     private void tearDownServer() {
-        if (_server != null) _server.shutDown();
+        if (server != null) server.shutDown();
     }
 
     @Test
@@ -90,6 +90,7 @@ abstract class WebClientTestBase {
         final String RESPONSE = "sent this back";
 
         defineResource("unprotected", new PseudoServlet() {
+            @Override
             public WebResource getGetResponse() {
                 return new WebResource(RESPONSE, "text/plain");
             }
@@ -101,11 +102,11 @@ abstract class WebClientTestBase {
     }
 
     private String getHostPath() {
-        return _hostPath;
+        return hostPath;
     }
 
     public void defineResource(String resourceName, PseudoServlet servlet) {
-        _server.setResource(resourceName, servlet);
+        server.setResource(resourceName, servlet);
     }
 
     @Test
@@ -113,6 +114,7 @@ abstract class WebClientTestBase {
         final String QUERY = "sent this";
 
         defineResource("unprotected", new PseudoServlet() {
+            @Override
             public WebResource getPostResponse() {
                 sentInfo = new String(getBody());
                 return new WebResource("", "text/plain");
@@ -133,6 +135,7 @@ abstract class WebClientTestBase {
         final Structure QUERY = new Structure(3, "red");
 
         defineResource("unprotected_put", new PseudoServlet() {
+            @Override
             public WebResource getPutResponse() {
                 sentInfo = new String(getBody());
                 return new WebResource("", "text/plain");
@@ -162,6 +165,7 @@ abstract class WebClientTestBase {
     @Test
     public void sendAddedHeaderOnPost() {
         defineResource("checkHeader", new PseudoServlet() {
+            @Override
             public WebResource getPostResponse() {
                 String header = getHeader("Added-header");
                 if (header == null) {
@@ -180,6 +184,7 @@ abstract class WebClientTestBase {
     @Test
     public void whenPostCreated_defaultContentTypeIsJson() throws IOException {
         defineResource("headers", new PseudoServlet() {
+            @Override
             public WebResource getPostResponse() {
                 sentHeaders.put(CONTENT_TYPE_HEADER, getHeader(CONTENT_TYPE_HEADER));
                 return new WebResource("", "text/plain");
@@ -195,6 +200,7 @@ abstract class WebClientTestBase {
     @Test
     public void whenPostCreated_includesXRequestedHeader() throws IOException {
         defineResource("headers", new PseudoServlet() {
+            @Override
             public WebResource getPostResponse() {
                 sentHeaders.put(X_REQUESTED_BY_HEADER, getHeader(X_REQUESTED_BY_HEADER));
                 return new WebResource("", "text/plain");
@@ -210,6 +216,7 @@ abstract class WebClientTestBase {
     @Test
     public void whenAuthorizationHeaderDefinedOnGet_sendIt() throws Exception {
         defineResource("headers", new PseudoServlet() {
+            @Override
             public WebResource getGetResponse() {
                 sentHeaders.put(AUTHENTICATION_HEADER, getHeader(AUTHENTICATION_HEADER));
                 return new WebResource("", "text/plain");
@@ -226,6 +233,7 @@ abstract class WebClientTestBase {
     @Test
     public void whenAuthorizationHeaderDefinedOnPost_sendIt() throws Exception {
         defineResource("headers", new PseudoServlet() {
+            @Override
             public WebResource getPostResponse() {
                 sentHeaders.put(AUTHENTICATION_HEADER, getHeader(AUTHENTICATION_HEADER));
                 return new WebResource("", "text/plain");
@@ -244,6 +252,7 @@ abstract class WebClientTestBase {
         final String RESPONSE = "returned this";
 
         defineResource("query", new PseudoServlet() {
+            @Override
             public WebResource getPostResponse() {
                 return new WebResource(RESPONSE, "text/plain");
             }
@@ -430,6 +439,7 @@ abstract class WebClientTestBase {
         try {
             webClient.doPostRequest("abced");
         } catch (SocketException ignored) {
+            // no-op
         }
     }
 }

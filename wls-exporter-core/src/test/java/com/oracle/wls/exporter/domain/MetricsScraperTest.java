@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2023, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -280,7 +280,6 @@ class MetricsScraperTest {
     void whenNullObjectInResponse_dontFail() {
         generateNestedMetrics(getServletsMapWithKey("invocationId"), RESPONSE_WITH_NULL);
 
-        // todo add as comment
         assertThat(scraper.getMetrics(), not(hasMetric("servlet_invocationId{invocationId=\"23\"}", 23)));
     }
 

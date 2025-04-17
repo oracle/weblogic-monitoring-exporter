@@ -1,4 +1,4 @@
-// Copyright (c) 2019, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2019, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -18,7 +18,7 @@ public class ErrorLog {
 
     private String toLogMessage(Throwable throwable) {
         StringBuilder sb = new StringBuilder(throwable.getClass().getSimpleName());
-        if (throwable.getMessage() != null && throwable.getMessage().trim().length() > 0)
+        if (throwable.getMessage() != null && !throwable.getMessage().trim().isEmpty())
             sb.append(": ").append(throwable.getMessage());
 
         return sb.toString();

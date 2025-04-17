@@ -17,7 +17,7 @@ public class LogServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String errors = LiveConfiguration.getErrors();
-        if (errors == null || errors.trim().length() == 0)
+        if (errors == null || errors.trim().isEmpty())
             resp.getOutputStream().println("No errors reported.");
         else
             resp.getOutputStream().println("<blockquote>" + errors + "</blockquote>");

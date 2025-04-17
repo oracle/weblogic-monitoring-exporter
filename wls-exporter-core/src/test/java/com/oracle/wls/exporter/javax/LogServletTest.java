@@ -1,4 +1,4 @@
-// Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2019, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.javax;
@@ -33,13 +33,13 @@ class LogServletTest {
     private final List<Memento> mementos = new ArrayList<>();
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         InMemoryResources.install();
         LiveConfiguration.loadFromString("");
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         mementos.forEach(Memento::revert);
         InMemoryResources.uninstall();
     }

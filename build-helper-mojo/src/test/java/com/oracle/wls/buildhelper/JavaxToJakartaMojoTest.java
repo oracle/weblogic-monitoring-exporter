@@ -20,7 +20,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static org.apache.maven.plugins.annotations.LifecyclePhase.GENERATE_SOURCES;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -29,11 +28,10 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class JavaxToJakartaMojoTest {
+class JavaxToJakartaMojoTest {
   static final String ROOT = "/project";
   static final String SOURCE_ROOT = ROOT + "/src/main/java";
   static final String GENERATED_SOURCE_ROOT = ROOT + "/target/generated-sources/jakarta";
@@ -51,7 +49,7 @@ public class JavaxToJakartaMojoTest {
   Function<String, Path> toPath = inMemoryFileSystem::getPath;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  void setUp() throws Exception {
     mojoTestSupport = new MojoTestSupport(JavaxToJakartaMojo.class);
     mojoTestSupport.getParameterField("compileSourceRoots").set(mojo, List.of(SOURCE_ROOT));
     mojoTestSupport.getParameterField("generatedSourcesDirectory").set(mojo, new File(GENERATED_SOURCE_ROOT));
@@ -67,7 +65,7 @@ public class JavaxToJakartaMojoTest {
   }
 
   @AfterEach
-  public void tearDown() {
+  void tearDown() {
     mementos.forEach(Memento::revert);
   }
 
@@ -109,7 +107,7 @@ public class JavaxToJakartaMojoTest {
 
   @Test
   void findsFilesToTransform() throws MojoFailureException {
-    assertThat(mojo.getFilesToTransform().map(this::toRelativePath).map(Path::toString).collect(Collectors.toList()),
+    assertThat(mojo.getFilesToTransform().map(this::toRelativePath).map(Path::toString).toList(),
           containsInAnyOrder("a/b/c/javax/Servlet1.java", "d/e/f/javax/Servlet2.java"));
   }
 
@@ -138,9 +136,4 @@ public class JavaxToJakartaMojoTest {
   private Path getStandardCompileSourceRoot() {
     return projectRoot.resolve("src").resolve("main").resolve("java");
   }
-
-  private Path getAddedCompileSourceRoot() {
-    return projectRoot.resolve("target").resolve("generated-sources").resolve("jakarta");
-  }
-
 }

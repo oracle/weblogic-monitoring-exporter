@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2023, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.javax;
@@ -42,7 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 class ConfigurationServletTest {
 
-    private final static int REST_PORT = 7651;
+    private static final int REST_PORT = 7651;
 
     private final WebClientFactoryStub factory = new WebClientFactoryStub();
     private final ConfigurationServlet servlet = new ConfigurationServlet(factory);
@@ -50,7 +50,7 @@ class ConfigurationServletTest {
     private HttpServletRequestStub request;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         LiveConfiguration.loadFromString("");
         request = createUploadRequest(createEncodedForm("replace", CONFIGURATION));
         UrlBuilder.clearHistory();
@@ -127,9 +127,9 @@ class ConfigurationServletTest {
 
     @Test
     void whenRequestUsesHttps_authenticateWithHttps() throws Exception {
-        HttpServletRequestStub request = createUploadRequest(createEncodedForm("replace", CONFIGURATION));
-        request.setSecure(true);
-        servlet.doPost(request, response);
+        HttpServletRequestStub uploadRequest = createUploadRequest(createEncodedForm("replace", CONFIGURATION));
+        uploadRequest.setSecure(true);
+        servlet.doPost(uploadRequest, response);
 
         assertThat(factory.getClientUrl(), Matchers.startsWith("https:"));
     }
@@ -173,7 +173,7 @@ class ConfigurationServletTest {
 
         @Override
         protected void invoke(WebClient webClient, InvocationContext context) {
-
+            // no-op
         }
     }
 

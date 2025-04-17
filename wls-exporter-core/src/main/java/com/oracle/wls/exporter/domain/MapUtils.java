@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -118,7 +118,7 @@ public class MapUtils {
      * @return true if the string has no contents
      */
     public static boolean isNullOrEmptyString(String s) {
-        return s == null || s.length() == 0;
+        return s == null || s.isEmpty();
     }
 
 }

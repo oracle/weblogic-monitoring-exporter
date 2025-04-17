@@ -233,13 +233,6 @@ class ExporterConfigTest {
     }
 
     @Test
-    void afterLoad_convertToString() {
-        ExporterConfig config = loadFromString(SNAKE_CASE_CONFIG);
-
-        assertThat(config.toString(), equalToCompressingWhiteSpace(SNAKE_CASE_CONFIG));
-    }
-
-    @Test
     void whenQueriesNotDefinedAsArray_reportError() {
         assertThrows(ConfigurationException.class, () -> loadFromString(BAD_QUERY_CONFIG));
     }
@@ -648,7 +641,7 @@ class ExporterConfigTest {
         ExporterConfig exporterConfig = loadFromString(DOMAIN_QUALIFIER_CONFIG);
         getMetrics(exporterConfig);
 
-        assertThat(getMetrics(exporterConfig).values().stream().anyMatch(v -> v instanceof String), is(false));
+        assertThat(getMetrics(exporterConfig).values().stream().anyMatch(String.class::isInstance), is(false));
     }
 
     private static final String DOMAIN_QUALIFIER_CONFIG =

@@ -68,12 +68,13 @@ public abstract class InMemoryFileSystem extends FileSystem {
     if (!filePath.startsWith(SEPARATOR)) throw new RuntimeException("Must specify full absolute path");
     provider.fileContents.put(filePath, contents);
 
-    String directoryPath = "";
+    StringBuilder directoryPath = new StringBuilder();
     for (String name : filePath.split(SEPARATOR)) {
       if (name.isEmpty()) continue;
-      directoryPath += (SEPARATOR + name);
-      if (!provider.fileContents.containsKey(directoryPath))
-        provider.fileContents.put(directoryPath, DIRECTORY_OBJECT);
+      directoryPath.append(SEPARATOR).append(name);
+      String path = directoryPath.toString();
+      if (!provider.fileContents.containsKey(path))
+        provider.fileContents.put(path, DIRECTORY_OBJECT);
     }
   }
 

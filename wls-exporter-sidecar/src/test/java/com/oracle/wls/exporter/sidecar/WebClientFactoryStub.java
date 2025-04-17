@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2021, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.sidecar;
@@ -51,8 +51,8 @@ public class WebClientFactoryStub implements WebClientFactory {
         webClient.reportAuthenticationRequired(basicRealmName);
     }
 
-    static abstract class WebClientStub extends WebClientCommon {
-        private final static String WLS_SEARCH_PATH = "/management/weblogic/latest/serverRuntime/search";
+    abstract static class WebClientStub extends WebClientCommon {
+        private static final String WLS_SEARCH_PATH = "/management/weblogic/latest/serverRuntime/search";
 
         private String url;
         private final List<TestResponse> testResponses = new ArrayList<>();
