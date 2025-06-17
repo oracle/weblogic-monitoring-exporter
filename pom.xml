@@ -49,7 +49,7 @@
         <apache.http.version>4.5.3</apache.http.version>
         <version.plugin.surefire>3.5.3</version.plugin.surefire>
         <maven-enforcer-plugin-version>3.5.0</maven-enforcer-plugin-version>
-        <maven-clean-plugin-version>3.4.1</maven-clean-plugin-version>
+        <maven-clean-plugin-version>3.5.0</maven-clean-plugin-version>
         <maven-compiler-plugin-version>3.14.0</maven-compiler-plugin-version>
         <maven-install-plugin-version>3.1.4</maven-install-plugin-version>
         <maven-deploy-plugin-version>3.1.4</maven-deploy-plugin-version>
@@ -60,7 +60,7 @@
         <maven-resources-plugin-version>3.3.1</maven-resources-plugin-version>
         <maven-dependency-plugin-version>3.8.1</maven-dependency-plugin-version>
         <dependency-check-version>12.1.1</dependency-check-version>
-        <netty-version>4.2.1.Final</netty-version>
+        <netty-version>4.2.2.Final</netty-version>
 
         <skip.dependency-check>false</skip.dependency-check>
 
@@ -355,7 +355,7 @@
             <dependency>
               <groupId>org.junit.jupiter</groupId>
               <artifactId>junit-jupiter</artifactId>
-              <version>5.12.2</version>
+              <version>5.13.1</version>
               <scope>test</scope>
             </dependency>
             <dependency>
