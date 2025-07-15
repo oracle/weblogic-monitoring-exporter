@@ -14,7 +14,7 @@
     <name>WebLogic Monitoring Exporter Sidecar</name>
 
     <properties>
-        <helidon.version>4.2.3</helidon.version>
+        <helidon.version>4.2.4</helidon.version>
         <mainClass>com.oracle.wls.exporter.sidecar.Main</mainClass>
 
         <version.plugin.helidon>4.0.16</version.plugin.helidon>
