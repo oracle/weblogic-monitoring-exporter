@@ -33,14 +33,16 @@ ENV LANG="en_US.UTF-8"
 
 COPY --from=jre-build custom-jre /opt/java
 COPY --from=jre-build /lib64/libz.so.1 /lib64/libz.so.1
+COPY --from=jre-build /lib64/librt.so.1 /lib64/librt.so.1
+COPY --from=jre-build /lib64/libm.so.6 /lib64/libm.so.6
 COPY --from=jre-build /lib64/libpthread.so.0 /lib64/libpthread.so.0
 COPY --from=jre-build /lib64/libdl.so.2 /lib64/libdl.so.2
 COPY --from=jre-build /lib64/libc.so.6 /lib64/libc.so.6
-COPY --from=jre-build /lib64/libpthread.so.0 /lib64/libpthread.so.0
+COPY --from=jre-build /lib/ld-linux-aarch64.so.1 /lib/ld-linux-aarch64.so.1
 
 COPY wls-exporter-sidecar/target/wls-exporter-sidecar.jar /app/wls-exporter-sidecar.jar
 COPY wls-exporter-sidecar/target/libs /app/libs
 
-ENTRYPOINT ["/opt/java/bin/java", "$JAVA_OPTS", "-jar", "/app/wls-exporter-sidecar.jar"]
+ENTRYPOINT ["/opt/java/bin/java", "-jar", "/app/wls-exporter-sidecar.jar"]
 
 EXPOSE 8080
