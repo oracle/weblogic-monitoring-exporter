@@ -9,10 +9,20 @@ ENV JAVA_URL_AARCH64="https://download.oracle.com/java/21/latest/jdk-21_linux-aa
 RUN set -eux; \
     microdnf -y install gzip tar; \
     MACHINE_TYPE=`uname -m`; \
+    mkdir -p /dynamic/lib64; \
+    mkdir -p /dynamic/lib; \
+    cp /lib64/libz.so.1 /dynamic/lib64; \
+    cp /lib64/librt.so.1 /dynamic/lib64; \
+    cp /lib64/libm.so.6 /dynamic/lib64; \
+    cp /lib64/libpthread.so.0 /dynamic/lib64; \
+    cp /lib64/libdl.so.2 /dynamic/lib64; \
+    cp /lib64/libc.so.6 /dynamic/lib64; \
     if [ ${MACHINE_TYPE} == 'x86_64' ]; then \
       JAVA_URL=$JAVA_URL_X64; \
+      cp /lib/ld-linux-x86-64.so.2 /dynamic/lib; \
     else \
       JAVA_URL=$JAVA_URL_AARCH64; \
+      cp /lib/ld-linux-aarch64.so.1 /dynamic/lib; \
     fi; \
     curl -fL -o jdk.tar.gz "$JAVA_URL"; \
     mkdir -p /jdk; \
@@ -32,13 +42,8 @@ LABEL "org.opencontainers.image.authors"="Ryan Eberhard <ryan.eberhard@oracle.co
 ENV LANG="en_US.UTF-8"
 
 COPY --from=jre-build custom-jre /opt/java
-COPY --from=jre-build /lib64/libz.so.1 /lib64/libz.so.1
-COPY --from=jre-build /lib64/librt.so.1 /lib64/librt.so.1
-COPY --from=jre-build /lib64/libm.so.6 /lib64/libm.so.6
-COPY --from=jre-build /lib64/libpthread.so.0 /lib64/libpthread.so.0
-COPY --from=jre-build /lib64/libdl.so.2 /lib64/libdl.so.2
-COPY --from=jre-build /lib64/libc.so.6 /lib64/libc.so.6
-COPY --from=jre-build /lib/ld-linux-aarch64.so.1 /lib/ld-linux-aarch64.so.1
+COPY --from=jre-build /dynamic/lib64 /lib64
+COPY --from=jre-build /dynamic/lib /lib
 
 COPY wls-exporter-sidecar/target/wls-exporter-sidecar.jar /app/wls-exporter-sidecar.jar
 COPY wls-exporter-sidecar/target/libs /app/libs
