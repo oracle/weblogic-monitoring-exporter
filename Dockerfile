@@ -19,7 +19,7 @@ RUN set -eux; \
     cp /lib64/libc.so.6 /dynamic/lib64; \
     if [ ${MACHINE_TYPE} == 'x86_64' ]; then \
       JAVA_URL=$JAVA_URL_X64; \
-      cp /lib/ld-linux-x86-64.so.2 /dynamic/lib; \
+      cp /lib64/ld-linux-x86-64.so.2 /dynamic/lib64; \
     else \
       JAVA_URL=$JAVA_URL_AARCH64; \
       cp /lib/ld-linux-aarch64.so.1 /dynamic/lib; \
