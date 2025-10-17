@@ -27,7 +27,7 @@ RUN set -eux; \
     curl -fL -o jdk.tar.gz "$JAVA_URL"; \
     mkdir -p /jdk; \
     tar --extract --file jdk.tar.gz --directory /jdk --strip-components 1; \
-    /jdk/bin/jlink --verbose --compress 2 --strip-java-debug-attributes --no-header-files --no-man-pages --output custom-jre --add-modules java.base,java.logging,java.desktop,java.instrument,java.management,java.naming,java.net.http,java.security.jgss,java.sql,jdk.attach,jdk.jdi,jdk.jfr,jdk.management,jdk.management.agent,jdk.management.jfr,jdk.net,jdk.unsupported,jdk.crypto.cryptoki,jdk.crypto.ec,jdk.zipfs,jdk.jcmd
+    /jdk/bin/jlink --verbose --compress 2 --strip-java-debug-attributes --no-header-files --no-man-pages --output custom-jre --add-modules java.base,java.logging,java.management,java.naming,java.net.http,java.security.jgss,jdk.net,jdk.crypto.cryptoki,jdk.crypto.ec,jdk.zipfs
 
 FROM scratch
 
