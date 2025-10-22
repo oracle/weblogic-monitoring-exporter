@@ -22,10 +22,10 @@ jobs:
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: Set up JDK
-        uses: actions/setup-java@v5
+        uses: oracle-actions/setup-java@v1
         with:
-          distribution: 'oracle'
-          java-version: 21
+          website: oracle.com
+          release: 25
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
