@@ -64,7 +64,7 @@
 
         <skip.dependency-check>false</skip.dependency-check>
 
-        <java.version.range>21</java.version.range>
+        <java.version.range>25</java.version.range>
         <maven.version.range>[3.8.1,)</maven.version.range>
     </properties>
 
@@ -389,7 +389,7 @@
         <profile>
             <id>helidon-sidecar</id>
             <activation>
-                <jdk>[21,)</jdk>
+                <jdk>[25,)</jdk>
             </activation>
             <modules>
                 <module>build-helper-mojo</module>
