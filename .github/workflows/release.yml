@@ -18,7 +18,7 @@ jobs:
           VERSION=${GITHUB_REF_NAME#v}
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "IMAGE_NAME=${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}:$VERSION" >> $GITHUB_ENV
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: Set up JDK
