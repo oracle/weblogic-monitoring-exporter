@@ -56,8 +56,8 @@
         <maven-plugin-plugin-version>3.15.2</maven-plugin-plugin-version>
         <maven-site-plugin-version>3.21.0</maven-site-plugin-version>
         <maven-jar-plugin-version>3.5.0</maven-jar-plugin-version>
-        <maven-war-plugin-version>3.5.0</maven-war-plugin-version>
-        <maven-resources-plugin-version>3.3.1</maven-resources-plugin-version>
+        <maven-war-plugin-version>3.5.1</maven-war-plugin-version>
+        <maven-resources-plugin-version>3.4.0</maven-resources-plugin-version>
         <maven-dependency-plugin-version>3.9.0</maven-dependency-plugin-version>
         <dependency-check-version>12.1.9</dependency-check-version>
         <netty-version>4.2.7.Final</netty-version>
