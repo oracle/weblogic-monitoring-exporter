@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.oracle.wls.exporter</groupId>
         <artifactId>wls-exporter-parent</artifactId>
-        <version>2.3.8</version>
+        <version>2.3.9-SNAPSHOT</version>
     </parent>
     <artifactId>wls-exporter-sidecar</artifactId>
     <name>WebLogic Monitoring Exporter Sidecar</name>
