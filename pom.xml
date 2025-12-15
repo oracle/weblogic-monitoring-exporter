@@ -60,7 +60,7 @@
         <maven-resources-plugin-version>3.4.0</maven-resources-plugin-version>
         <maven-dependency-plugin-version>3.9.0</maven-dependency-plugin-version>
         <dependency-check-version>12.1.9</dependency-check-version>
-        <netty-version>4.2.7.Final</netty-version>
+        <netty-version>4.2.9.Final</netty-version>
 
         <skip.dependency-check>false</skip.dependency-check>
 
