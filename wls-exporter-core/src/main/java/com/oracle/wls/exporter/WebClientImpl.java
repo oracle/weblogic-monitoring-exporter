@@ -1,4 +1,4 @@
-// Copyright 2017, 2020, Oracle and/or its affiliates.
+// Copyright 2017, 2025, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -16,6 +16,7 @@ import javax.net.ssl.SSLContext;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -45,6 +46,9 @@ import org.apache.http.ssl.TrustStrategy;
  * @author Russell Gold
  */
 public class WebClientImpl extends WebClientCommon {
+    // Create default connect, socket, and request timeout.
+    // Previously, these timeouts were unlimited. Consider making configurable later, if needed.
+    private static final int TIMEOUT = 5000; // 5 seconds
 
     private final List<BasicHeader> addedHeaders = new ArrayList<>();
     private final List<BasicHeader> sessionHeaders = new ArrayList<>();
@@ -137,11 +141,16 @@ public class WebClientImpl extends WebClientCommon {
     class ApacheHttpClient implements HttpClientExec {
         private final CloseableHttpClient client;
         public ApacheHttpClient() throws GeneralSecurityException {
-            SelfSignedCertificateAcceptor acceptor = new SelfSignedCertificateAcceptor();
+            RequestConfig config = RequestConfig.custom()
+                .setConnectTimeout(TIMEOUT)
+                .setSocketTimeout(TIMEOUT)
+                .setConnectionRequestTimeout(TIMEOUT)
+                .build();            SelfSignedCertificateAcceptor acceptor = new SelfSignedCertificateAcceptor();
             client = HttpClientBuilder.create()
                   .setDefaultHeaders(getDefaultHeaders())
                   .setSSLSocketFactory(acceptor.getSslConnectionSocketFactory())
                   .setConnectionManager(acceptor.getConnectionManager())
+                  .setDefaultRequestConfig(config)
                   .build();
         }
 
