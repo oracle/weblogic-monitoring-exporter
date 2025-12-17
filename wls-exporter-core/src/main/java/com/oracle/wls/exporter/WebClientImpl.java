@@ -145,7 +145,8 @@ public class WebClientImpl extends WebClientCommon {
                 .setConnectTimeout(TIMEOUT)
                 .setSocketTimeout(TIMEOUT)
                 .setConnectionRequestTimeout(TIMEOUT)
-                .build();            SelfSignedCertificateAcceptor acceptor = new SelfSignedCertificateAcceptor();
+                .build();
+            SelfSignedCertificateAcceptor acceptor = new SelfSignedCertificateAcceptor();
             client = HttpClientBuilder.create()
                   .setDefaultHeaders(getDefaultHeaders())
                   .setSSLSocketFactory(acceptor.getSslConnectionSocketFactory())
