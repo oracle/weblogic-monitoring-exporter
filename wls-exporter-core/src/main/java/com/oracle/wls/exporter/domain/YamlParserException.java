@@ -3,7 +3,7 @@
 
 package com.oracle.wls.exporter.domain;
 
-import org.yaml.snakeyaml.scanner.ScannerException;
+import org.yaml.snakeyaml.error.YAMLException;
 
 /**
  * An exception thrown when there is an error parsing the YAML.
@@ -11,15 +11,15 @@ import org.yaml.snakeyaml.scanner.ScannerException;
  * @author Russell Gold
  */
 public class YamlParserException extends ConfigurationException {
-    private final ScannerException scannerException;
+    private final YAMLException yamlException;
 
-    YamlParserException(ScannerException scannerException) {
+    YamlParserException(YAMLException yamlException) {
         super(BAD_YAML_FORMAT);
-        this.scannerException = scannerException;
+        this.yamlException = yamlException;
     }
 
     @Override
     public String getMessage() {
-        return super.getMessage() + '\n' + scannerException.getMessage();
+        return super.getMessage() + '\n' + yamlException.getMessage();
     }
 }

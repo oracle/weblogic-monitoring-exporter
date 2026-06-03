@@ -14,8 +14,10 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import com.google.gson.JsonObject;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.scanner.ScannerException;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
+import org.yaml.snakeyaml.error.YAMLException;
 
 /**
  * This class represents the configuration for the exporter, created by parsing YAML.
@@ -60,11 +62,36 @@ public class ExporterConfig implements MetricsProcessor {
      * @return an ExporterConfig object that matches the parsed YAML
      */
     public static ExporterConfig loadConfig(InputStream inputStream) {
+        return loadConfig(asMap(loadYaml(inputStream)));
+    }
+
+    /**
+     * Loads a YAML configuration to create a new configuration object.
+     * @param yamlString a YAML configuration.
+     * @return an ExporterConfig object that matches the parsed YAML
+     */
+    public static ExporterConfig loadConfig(String yamlString) {
+        return loadConfig(asMap(loadYaml(yamlString)));
+    }
+
+    private static Object loadYaml(InputStream inputStream) {
         try {
-            return loadConfig(asMap(new Yaml().load(inputStream)));
-        } catch (ScannerException e) {
+            return createYamlParser().load(inputStream);
+        } catch (YAMLException e) {
             throw new YamlParserException(e);
         }
+    }
+
+    private static Object loadYaml(String yamlString) {
+        try {
+            return createYamlParser().load(yamlString);
+        } catch (YAMLException e) {
+            throw new YamlParserException(e);
+        }
+    }
+
+    private static Yaml createYamlParser() {
+        return new Yaml(new SafeConstructor(new LoaderOptions()));
     }
 
     @SuppressWarnings("unchecked")
