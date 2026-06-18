@@ -17,7 +17,7 @@
         <helidon.version>4.3.4</helidon.version>
         <mainClass>com.oracle.wls.exporter.sidecar.Main</mainClass>
 
-        <version.plugin.helidon>4.0.23</version.plugin.helidon>
+        <version.plugin.helidon>4.0.25</version.plugin.helidon>
     </properties>
 
     <dependencyManagement>
