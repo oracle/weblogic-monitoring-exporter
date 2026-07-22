@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  BASE_IMAGE_NAME: ghcr.io/oracle/weblogic-monitoring-exporter
+  BASE_IMAGE_NAME: oracle/weblogic-monitoring-exporter
 
 jobs:
   build:
