@@ -1,4 +1,4 @@
-// Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+// Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -24,7 +24,6 @@ public class ExporterCall extends AuthenticatedCall {
 
   @Override
   protected void invoke(WebClient webClient, InvocationContext context) throws IOException {
-    LiveConfiguration.updateConfiguration();
     context.setResponseHeader("Content-Type", "text/plain");
     try (OutputStream responseStream = context.getResponseStream();
          MetricsStream metricsStream = new MetricsStream(getInstanceName(), responseStream)) {

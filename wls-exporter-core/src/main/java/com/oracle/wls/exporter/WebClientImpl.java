@@ -1,4 +1,4 @@
-// Copyright 2017, 2025, Oracle and/or its affiliates.
+// Copyright 2017, 2026, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -46,9 +46,6 @@ import org.apache.http.ssl.TrustStrategy;
  * @author Russell Gold
  */
 public class WebClientImpl extends WebClientCommon {
-    // Create default connect, socket, and request timeout.
-    // Previously, these timeouts were unlimited. Consider making configurable later, if needed.
-    private static final int TIMEOUT = 5000; // 5 seconds
 
     private final List<BasicHeader> addedHeaders = new ArrayList<>();
     private final List<BasicHeader> sessionHeaders = new ArrayList<>();
@@ -138,14 +135,19 @@ public class WebClientImpl extends WebClientCommon {
         return new ApacheHttpClient();
     }
 
+    RequestConfig createRequestConfig() {
+        int timeoutMillis = getRequestTimeoutMillis();
+        return RequestConfig.custom()
+            .setConnectTimeout(timeoutMillis)
+            .setSocketTimeout(timeoutMillis)
+            .setConnectionRequestTimeout(timeoutMillis)
+            .build();
+    }
+
     class ApacheHttpClient implements HttpClientExec {
         private final CloseableHttpClient client;
         public ApacheHttpClient() throws GeneralSecurityException {
-            RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(TIMEOUT)
-                .setSocketTimeout(TIMEOUT)
-                .setConnectionRequestTimeout(TIMEOUT)
-                .build();
+            RequestConfig config = createRequestConfig();
             SelfSignedCertificateAcceptor acceptor = new SelfSignedCertificateAcceptor();
             client = HttpClientBuilder.create()
                   .setDefaultHeaders(getDefaultHeaders())

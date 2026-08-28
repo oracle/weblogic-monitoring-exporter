@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2023, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2026, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -33,10 +33,13 @@ import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
  */
 public abstract class WebClientCommon implements WebClient {
 
+    private static final int DEFAULT_REQUEST_TIMEOUT_MILLIS = 5000;
+
     private String authentication;
     private boolean retryNeeded;
     private String contentType;
     private String url;
+    private int requestTimeoutMillis = DEFAULT_REQUEST_TIMEOUT_MILLIS;
     private final List<Consumer<String>> setCookieHandlers = new ArrayList<>();
 
     interface WebRequest {
@@ -62,6 +65,15 @@ public abstract class WebClientCommon implements WebClient {
     public WebClientCommon withUrl(String url) {
         this.url = url;
         return this;
+    }
+
+    @Override
+    public void setRequestTimeoutMillis(int timeoutMillis) {
+        requestTimeoutMillis = timeoutMillis;
+    }
+
+    int getRequestTimeoutMillis() {
+        return requestTimeoutMillis;
     }
 
     /**

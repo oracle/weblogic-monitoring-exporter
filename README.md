@@ -33,6 +33,7 @@ query_sync:
 metricsNameSnakeCase: true
 domainQualifier: true
 restPort: 7001
+restApiTimeoutSeconds: 15
 queries:
 - key: name
   keyName: server
@@ -63,6 +64,7 @@ Note that there are two parts to the configuration. The optional top portion def
 | `metricsNameSnakeCase` | If true, metrics names will be converted to snake case. Defaults to false. |
 | `domainQualifier` | If true, the domain name will be included as a qualifier for all metrics. Defaults to false. |
 | `restPort` | Optional, used in the web application only. Overrides the port on which the exporter should contact the REST API. Needed if the exporter cannot find the REST API. The most common case is running on a system with the administration port enabled. In that case, you must specify the administration port in this field and access the exporter by using the SSL port. |
+| `restApiTimeoutSeconds` | Optional. The positive timeout in seconds for each internal request to the WebLogic Management REST API. Defaults to 5. This is not the maximum duration of a complete metrics scrape: each REST request uses the timeout independently. Keep Prometheus `scrape_timeout` longer than the worst-case complete exporter scrape; increasing this value cannot override a shorter Prometheus deadline. |
 
 Note that if unable to contact the REST API using the inferred host and port, the exporter will try the local host name and, if the REST port is specified, the local port.
 
@@ -150,6 +152,7 @@ spec:
     configuration:
       metricsNameSnakeCase: true
       domainQualifier: true
+      restApiTimeoutSeconds: 15
       queries:
       - key: name
         keyName: server
@@ -190,6 +193,8 @@ Metrics will then be available from `wls-exporter/metrics`.  You will be prompte
 
 You can also use `curl -i -u <administrator credential uid:pwd> -L -F "effect=<replace|append>" -F "configuration=@config.yaml" http(s)://adminserver-host:port/wls-exporter/configure`
 to change the configuration.
+
+Set `restApiTimeoutSeconds` in the WAR's initial configuration file, or upload it with a `replace` configuration update, to override its five-second default. An `append` update only adds queries and retains the current timeout.
 
 ## Download the release
 
@@ -259,6 +264,8 @@ curl -X PUT -i -u myname:mypassword \
 
 Replace `myname` and `mypassword` with the credentials expected by WebLogic Server for its REST API,
 and `<path to yaml>` with the relative path to the configuration to use.
+
+For an operator-installed sidecar, put `restApiTimeoutSeconds` in the Domain resource at `spec.monitoringExporter.configuration`, as shown above. The operator sends that configuration to the sidecar's `/configuration` endpoint. For a manually run sidecar, include the same property in the YAML sent with the PUT request. This setting is an exporter YAML property, not a JVM system property or environment variable.
 
 You can retrieve the current configuration by
 

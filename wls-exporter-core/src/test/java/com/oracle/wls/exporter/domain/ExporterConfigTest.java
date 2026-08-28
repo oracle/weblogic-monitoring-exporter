@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2026, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -43,6 +43,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 class ExporterConfigTest {
     private static final int EXPECTED_PORT = 3456;
+    private static final int DEFAULT_REST_API_TIMEOUT_SECONDS = 5;
+    private static final int REST_API_TIMEOUT_SECONDS = 15;
     private static final String SERVLET_CONFIG = "---\n" +
             "queries:\n" +
             "- applicationRuntimes:\n" +
@@ -161,6 +163,54 @@ class ExporterConfigTest {
         ExporterConfig config = ExporterConfig.loadConfig(yamlConfig);
 
         assertThat(config.toString(), containsString(ExporterConfig.REST_PORT + ": " + EXPECTED_PORT));
+    }
+
+    @Test
+    void whenRestApiTimeoutNotSpecified_useDefault() {
+        assertThat(ExporterConfig.loadConfig(yamlConfig).getRestApiTimeoutSeconds(),
+                equalTo(DEFAULT_REST_API_TIMEOUT_SECONDS));
+    }
+
+    @Test
+    void whenRestApiTimeoutSpecified_readItFromYaml() {
+        yamlConfig.put(ExporterConfig.REST_API_TIMEOUT_SECONDS, REST_API_TIMEOUT_SECONDS);
+
+        assertThat(ExporterConfig.loadConfig(yamlConfig).getRestApiTimeoutSeconds(),
+                equalTo(REST_API_TIMEOUT_SECONDS));
+    }
+
+    @Test
+    void whenRestApiTimeoutSpecifiedAsString_parseIt() {
+        assertThat(loadFromString("restApiTimeoutSeconds: '15'").getRestApiTimeoutSeconds(),
+                equalTo(REST_API_TIMEOUT_SECONDS));
+    }
+
+    @Test
+    void whenRestApiTimeoutIsNotAnInteger_rejectIt() {
+        assertThrows(ConfigurationException.class,
+                () -> loadFromString("restApiTimeoutSeconds: fifteen"));
+    }
+
+    @Test
+    void whenRestApiTimeoutIsZeroOrNegative_rejectIt() {
+        assertThrows(ConfigurationException.class,
+                () -> loadFromString("restApiTimeoutSeconds: 0"));
+        assertThrows(ConfigurationException.class,
+                () -> loadFromString("restApiTimeoutSeconds: -1"));
+    }
+
+    @Test
+    void whenRestApiTimeoutNotSpecified_dontIncludeItInToString() {
+        assertThat(ExporterConfig.loadConfig(yamlConfig).toString(),
+                not(containsString(ExporterConfig.REST_API_TIMEOUT_SECONDS)));
+    }
+
+    @Test
+    void whenRestApiTimeoutSpecified_includeItInToString() {
+        yamlConfig.put(ExporterConfig.REST_API_TIMEOUT_SECONDS, REST_API_TIMEOUT_SECONDS);
+
+        assertThat(ExporterConfig.loadConfig(yamlConfig).toString(),
+                containsString(ExporterConfig.REST_API_TIMEOUT_SECONDS + ": " + REST_API_TIMEOUT_SECONDS));
     }
 
     @Test
@@ -355,6 +405,12 @@ class ExporterConfigTest {
      }
 
     @Test
+    void afterAppend_configHasOriginalRestApiTimeout() {
+        assertThat(getAppendedConfiguration("restApiTimeoutSeconds: 15", "restApiTimeoutSeconds: 30")
+                .getRestApiTimeoutSeconds(), equalTo(15));
+    }
+
+    @Test
     void afterAppend_configHasOriginalQuery() {
         ExporterConfig config = getAppendedConfiguration(SERVLET_CONFIG, WORK_MANAGER_CONFIG);
 
@@ -400,6 +456,14 @@ class ExporterConfigTest {
         assertThat(getReplacedConfiguration(SERVLET_CONFIG, REST_PORT_CONFIG).getRestPort(), equalTo(1234));
         assertThat(getReplacedConfiguration(REST_PORT_CONFIG, SERVLET_CONFIG).getRestPort(), nullValue());
      }
+
+    @Test
+    void afterReplace_configHasChangedOrResetRestApiTimeout() {
+        assertThat(getReplacedConfiguration("restApiTimeoutSeconds: 15", "restApiTimeoutSeconds: 30")
+                .getRestApiTimeoutSeconds(), equalTo(30));
+        assertThat(getReplacedConfiguration("restApiTimeoutSeconds: 15", "")
+                .getRestApiTimeoutSeconds(), equalTo(DEFAULT_REST_API_TIMEOUT_SECONDS));
+    }
 
     @Test
     void afterReplace_configHasChangedDomainQualifier() {

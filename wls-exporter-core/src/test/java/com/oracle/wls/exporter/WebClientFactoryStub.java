@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2025, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2026, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -69,6 +69,10 @@ public class WebClientFactoryStub implements WebClientFactory {
 
     public String getClientUrl() {
         return webClient.url;
+    }
+
+    int getRequestTimeoutMillis() {
+        return webClient.getRequestTimeoutMillis();
     }
 
     public void reportNotAuthorized() {

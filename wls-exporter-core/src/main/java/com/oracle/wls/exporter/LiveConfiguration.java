@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2023, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2026, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -88,6 +88,17 @@ public class LiveConfiguration {
 
     public static Integer getConfiguredRestPort() {
         return Optional.ofNullable(config).map(ExporterConfig::getRestPort).orElse(null);
+    }
+
+    /**
+     * Returns the timeout, in milliseconds, for each internal REST API request.
+     */
+    public static int getRestApiTimeoutMillis() {
+        int timeoutSeconds = Optional.ofNullable(getConfig())
+                .map(ExporterConfig::getRestApiTimeoutSeconds)
+                .orElse(ExporterConfig.DEFAULT_REST_API_TIMEOUT_SECONDS);
+        long timeoutMillis = (long) timeoutSeconds * 1000;
+        return (int) Math.min(timeoutMillis, Integer.MAX_VALUE);
     }
 
     /**
