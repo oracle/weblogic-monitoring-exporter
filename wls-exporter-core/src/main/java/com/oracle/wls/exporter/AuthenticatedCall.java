@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2025, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2026, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -75,7 +75,9 @@ public abstract class AuthenticatedCall {
     }
 
     public WebClient createWebClient() {
+        LiveConfiguration.updateConfiguration();
         final WebClient webClient = webClientFactory.createClient();
+        webClient.setRequestTimeoutMillis(LiveConfiguration.getRestApiTimeoutMillis());
         webClient.addHeader("X-Requested-By", "rest-exporter");
 
         webClient.setAuthentication(context.getAuthenticationHeader());

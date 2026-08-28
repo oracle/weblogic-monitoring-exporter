@@ -1,4 +1,4 @@
-// Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+// Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.meterware.simplestub.Memento;
+import com.meterware.simplestub.StaticStubSupport;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import static com.oracle.wls.exporter.WebAppConstants.SET_COOKIE_HEADER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
 
 class AuthenticatedCallTest {
 
@@ -30,12 +32,16 @@ class AuthenticatedCallTest {
   @BeforeEach
   void setUp() throws NoSuchFieldException {
     AuthenticatedCall.clearCookies();
+    LiveConfiguration.loadFromString("");
+    ConfigurationUpdaterStub.install();
 
     mementos.add(SystemClockTestSupport.installClock());
+    mementos.add(StaticStubSupport.install(LiveConfiguration.class, "timestamp", 0L));
   }
 
   @AfterEach
   void tearDown() {
+    ConfigurationUpdaterStub.uninstall();
     mementos.forEach(Memento::revert);
   }
 
@@ -45,6 +51,25 @@ class AuthenticatedCallTest {
     callStub.doWithAuthentication();
 
     assertThat(webClientFactory.getSentHeaders(COOKIE_HEADER), empty());
+  }
+
+  @Test
+  void whenCreatingWebClient_useCurrentLiveRestApiTimeout() {
+    LiveConfiguration.loadFromString("restApiTimeoutSeconds: 15");
+
+    callStub.createWebClient();
+
+    assertThat(webClientFactory.getRequestTimeoutMillis(), equalTo(15000));
+  }
+
+  @Test
+  void whenCreatingWebClientAfterSynchronizedUpdate_useUpdatedRestApiTimeout() {
+    LiveConfiguration.loadFromString("restApiTimeoutSeconds: 5");
+    ConfigurationUpdaterStub.newConfiguration(1, "restApiTimeoutSeconds: 15");
+
+    callStub.createWebClient();
+
+    assertThat(webClientFactory.getRequestTimeoutMillis(), equalTo(15000));
   }
 
   @Test

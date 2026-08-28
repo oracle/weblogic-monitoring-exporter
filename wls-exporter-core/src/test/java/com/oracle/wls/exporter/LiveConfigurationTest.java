@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2025, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2026, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -100,6 +100,29 @@ class LiveConfigurationTest {
     @Test
     void whenInitNotCalled_haveNoQueries() {
         assertThat(LiveConfiguration.hasQueries(), is(false));
+    }
+
+    @Test
+    void whenRestApiTimeoutNotConfigured_useFiveSecondsInMillis() {
+        LiveConfiguration.loadFromString("");
+
+        assertThat(LiveConfiguration.getRestApiTimeoutMillis(), equalTo(5000));
+    }
+
+    @Test
+    void whenRestApiTimeoutConfigured_convertItToMillisAndUseReplacement() {
+        LiveConfiguration.loadFromString("restApiTimeoutSeconds: 15");
+        assertThat(LiveConfiguration.getRestApiTimeoutMillis(), equalTo(15000));
+
+        LiveConfiguration.replaceConfiguration(ExporterConfig.loadConfig("restApiTimeoutSeconds: 30"));
+        assertThat(LiveConfiguration.getRestApiTimeoutMillis(), equalTo(30000));
+    }
+
+    @Test
+    void whenRestApiTimeoutWouldOverflow_capItAtLargestMillisecondValue() {
+        LiveConfiguration.loadFromString("restApiTimeoutSeconds: 2147483647");
+
+        assertThat(LiveConfiguration.getRestApiTimeoutMillis(), equalTo(Integer.MAX_VALUE));
     }
 
     @Test

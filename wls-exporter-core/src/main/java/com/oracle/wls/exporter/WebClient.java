@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2023, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2026, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -23,6 +23,12 @@ public interface WebClient {
    * @return this instance
    */
   WebClient withUrl(String url);
+
+  /**
+   * Sets the timeout, in milliseconds, for each request made by this client.
+   * @param timeoutMillis the connect, read, and connection-request timeout
+   */
+  void setRequestTimeoutMillis(int timeoutMillis);
 
   /**
    * Sends a plain GET request to the defined URL without parameters

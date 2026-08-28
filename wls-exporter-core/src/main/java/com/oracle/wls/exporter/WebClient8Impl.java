@@ -1,4 +1,4 @@
-// Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+// Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter;
@@ -162,7 +162,7 @@ public class WebClient8Impl extends WebClientCommon {
     }
   }
 
-  static class Java8HttpClientExec implements HttpClientExec {
+  class Java8HttpClientExec implements HttpClientExec {
     @Override
     public WebResponse send(WebRequest request) throws IOException {
       HttpURLConnection connection = openConnection(request.getURI().toURL());
@@ -180,6 +180,7 @@ public class WebClient8Impl extends WebClientCommon {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setInstanceFollowRedirects( true );
         connection.setUseCaches( false );
+        configureTimeouts(connection);
         return connection;
       } catch (WebClientException e) {
         if (e.getCause() instanceof IOException)
@@ -193,5 +194,10 @@ public class WebClient8Impl extends WebClientCommon {
     public void close() {
       // no-op
     }
+  }
+
+  void configureTimeouts(HttpURLConnection connection) {
+    connection.setConnectTimeout(getRequestTimeoutMillis());
+    connection.setReadTimeout(getRequestTimeoutMillis());
   }
 }

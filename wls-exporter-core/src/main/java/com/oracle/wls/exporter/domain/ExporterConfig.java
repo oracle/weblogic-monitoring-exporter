@@ -1,4 +1,4 @@
-// Copyright (c) 2017, 2023, Oracle and/or its affiliates.
+// Copyright (c) 2017, 2026, Oracle and/or its affiliates.
 // Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
 
 package com.oracle.wls.exporter.domain;
@@ -35,7 +35,9 @@ public class ExporterConfig implements MetricsProcessor {
     static final String SNAKE_CASE = "metricsNameSnakeCase";
     static final String DOMAIN_QUALIFIER = "domainQualifier";
     static final String REST_PORT = "restPort";
+    static final String REST_API_TIMEOUT_SECONDS = "restApiTimeoutSeconds";
     private static final String QUERIES_TAG = "queries";
+    public static final int DEFAULT_REST_API_TIMEOUT_SECONDS = 5;
 
     private static final MBeanSelector[] NO_QUERIES = {};
     private static final String DOMAIN_NAME_QUALIFIER = "domain=\"%s\"";
@@ -44,6 +46,7 @@ public class ExporterConfig implements MetricsProcessor {
 
     private MBeanSelector[] queries = {};
     private Integer restPort;
+    private Integer restApiTimeoutSeconds;
     private boolean metricsNameSnakeCase = defaultSnakeCaseSetting;
     private QuerySyncConfiguration querySyncConfiguration;
     private boolean useDomainQualifier;
@@ -170,6 +173,7 @@ public class ExporterConfig implements MetricsProcessor {
         if (yaml.containsKey(DOMAIN_QUALIFIER)) setDomainQualifier(yaml);
         if (yaml.containsKey(SNAKE_CASE)) setMetricsNameSnakeCase(yaml);
         if (yaml.containsKey(REST_PORT)) restPort = MapUtils.getIntegerValue(yaml, REST_PORT);
+        if (yaml.containsKey(REST_API_TIMEOUT_SECONDS)) setRestApiTimeoutSeconds(yaml);
         if (yaml.containsKey(QUERY_SYNC)) querySyncConfiguration = loadQuerySync(yaml.get(QUERY_SYNC));
         if (yaml.containsKey(QUERIES_TAG)) appendQueries(asList(yaml.get(QUERIES_TAG)));
     }
@@ -194,6 +198,12 @@ public class ExporterConfig implements MetricsProcessor {
             e.addContext(DOMAIN_QUALIFIER);
             throw e;
         }
+    }
+
+    private void setRestApiTimeoutSeconds(Map<String, Object> yaml) {
+        restApiTimeoutSeconds = MapUtils.getIntegerValue(yaml, REST_API_TIMEOUT_SECONDS);
+        if (restApiTimeoutSeconds <= 0)
+            throw new ConfigurationException(REST_API_TIMEOUT_SECONDS + " must be a positive integer");
     }
 
     @SuppressWarnings("unchecked")
@@ -271,6 +281,14 @@ public class ExporterConfig implements MetricsProcessor {
     }
 
     /**
+     * Returns the timeout for each internal REST API request, in seconds.
+     * @return the configured timeout, or the five-second default
+     */
+    public int getRestApiTimeoutSeconds() {
+        return restApiTimeoutSeconds == null ? DEFAULT_REST_API_TIMEOUT_SECONDS : restApiTimeoutSeconds;
+    }
+
+    /**
      * Returns true if attribute names should be converted to snake case as metric names
      * @return true if the conversion should be done
      */
@@ -308,6 +326,7 @@ public class ExporterConfig implements MetricsProcessor {
         this.metricsNameSnakeCase = config2.metricsNameSnakeCase;
         this.useDomainQualifier = config2.useDomainQualifier;
         this.restPort = config2.restPort;
+        this.restApiTimeoutSeconds = config2.restApiTimeoutSeconds;
         MBeanSelector[] newQueries = config2.getQueries();
         this.queries = Arrays.copyOf(newQueries, newQueries.length);
         resetDomainName();
@@ -326,6 +345,8 @@ public class ExporterConfig implements MetricsProcessor {
         if (metricsNameSnakeCase) sb.append("metricsNameSnakeCase: true\n");
         if (useDomainQualifier) sb.append(DOMAIN_QUALIFIER + ": true\n");
         if (restPort != null) sb.append(REST_PORT + ": ").append(restPort).append("\n");
+        if (restApiTimeoutSeconds != null)
+            sb.append(REST_API_TIMEOUT_SECONDS + ": ").append(restApiTimeoutSeconds).append("\n");
         sb.append("queries:\n");
 
         for (MBeanSelector query : getQueries())
